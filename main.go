@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -102,7 +103,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 func call(call Call) (rememberMap map[string]string, failedExpectations []string) {
 	on := call.On
 
-	req, _ := http.NewRequest(on.Method, "http://localhost:8080"+on.Url, nil) //TODO extract url to param
+	req, _ := http.NewRequest(on.Method, "https://secure.workforceready.eu"+on.Url, nil) //TODO extract url to param
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, value)
@@ -141,15 +142,35 @@ func call(call Call) (rememberMap map[string]string, failedExpectations []string
 		return
 	}
 
+	exps := expectations(call)
+	for _, exp := range exps {
+		checkErr := exp.check(*resp)
+		if checkErr != nil {
+			fmt.Fprintln(os.Stderr, checkErr.Error())
+		}
+	}
 	//fmt.Printf("bm: %v\n", bodyMap)
 
-	//v := getByPath(bodyMap, "token")
+	// v := getByPath(bodyMap, "token")
 	//fmt.Printf("v: %v\n", v)
 
-	rememberMap = remember(bodyMap, call.Remember)
-	fmt.Printf("rememberMap: %v\n", rememberMap)
+	// rememberMap = remember(bodyMap, call.Remember)
+	// fmt.Printf("rememberMap: %v\n", rememberMap)
 
 	return
+}
+
+func expectations(call Call) []ResponseExpectation {
+	var exps []ResponseExpectation
+
+	fmt.Println(call.Expect.StatusCode)
+
+	if call.Expect.StatusCode != -1 {
+		exps = append(exps, StatusExpectation{statusCode: call.Expect.StatusCode})
+	}
+
+	// and so on
+	return exps
 }
 
 func remember(bodyMap map[string]interface{}, remember map[string]string) map[string]string {
@@ -166,7 +187,7 @@ func remember(bodyMap map[string]interface{}, remember map[string]string) map[st
 			}
 
 			rememberedMap[varName] = getByPath(bodyMap, b...).(string)
-			//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
+			fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
 		}
 	}
 
@@ -184,6 +205,22 @@ func getByPath(m interface{}, path ...interface{}) interface{} {
 		}
 	}
 	return m
+}
+
+type ResponseExpectation interface {
+	check(resp http.Response) error
+}
+
+type StatusExpectation struct {
+	statusCode int
+}
+
+func (e StatusExpectation) check(resp http.Response) error {
+	if resp.StatusCode != e.statusCode {
+		msg := fmt.Sprintf("Unexpected Status Code. Expected: %d, Actual: %d", e.statusCode, resp.StatusCode)
+		return errors.New(msg)
+	}
+	return nil
 }
 
 // TODO remember
