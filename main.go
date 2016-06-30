@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"encoding/json"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -15,27 +17,33 @@ type TestCase struct {
 }
 
 type Call struct {
-	On     On `json:"on"`
-	Expect Expect `json:"expect"`
+	On       On                `json:"on"`
+	Expect   Expect            `json:"expect"`
 	Remember map[string]string `json:"remember"`
 }
 
 type On struct {
-	Method string `json:"method"`
-	Url    string `json:"url"`
+	Method  string            `json:"method"`
+	Url     string            `json:"url"`
 	Headers map[string]string `json:"headers"`
-	Params map[string]string `json:"params"`
+	Params  map[string]string `json:"params"`
 }
 
 type Expect struct {
-	StatusCode  int    `json:"statusCode"`
-	ContentType string `json:"contentType"`
+	StatusCode  int                    `json:"statusCode"`
+	ContentType string                 `json:"contentType"`
 	Body        map[string]interface{} `json:"body"`
 }
 
-func main() {
+var (
+	suiteDir = flag.String("d", ".", "Path to the directory that contains test suite.")
+)
 
-	testCases, err := readTestCases()
+func main() {
+	flag.Parse()
+
+	loader := testCaseLoader{}
+	testCases, err := loader.loadDir(*suiteDir)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
@@ -46,24 +54,52 @@ func main() {
 	call(testCases[0].Calls[0]) //TODO cycle
 }
 
-func readTestCases() (testCases []TestCase, err error) {
-	file, e := ioutil.ReadFile("C:/_ws_go/src/trest/tests.json") //TODO extract file(s) to param
+type testCaseLoader struct {
+	tests []TestCase
+}
+
+func (s *testCaseLoader) loadDir(dir string) ([]TestCase, error) {
+	err := filepath.Walk(dir, s.loadFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.tests, nil
+}
+
+func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) error {
+	if err != nil {
+		return nil
+	}
+
+	if info.IsDir() {
+		return nil
+	}
+
+	if !strings.HasSuffix(info.Name(), ".json") {
+		return nil
+	}
+
+	fmt.Printf("Process file: %s\n", info.Name())
+	content, e := ioutil.ReadFile(path)
 
 	if e != nil {
 		fmt.Printf("File error: %v\n", e)
-		return
+		return nil
 	}
 
-	err = json.Unmarshal(file, &testCases)
+	var testCases []TestCase
+	err = json.Unmarshal(content, &testCases)
 	if err != nil {
 		fmt.Printf("Parse error: %v\n", err)
-		return
+		return nil
 	}
 
-	return
+	s.tests = append(s.tests, testCases...)
+	return nil
 }
 
-func call(call Call)(rememberMap map[string]string, failedExpectations []string) {
+func call(call Call) (rememberMap map[string]string, failedExpectations []string) {
 	on := call.On
 
 	req, _ := http.NewRequest(on.Method, "http://localhost:8080"+on.Url, nil) //TODO extract url to param
@@ -113,11 +149,10 @@ func call(call Call)(rememberMap map[string]string, failedExpectations []string)
 	rememberMap = remember(bodyMap, call.Remember)
 	fmt.Printf("rememberMap: %v\n", rememberMap)
 
-
 	return
 }
 
-func remember (bodyMap map[string]interface{}, remember map[string]string) map[string]string {
+func remember(bodyMap map[string]interface{}, remember map[string]string) map[string]string {
 	var rememberedMap = make(map[string]string)
 
 	for varName, path := range remember {
@@ -130,7 +165,7 @@ func remember (bodyMap map[string]interface{}, remember map[string]string) map[s
 				b[i] = splitPath[i]
 			}
 
-			rememberedMap[varName]=getByPath(bodyMap, b...).(string)
+			rememberedMap[varName] = getByPath(bodyMap, b...).(string)
 			//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
 		}
 	}
