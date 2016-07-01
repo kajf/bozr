@@ -56,6 +56,7 @@ func main() {
 	fmt.Printf("Test Cases: %v\n", testCases)
 
 	call(testCases[0].Calls[0]) //TODO cycle
+	call(testCases[0].Calls[1])
 }
 
 type testCaseLoader struct {
@@ -138,13 +139,6 @@ func call(call Call) (rememberMap map[string]string, failedExpectations []string
 	//fmt.Printf("Code: %v\n", resp.Status)
 	fmt.Printf("Resp: %v\n", string(body))
 
-	var bodyMap map[string]interface{}
-	err = json.Unmarshal(body, &bodyMap)
-	if err != nil {
-		fmt.Println("Error parsing body")
-		return
-	}
-
 	exps := expectations(call)
 	testResp := Response{http: *resp, body: string(body)}
 	for _, exp := range exps {
@@ -159,8 +153,19 @@ func call(call Call) (rememberMap map[string]string, failedExpectations []string
 	// v := getByPath(bodyMap, "token")
 	//fmt.Printf("v: %v\n", v)
 
-	// rememberMap = remember(bodyMap, call.Remember)
-	// fmt.Printf("rememberMap: %v\n", rememberMap)
+	var bodyMap map[string]interface{}
+	err = json.Unmarshal(body, &bodyMap)
+	if err != nil {
+		fmt.Println("Error parsing body")
+		return
+	}
+
+	rememberMap, err = remember(bodyMap, call.Remember)
+	fmt.Printf("rememberMap: %v\n", rememberMap)
+	if err != nil {
+		fmt.Println("Error remember")
+		return
+	}
 
 	return
 }
@@ -186,8 +191,8 @@ func expectations(call Call) []ResponseExpectation {
 	return exps
 }
 
-func remember(bodyMap map[string]interface{}, remember map[string]string) map[string]string {
-	var rememberedMap = make(map[string]string)
+func remember(bodyMap map[string]interface{}, remember map[string]string) (rememberedMap map[string]string, err error) {
+	rememberedMap = make(map[string]string)
 
 	for varName, path := range remember {
 		if strings.HasPrefix(path, "body.") {
@@ -199,12 +204,17 @@ func remember(bodyMap map[string]interface{}, remember map[string]string) map[st
 				b[i] = splitPath[i]
 			}
 
-			rememberedMap[varName] = getByPath(bodyMap, b...).(string)
-			fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
+			rememberVar := getByPath(bodyMap, b...)
+			if rememberVar != nil {
+				rememberedMap[varName] = rememberVar.(string)
+			} else {
+				err = errors.New("Remembered value not found: %v\n")
+			}
+			//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
 		}
 	}
 
-	return rememberedMap
+	return rememberedMap, err
 }
 
 func getByPath(m interface{}, path ...interface{}) interface{} {
