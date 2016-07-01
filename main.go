@@ -139,13 +139,6 @@ func call(testCase TestCase, call Call) (rememberMap map[string]string, failedEx
 	//fmt.Printf("Code: %v\n", resp.Status)
 	fmt.Printf("Resp: %v\n", string(body))
 
-	var bodyMap map[string]interface{}
-	err = json.Unmarshal(body, &bodyMap)
-	if err != nil {
-		fmt.Println("Error parsing body")
-		return
-	}
-
 	testResp := Response{http: *resp, body: string(body)}
 	reporter := NewConsoleReporter()
 	result := TestResult{Case: testCase, Resp: testResp}
