@@ -15,7 +15,6 @@ type ConsoleReporter struct {
 }
 
 func (r ConsoleReporter) Report(result TestResult) {
-	fmt.Println(result.Cause)
 	if result.Cause != nil {
 		r.reportError(result)
 	} else {
@@ -25,16 +24,20 @@ func (r ConsoleReporter) Report(result TestResult) {
 
 func (r ConsoleReporter) reportSuccess(result TestResult) {
 	c := color.New(color.FgGreen).Add(color.Bold)
-	c.Printf("PASSED: %s\n", result.Case.Description)
+	fmt.Printf("[")
+	c.Print("PASSED")
+	fmt.Printf("] %s\n", result.Case.Description)
 }
 
 func (r ConsoleReporter) reportError(result TestResult) {
 	c := color.New(color.FgRed).Add(color.Bold)
-	c.Printf("FAILED: %s\n", result.Case.Description)
+	fmt.Printf("[")
+	c.Print("FAILED")
+	fmt.Printf("] %s\n", result.Case.Description)
 	lines := strings.Split(result.Cause.Error(), "\n")
 
 	for _, line := range lines {
-		fmt.Printf("\t%s \n", line)
+		fmt.Printf("\t\t%s \n", line)
 	}
 }
 

@@ -278,7 +278,7 @@ func (e BodySchemaExpectation) check(resp Response) error {
 	if !result.Valid() {
 		msg := "Unexpected Body Schema:\n"
 		for _, desc := range result.Errors() {
-			msg = fmt.Sprintf(msg+"\n\t%s\n", desc)
+			msg = fmt.Sprintf(msg+"%s\n", desc)
 		}
 		return errors.New(msg)
 	}
