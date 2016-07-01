@@ -55,7 +55,7 @@ func main() {
 
 	fmt.Printf("Test Cases: %v\n", testCases)
 
-	call(testCases[0].Calls[0]) //TODO cycle
+	call(testCases[0], testCases[0].Calls[0]) //TODO cycle
 }
 
 type testCaseLoader struct {
@@ -103,7 +103,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 	return nil
 }
 
-func call(call Call) (rememberMap map[string]string, failedExpectations []string) {
+func call(testCase TestCase, call Call) (rememberMap map[string]string, failedExpectations []string) {
 	on := call.On
 
 	req, _ := http.NewRequest(on.Method, "https://secure.workforceready.eu"+on.Url, nil) //TODO extract url to param
@@ -145,15 +145,19 @@ func call(call Call) (rememberMap map[string]string, failedExpectations []string
 		return
 	}
 
-	exps := expectations(call)
 	testResp := Response{http: *resp, body: string(body)}
+	reporter := NewConsoleReporter()
+	result := TestResult{Case: testCase, Resp: testResp}
+
+	exps := expectations(call)
 	for _, exp := range exps {
 		checkErr := exp.check(testResp)
 		if checkErr != nil {
-			fmt.Fprintln(os.Stderr, checkErr.Error())
+			result.Cause = checkErr
 			break
 		}
 	}
+	reporter.Report(result)
 	//fmt.Printf("bm: %v\n", bodyMap)
 
 	// v := getByPath(bodyMap, "token")
@@ -220,6 +224,13 @@ func getByPath(m interface{}, path ...interface{}) interface{} {
 	return m
 }
 
+type TestResult struct {
+	Case TestCase
+	Resp Response
+	// in case test failed, cause must be specified
+	Cause error
+}
+
 type Response struct {
 	http http.Response
 	body string
@@ -257,7 +268,7 @@ func (e BodySchemaExpectation) check(resp Response) error {
 	if !result.Valid() {
 		msg := "Unexpected Body Schema:\n"
 		for _, desc := range result.Errors() {
-			msg = fmt.Sprintf(msg+"%s\n", desc)
+			msg = fmt.Sprintf(msg+"\n\t%s\n", desc)
 		}
 		return errors.New(msg)
 	}

@@ -1,3 +1,6 @@
 package: github.com/dpfg/t-rest
 import:
 - package: github.com/xeipuuv/gojsonschema
+- package: github.com/fatih/color
+- package: github.com/mattn/go-colorable
+- package: github.com/mattn/go-isatty
