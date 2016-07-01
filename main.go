@@ -41,6 +41,7 @@ type Expect struct {
 
 var (
 	suiteDir = flag.String("d", ".", "Path to the directory that contains test suite.")
+	host     = flag.String("h", "http://localhost:8080", "Test server address")
 )
 
 func main() {
@@ -106,7 +107,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 func call(testCase TestCase, call Call) (rememberMap map[string]string, failedExpectations []string) {
 	on := call.On
 
-	req, _ := http.NewRequest(on.Method, "http://localhost:8080"+on.Url, nil) //TODO extract url to param
+	req, _ := http.NewRequest(on.Method, *host+on.Url, nil) //TODO extract url to param
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, value)
@@ -163,8 +164,8 @@ func call(testCase TestCase, call Call) (rememberMap map[string]string, failedEx
 	// v := getByPath(bodyMap, "token")
 	//fmt.Printf("v: %v\n", v)
 
-	// rememberMap = remember(bodyMap, call.Remember)
-	// fmt.Printf("rememberMap: %v\n", rememberMap)
+	rememberMap = remember(bodyMap, call.Remember)
+	fmt.Printf("rememberMap: %v\n", rememberMap)
 
 	return
 }
