@@ -1,0 +1,6 @@
+hash: 0bc1bdac9f569e7382b1d41bfd94a669b52390f974d96c02039a2456ef223895
+updated: 2016-07-01T08:11:02.280258335+03:00
+imports:
+- name: github.com/xeipuuv/gojsonschema
+  version: c539bca196be50ccdd1f0bcd9076de95f9081831
+devImports: []

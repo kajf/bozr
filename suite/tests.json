@@ -1,0 +1,30 @@
+[
+  {
+    "description": "",
+    "calls": [
+      {
+        "on": {
+          "method": "GET",
+          "url": "/ta/rest/v1/login",
+          "headers" : {
+            "accept" : "application/json"
+          },
+          "params": {
+            "company": "acpizza",
+            "username": "db",
+            "password": "Summer@2016"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "contentType": "application/json",
+          "body": {},
+		  "bodySchema" : "login-schema.json"
+        },
+        "remember": {
+          "savedToken": "body.token"
+        }
+      }
+    ]
+  }
+]
