@@ -9,3 +9,6 @@ After you installed it, you can run the following command to download all depend
 cd t-rest
 glide install
 ```
+
+## Dependencies
+https://github.com/xeipuuv/gojsonschema
