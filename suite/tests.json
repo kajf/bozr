@@ -24,6 +24,32 @@
         "remember": {
           "savedToken": "body.token"
         }
+      },
+      {
+        "on": {
+          "method": "GET",
+          "url": "/company/rate-tables",
+          "headers": {
+            "Authentication": "Authentication bearer {savedToken}",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+          },
+          "params": {
+            "filter": "id:in:817345"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "contentType": "application/json",
+          "body": {
+            "rate_items.0.rate_table.id": {
+              "hasItem": "817345"
+            },
+            "rate_items.0.rate_table.name": {
+              "hasItem": "Test Rate Table1"
+            }
+          }
+        }
       }
     ]
   }
