@@ -179,7 +179,7 @@ func expectations(call Call) []ResponseExpectation {
 			fmt.Println(err)
 		}
 
-		uri = filepath.Join("file://", uri, call.Expect.BodySchema)
+		uri = "file:///" + filepath.ToSlash(filepath.Join(uri, call.Expect.BodySchema))
 		exps = append(exps, BodySchemaExpectation{schemaURI: uri})
 	}
 	// and so on
