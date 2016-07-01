@@ -106,7 +106,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 func call(call Call) (rememberMap map[string]string, failedExpectations []string) {
 	on := call.On
 
-	req, _ := http.NewRequest(on.Method, "https://secure.workforceready.eu"+on.Url, nil) //TODO extract url to param
+	req, _ := http.NewRequest(on.Method, "http://localhost:8080"+on.Url, nil) //TODO extract url to param
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, value)
