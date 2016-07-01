@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/xeipuuv/gojsonschema"
 )
 
 type TestCase struct {
@@ -34,6 +36,7 @@ type Expect struct {
 	StatusCode  int                    `json:"statusCode"`
 	ContentType string                 `json:"contentType"`
 	Body        map[string]interface{} `json:"body"`
+	BodySchema  string                 `json:"bodySchema"`
 }
 
 var (
@@ -143,10 +146,12 @@ func call(call Call) (rememberMap map[string]string, failedExpectations []string
 	}
 
 	exps := expectations(call)
+	testResp := Response{http: *resp, body: string(body)}
 	for _, exp := range exps {
-		checkErr := exp.check(*resp)
+		checkErr := exp.check(testResp)
 		if checkErr != nil {
 			fmt.Fprintln(os.Stderr, checkErr.Error())
+			break
 		}
 	}
 	//fmt.Printf("bm: %v\n", bodyMap)
@@ -163,12 +168,20 @@ func call(call Call) (rememberMap map[string]string, failedExpectations []string
 func expectations(call Call) []ResponseExpectation {
 	var exps []ResponseExpectation
 
-	fmt.Println(call.Expect.StatusCode)
-
 	if call.Expect.StatusCode != -1 {
 		exps = append(exps, StatusExpectation{statusCode: call.Expect.StatusCode})
 	}
 
+	if call.Expect.BodySchema != "" {
+		// for now use path relative to suiteDir
+		uri, err := filepath.Abs(*suiteDir)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		uri = filepath.Join("file://", uri, call.Expect.BodySchema)
+		exps = append(exps, BodySchemaExpectation{schemaURI: uri})
+	}
 	// and so on
 	return exps
 }
@@ -207,19 +220,48 @@ func getByPath(m interface{}, path ...interface{}) interface{} {
 	return m
 }
 
+type Response struct {
+	http http.Response
+	body string
+}
+
 type ResponseExpectation interface {
-	check(resp http.Response) error
+	check(resp Response) error
 }
 
 type StatusExpectation struct {
 	statusCode int
 }
 
-func (e StatusExpectation) check(resp http.Response) error {
-	if resp.StatusCode != e.statusCode {
-		msg := fmt.Sprintf("Unexpected Status Code. Expected: %d, Actual: %d", e.statusCode, resp.StatusCode)
+func (e StatusExpectation) check(resp Response) error {
+	if resp.http.StatusCode != e.statusCode {
+		msg := fmt.Sprintf("Unexpected Status Code. Expected: %d, Actual: %d", e.statusCode, resp.http.StatusCode)
 		return errors.New(msg)
 	}
+	return nil
+}
+
+type BodySchemaExpectation struct {
+	schemaURI string
+}
+
+func (e BodySchemaExpectation) check(resp Response) error {
+	schemaLoader := gojsonschema.NewReferenceLoader(e.schemaURI)
+	documentLoader := gojsonschema.NewStringLoader(resp.body)
+
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if !result.Valid() {
+		msg := "Unexpected Body Schema:\n"
+		for _, desc := range result.Errors() {
+			msg = fmt.Sprintf(msg+"%s\n", desc)
+		}
+		return errors.New(msg)
+	}
+
 	return nil
 }
 

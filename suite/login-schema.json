@@ -1,0 +1,23 @@
+{
+  "title": "Login Response Schema",
+  "type": "object",
+
+  "properties": {
+    "token": {
+      "type": "integer"
+    },
+    "ttl": {
+      "type": "integer"
+    },
+    "units": {
+      "type": "string",
+      "minimum": 0
+    }
+  },
+
+  "required": [
+    "token",
+    "ttl",
+    "units"
+  ]
+}

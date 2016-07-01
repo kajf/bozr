@@ -1,0 +1,3 @@
+package: github.com/dpfg/t-rest
+import:
+- package: github.com/xeipuuv/gojsonschema
