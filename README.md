@@ -10,5 +10,5 @@ cd t-rest
 glide install
 ```
 
-## Dependencies
-https://github.com/xeipuuv/gojsonschema
+Dependencies:
+- https://github.com/xeipuuv/gojsonschema
