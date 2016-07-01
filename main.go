@@ -41,6 +41,7 @@ type Expect struct {
 
 var (
 	suiteDir = flag.String("d", ".", "Path to the directory that contains test suite.")
+	host     = flag.String("h", "http://localhost:8080", "Test server address")
 )
 
 func main() {
@@ -55,8 +56,7 @@ func main() {
 
 	fmt.Printf("Test Cases: %v\n", testCases)
 
-	call(testCases[0].Calls[0]) //TODO cycle
-	call(testCases[0].Calls[1])
+	call(testCases[0], testCases[0].Calls[0]) //TODO cycle
 }
 
 type testCaseLoader struct {
@@ -104,10 +104,10 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 	return nil
 }
 
-func call(call Call) (rememberMap map[string]string, failedExpectations []string) {
+func call(testCase TestCase, call Call) (rememberMap map[string]string, failedExpectations []string) {
 	on := call.On
 
-	req, _ := http.NewRequest(on.Method, "https://secure.workforceready.eu"+on.Url, nil) //TODO extract url to param
+	req, _ := http.NewRequest(on.Method, *host+on.Url, nil) //TODO extract url to param
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, value)
@@ -139,15 +139,26 @@ func call(call Call) (rememberMap map[string]string, failedExpectations []string
 	//fmt.Printf("Code: %v\n", resp.Status)
 	fmt.Printf("Resp: %v\n", string(body))
 
-	exps := expectations(call)
+	var bodyMap map[string]interface{}
+	err = json.Unmarshal(body, &bodyMap)
+	if err != nil {
+		fmt.Println("Error parsing body")
+		return
+	}
+
 	testResp := Response{http: *resp, body: string(body)}
+	reporter := NewConsoleReporter()
+	result := TestResult{Case: testCase, Resp: testResp}
+
+	exps := expectations(call)
 	for _, exp := range exps {
 		checkErr := exp.check(testResp)
 		if checkErr != nil {
-			fmt.Fprintln(os.Stderr, checkErr.Error())
+			result.Cause = checkErr
 			break
 		}
 	}
+	reporter.Report(result)
 	//fmt.Printf("bm: %v\n", bodyMap)
 
 	// v := getByPath(bodyMap, "token")
@@ -230,6 +241,13 @@ func getByPath(m interface{}, path ...interface{}) interface{} {
 	return m
 }
 
+type TestResult struct {
+	Case TestCase
+	Resp Response
+	// in case test failed, cause must be specified
+	Cause error
+}
+
 type Response struct {
 	http http.Response
 	body string
@@ -267,7 +285,7 @@ func (e BodySchemaExpectation) check(resp Response) error {
 	if !result.Valid() {
 		msg := "Unexpected Body Schema:\n"
 		for _, desc := range result.Errors() {
-			msg = fmt.Sprintf(msg+"%s\n", desc)
+			msg = fmt.Sprintf(msg+"\n\t%s\n", desc)
 		}
 		return errors.New(msg)
 	}

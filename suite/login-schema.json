@@ -4,7 +4,7 @@
 
   "properties": {
     "token": {
-      "type": "integer"
+      "type": "string"
     },
     "ttl": {
       "type": "integer"
