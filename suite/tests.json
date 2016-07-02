@@ -22,7 +22,7 @@
 		  "bodySchema" : "login-schema.json"
         },
         "remember": {
-          "savedToken": "body.token"
+          "savedToken": "token"
         }
       },
       {
