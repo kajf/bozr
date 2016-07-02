@@ -41,7 +41,7 @@ type Expect struct {
 
 var (
 	suiteDir = flag.String("d", ".", "Path to the directory that contains test suite.")
-	host     = flag.String("h", "http://localhost:8080", "Test server address")
+	host = flag.String("h", "http://localhost:8080", "Test server address")
 )
 
 func main() {
@@ -56,7 +56,11 @@ func main() {
 
 	fmt.Printf("Test Cases: %v\n", testCases)
 
-	call(testCases[0], testCases[0].Calls[0]) //TODO cycle
+	rememberedMap := make(map[string]string)
+
+	call(testCases[0], testCases[0].Calls[0], rememberedMap) //TODO cycle
+	call(testCases[0], testCases[0].Calls[1], rememberedMap)
+
 }
 
 type testCaseLoader struct {
@@ -104,13 +108,13 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 	return nil
 }
 
-func call(testCase TestCase, call Call) (rememberMap map[string]string, failedExpectations []string) {
+func call(testCase TestCase, call Call, rememberMap map[string]string) (failedExpectations []string) {
 	on := call.On
 
-	req, _ := http.NewRequest(on.Method, *host+on.Url, nil) //TODO extract url to param
+	req, _ := http.NewRequest(on.Method, *host + on.Url, nil) //TODO extract url to param
 
 	for key, value := range on.Headers {
-		req.Header.Add(key, value)
+		req.Header.Add(key, putRememberedVars(value, rememberMap))
 	}
 
 	q := req.URL.Query()
@@ -152,10 +156,6 @@ func call(testCase TestCase, call Call) (rememberMap map[string]string, failedEx
 		}
 	}
 	reporter.Report(result)
-	//fmt.Printf("bm: %v\n", bodyMap)
-
-	// v := getByPath(bodyMap, "token")
-	//fmt.Printf("v: %v\n", v)
 
 	var bodyMap map[string]interface{}
 	err = json.Unmarshal(body, &bodyMap)
@@ -164,7 +164,7 @@ func call(testCase TestCase, call Call) (rememberMap map[string]string, failedEx
 		return
 	}
 
-	rememberMap, err = remember(bodyMap, call.Remember)
+	err = remember(bodyMap, call.Remember, rememberMap)
 	fmt.Printf("rememberMap: %v\n", rememberMap)
 	if err != nil {
 		fmt.Println("Error remember")
@@ -172,6 +172,15 @@ func call(testCase TestCase, call Call) (rememberMap map[string]string, failedEx
 	}
 
 	return
+}
+
+func putRememberedVars(str string, rememberMap map[string]string) string {
+	res := str
+	for varName, val := range rememberMap {
+		placeholder := "{" + varName + "}";
+		res = strings.Replace(res, placeholder, val, -1)
+	}
+	return res
 }
 
 func expectations(call Call) []ResponseExpectation {
@@ -195,8 +204,7 @@ func expectations(call Call) []ResponseExpectation {
 	return exps
 }
 
-func remember(bodyMap map[string]interface{}, remember map[string]string) (rememberedMap map[string]string, err error) {
-	rememberedMap = make(map[string]string)
+func remember(bodyMap map[string]interface{}, remember map[string]string, rememberedMap map[string]string) (err error) {
 
 	for varName, path := range remember {
 		if strings.HasPrefix(path, "body.") {
@@ -218,7 +226,7 @@ func remember(bodyMap map[string]interface{}, remember map[string]string) (remem
 		}
 	}
 
-	return rememberedMap, err
+	return err
 }
 
 func getByPath(m interface{}, path ...interface{}) interface{} {
@@ -235,8 +243,8 @@ func getByPath(m interface{}, path ...interface{}) interface{} {
 }
 
 type TestResult struct {
-	Case TestCase
-	Resp Response
+	Case  TestCase
+	Resp  Response
 	// in case test failed, cause must be specified
 	Cause error
 }
@@ -278,7 +286,7 @@ func (e BodySchemaExpectation) check(resp Response) error {
 	if !result.Valid() {
 		msg := "Unexpected Body Schema:\n"
 		for _, desc := range result.Errors() {
-			msg = fmt.Sprintf(msg+"%s\n", desc)
+			msg = fmt.Sprintf(msg + "%s\n", desc)
 		}
 		return errors.New(msg)
 	}

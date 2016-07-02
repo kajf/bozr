@@ -19,7 +19,7 @@ func TestGetByPathSimple(t *testing.T) {
 
 func TestGetByPath2ndLevel(t *testing.T) {
 	name := "abc"
-	token := map[string]interface{} {"name": name}
+	token := map[string]interface{}{"name": name}
 	m := map[string]interface{}{"token": token, "bar": 2}
 
 	got := getByPath(m, "token", "name")
@@ -43,6 +43,36 @@ func TestGetByPathEmpty(t *testing.T) {
 			"For", "token",
 			"expected", nil,
 			"got", got,
+		)
+	}
+}
+
+func TestPutRememberedVars(t *testing.T) {
+	token := "test_token"
+	rememberMap := map[string]string{"savedToken":token}
+
+	got := putRememberedVars("bearer {savedToken}", rememberMap)
+
+	if got != "bearer " + token {
+		t.Error(
+			"expected", "bearer " + token,
+			"got", got,
+		)
+	}
+}
+
+func TestPutRememberedVarsMultiple(t *testing.T) {
+	token := "test_token"
+	second := "second"
+	rememberMap := map[string]string{"savedToken":token, "aSecond":second}
+
+	got := putRememberedVars("prefix {savedToken} middle {aSecond} postfix", rememberMap)
+
+	expected := "prefix " + token + " middle " + second +" postfix"
+	if got != expected {
+		t.Error(
+			"expected[", expected,
+			"got[", got,
 		)
 	}
 }

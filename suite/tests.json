@@ -28,9 +28,9 @@
       {
         "on": {
           "method": "GET",
-          "url": "/company/rate-tables",
+          "url": "/ta/rest/v1/company/rate-tables",
           "headers": {
-            "Authentication": "Authentication bearer {savedToken}",
+            "Authentication": "bearer {savedToken}",
             "Accept": "application/json",
             "Content-Type": "application/json"
           },
@@ -42,11 +42,8 @@
           "statusCode": 200,
           "contentType": "application/json",
           "body": {
-            "rate_items.0.rate_table.id": {
+            "rate_tables.rate_table.id": {
               "hasItem": "817345"
-            },
-            "rate_items.0.rate_table.name": {
-              "hasItem": "Test Rate Table1"
             }
           }
         }
