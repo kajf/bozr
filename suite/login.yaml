@@ -1,0 +1,52 @@
+
+precondition:
+  name: authenticated
+  params:
+    - company
+    - username
+    - password
+
+  get:
+    url: /login
+    headers:
+      accept: application/json
+    params:
+      company: $company
+      username: $username
+      password: $password
+    remember:
+      token: body.token
+
+suite:
+  name: Company Profiles
+  description: Bla Bla show
+
+  tests:
+      -
+        name: Company profiles
+        given:
+            - authenticated:
+                company: test
+                username: test
+                password: test
+        when:
+          get:
+            url: /test
+            headers:
+                accept: application/json
+            expect:
+                status: 200
+                header:
+                  content-type: application/json
+                body: |
+                    {
+                      "profiles" : []
+                    }
+            remember:
+                token: body.token
+
+      -
+        name: Faied login
+        given:
+        when:
+        then:
