@@ -207,23 +207,22 @@ func expectations(call Call) []ResponseExpectation {
 func remember(bodyMap map[string]interface{}, remember map[string]string, rememberedMap map[string]string) (err error) {
 
 	for varName, path := range remember {
-		if strings.HasPrefix(path, "body.") {
-			bodyPath := strings.TrimPrefix(path, "body.")
-			splitPath := strings.Split(bodyPath, ".")
 
-			b := make([]interface{}, len(splitPath))
-			for i := range splitPath {
-				b[i] = splitPath[i]
-			}
+		splitPath := strings.Split(path, ".")
 
-			rememberVar := getByPath(bodyMap, b...)
-			if rememberVar != nil {
-				rememberedMap[varName] = rememberVar.(string)
-			} else {
-				err = errors.New("Remembered value not found: %v\n")
-			}
-			//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
+		b := make([]interface{}, len(splitPath))
+		for i := range splitPath {
+			b[i] = splitPath[i]
 		}
+
+		rememberVar := getByPath(bodyMap, b...)
+		if rememberVar != nil {
+			rememberedMap[varName] = rememberVar.(string)
+		} else {
+			err = errors.New("Remembered value not found: %v\n")
+		}
+			//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
+
 	}
 
 	return err
@@ -294,8 +293,6 @@ func (e BodySchemaExpectation) check(resp Response) error {
 	return nil
 }
 
-// TODO remember
-// TODO resp matches schema
 // TODO expect matchers: equal, anyOf, arrHasSize, arrHasItems
 // TODO expect matchers without <any> indexes
 // TODO expect: header, statusCode, body
