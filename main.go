@@ -249,8 +249,7 @@ func searchByPath(m interface{}, s string, path ...string) (bool) {
 		// TODO refactor to separate function part from path parts
 		if idx == len(path) - 1 {
 			if p == "size()" {
-				arr, ok := m.([]interface{})
-				if ok {
+				if arr, ok := m.([]interface{}); ok {
 					arrLen, err := strconv.Atoi(s)
 					if err == nil && arrLen == len(arr) {
 						return true
@@ -379,5 +378,9 @@ func (e BodyExpectation) check(resp Response) error {
 }
 
 // TODO stop test if call fails
+// TODO matchers: not(hasItems)
 // TODO add company name to test case (track snapshot usage)
 // TODO human json / yaml
+// TODO xml support
+// TODO {savedValue} in params
+// TODO "description" in Call for better reporting
