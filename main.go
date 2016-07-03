@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/xeipuuv/gojsonschema"
+	"strconv"
 )
 
 type TestCase struct {
@@ -35,7 +36,7 @@ type On struct {
 type Expect struct {
 	StatusCode  int                    `json:"statusCode"`
 	ContentType string                 `json:"contentType"`
-	Body        map[string]interface{} `json:"body"`
+	Body map[string]string 		   `json:"body"`
 	BodySchema  string                 `json:"bodySchema"`
 }
 
@@ -147,7 +148,14 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 	reporter := NewConsoleReporter()
 	result := TestResult{Case: testCase, Resp: testResp}
 
-	exps := expectations(call)
+	var bodyMap map[string]interface{}
+	err = json.Unmarshal(body, &bodyMap)
+	if err != nil {
+		fmt.Println("Error parsing body")
+		return
+	}
+
+	exps := expectations(bodyMap, call)
 	for _, exp := range exps {
 		checkErr := exp.check(testResp)
 		if checkErr != nil {
@@ -156,13 +164,6 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 		}
 	}
 	reporter.Report(result)
-
-	var bodyMap map[string]interface{}
-	err = json.Unmarshal(body, &bodyMap)
-	if err != nil {
-		fmt.Println("Error parsing body")
-		return
-	}
 
 	err = remember(bodyMap, call.Remember, rememberMap)
 	fmt.Printf("rememberMap: %v\n", rememberMap)
@@ -183,7 +184,7 @@ func putRememberedVars(str string, rememberMap map[string]string) string {
 	return res
 }
 
-func expectations(call Call) []ResponseExpectation {
+func expectations(bodyMap map[string]interface{}, call Call) []ResponseExpectation {
 	var exps []ResponseExpectation
 
 	if call.Expect.StatusCode != -1 {
@@ -200,6 +201,11 @@ func expectations(call Call) []ResponseExpectation {
 		uri = "file:///" + filepath.ToSlash(filepath.Join(uri, call.Expect.BodySchema))
 		exps = append(exps, BodySchemaExpectation{schemaURI: uri})
 	}
+
+	if len(call.Expect.Body) > 0 {
+		exps = append(exps, BodyExpectation{pathExpectations:call.Expect.Body, bodyMap: bodyMap})
+	}
+
 	// and so on
 	return exps
 }
@@ -231,14 +237,48 @@ func remember(bodyMap map[string]interface{}, remember map[string]string, rememb
 func getByPath(m interface{}, path ...interface{}) interface{} {
 
 	for _, p := range path {
-		switch idx := p.(type) {
+		switch p := p.(type) {
 		case string:
-			m = m.(map[string]interface{})[idx]
+			m = m.(map[string]interface{})[p]
 		case int:
-			m = m.([]interface{})[idx]
+			m = m.([]interface{})[p]
 		}
 	}
 	return m
+}
+
+func searchByPath(m interface{}, s string, path ...string) (bool) {
+	for idx, p := range path {
+		//fmt.Println("s ", idx, "p ", p)
+		switch typedM := m.(type) {
+		case map[string]interface{}:
+			m = typedM[p]
+			//fmt.Println("[",m, "] [", s,"]", reflect.TypeOf(m))
+
+			if str, ok := m.(string); ok {
+				if (str == s) {
+					return true
+				}
+			} else if flt, ok := m.(float64); ok {
+				// numbers (like ids) are parsed as float64 from json
+				if strconv.FormatFloat(flt, 'f', 0, 64) == s {
+					return true
+				}
+			}
+
+		case []interface{}:
+			//fmt.Println("path ", path[idx:])
+			for _, obj := range typedM {
+				found := searchByPath(obj, s, path[idx:]...)
+				if found {
+					return true
+				}
+			}
+		}
+
+	}
+
+	return false
 }
 
 type TestResult struct {
@@ -286,6 +326,32 @@ func (e BodySchemaExpectation) check(resp Response) error {
 		msg := "Unexpected Body Schema:\n"
 		for _, desc := range result.Errors() {
 			msg = fmt.Sprintf(msg + "%s\n", desc)
+		}
+		return errors.New(msg)
+	}
+
+	return nil
+}
+
+type BodyExpectation struct {
+	pathExpectations map[string]string
+	bodyMap          map[string]interface{}
+}
+
+func (e BodyExpectation) check(resp Response) error {
+	errs := []string{}
+	for path, expectedValue := range e.pathExpectations {
+		splitPath := strings.Split(path, ".")
+		found := searchByPath(e.bodyMap, expectedValue, splitPath...)
+		if !found {
+			err := "Expected value: [" + expectedValue + "] on path: [" + path + "] is not found"
+			errs = append(errs, err)
+		}
+	}
+	if len(errs) > 0 {
+		var msg string
+		for _, err := range errs {
+			msg += err + "\n"
 		}
 		return errors.New(msg)
 	}
