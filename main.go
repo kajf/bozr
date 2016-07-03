@@ -378,9 +378,10 @@ func (e BodyExpectation) check(resp Response) error {
 }
 
 // TODO stop test if call fails
-// TODO matchers: not(hasItems)
+// TODO matchers: not()
+// TODO expect response headers
 // TODO add company name to test case (track snapshot usage)
-// TODO human json / yaml
 // TODO xml support
 // TODO "description" in Call for better reporting
 // TODO rename remember > keep or memo ?
+// TODO jenkins
