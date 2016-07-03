@@ -148,14 +148,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 	reporter := NewConsoleReporter()
 	result := TestResult{Case: testCase, Resp: testResp}
 
-	var bodyMap map[string]interface{}
-	err = json.Unmarshal(body, &bodyMap)
-	if err != nil {
-		fmt.Println("Error parsing body")
-		return
-	}
-
-	exps := expectations(bodyMap, call)
+	exps := expectations(call)
 	for _, exp := range exps {
 		checkErr := exp.check(testResp)
 		if checkErr != nil {
@@ -165,7 +158,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 	}
 	reporter.Report(result)
 
-	err = remember(bodyMap, call.Remember, rememberMap)
+	err = remember(testResp.bodyAsMap(), call.Remember, rememberMap)
 	fmt.Printf("rememberMap: %v\n", rememberMap)
 	if err != nil {
 		fmt.Println("Error remember")
@@ -184,7 +177,7 @@ func putRememberedVars(str string, rememberMap map[string]string) string {
 	return res
 }
 
-func expectations(bodyMap map[string]interface{}, call Call) []ResponseExpectation {
+func expectations(call Call) []ResponseExpectation {
 	var exps []ResponseExpectation
 
 	if call.Expect.StatusCode != -1 {
@@ -203,7 +196,7 @@ func expectations(bodyMap map[string]interface{}, call Call) []ResponseExpectati
 	}
 
 	if len(call.Expect.Body) > 0 {
-		exps = append(exps, BodyExpectation{pathExpectations:call.Expect.Body, bodyMap: bodyMap})
+		exps = append(exps, BodyExpectation{pathExpectations:call.Expect.Body})
 	}
 
 	// and so on
@@ -293,6 +286,16 @@ type Response struct {
 	body string
 }
 
+func (e Response) bodyAsMap() (map[string]interface{}) {
+	var bodyMap map[string]interface{}
+	err := json.Unmarshal([]byte(e.body), &bodyMap)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return bodyMap;
+}
+
 type ResponseExpectation interface {
 	check(resp Response) error
 }
@@ -335,14 +338,14 @@ func (e BodySchemaExpectation) check(resp Response) error {
 
 type BodyExpectation struct {
 	pathExpectations map[string]string
-	bodyMap          map[string]interface{}
 }
 
 func (e BodyExpectation) check(resp Response) error {
+
 	errs := []string{}
 	for path, expectedValue := range e.pathExpectations {
 		splitPath := strings.Split(path, ".")
-		found := searchByPath(e.bodyMap, expectedValue, splitPath...)
+		found := searchByPath(resp.bodyAsMap(), expectedValue, splitPath...)
 		if !found {
 			err := "Expected value: [" + expectedValue + "] on path: [" + path + "] is not found"
 			errs = append(errs, err)
@@ -359,7 +362,6 @@ func (e BodyExpectation) check(resp Response) error {
 	return nil
 }
 
+// TODO stop test if call fails
 // TODO expect matchers: equal, anyOf, arrHasSize, arrHasItems
-// TODO expect matchers without <any> indexes
-// TODO expect: header, statusCode, body
 // TODO add company name to test case (track snapshot usage)

@@ -35,16 +35,15 @@
             "Content-Type": "application/json"
           },
           "params": {
-            "filter": "id:in:817345"
+            "filter": "id:in:417601"
           }
         },
         "expect": {
           "statusCode": 200,
           "contentType": "application/json",
           "body": {
-            "rate_tables.rate_table.id": {
-              "hasItem": "817345"
-            }
+            "rate_tables.id": "417601",
+            "rate_tables.description": "Test Rate Table1"
           }
         }
       }
