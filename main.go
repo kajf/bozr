@@ -13,6 +13,7 @@ import (
 
 	"github.com/xeipuuv/gojsonschema"
 	"strconv"
+	"bytes"
 )
 
 type TestCase struct {
@@ -27,10 +28,11 @@ type Call struct {
 }
 
 type On struct {
-	Method  string            `json:"method"`
-	Url     string            `json:"url"`
-	Headers map[string]string `json:"headers"`
-	Params  map[string]string `json:"params"`
+	Method  string             `json:"method"`
+	Url     string             `json:"url"`
+	Headers map[string]string  `json:"headers"`
+	Params  map[string]string  `json:"params"`
+	Body    string             `json:"body"`
 }
 
 type Expect struct {
@@ -115,7 +117,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 func call(testCase TestCase, call Call, rememberMap map[string]string) (failedExpectations []string) {
 	on := call.On
 
-	req, _ := http.NewRequest(on.Method, *host + on.Url, nil)
+	req, _ := http.NewRequest(on.Method, *host + on.Url, bytes.NewBuffer([]byte(on.Body)))
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, putRememberedVars(value, rememberMap))
@@ -123,7 +125,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 
 	q := req.URL.Query()
 	for key, value := range on.Params {
-		q.Add(key, value)
+		q.Add(key, putRememberedVars(value, rememberMap))
 	}
 	req.URL.RawQuery = q.Encode()
 	fmt.Println(req)
@@ -212,12 +214,7 @@ func remember(bodyMap map[string]interface{}, remember map[string]string, rememb
 
 		splitPath := strings.Split(path, ".")
 
-		b := make([]interface{}, len(splitPath))
-		for i := range splitPath {
-			b[i] = splitPath[i]
-		}
-
-		rememberVar := getByPath(bodyMap, b...)
+		rememberVar := getByPath(bodyMap, splitPath...)
 		if rememberVar != nil {
 			rememberedMap[varName] = rememberVar.(string)
 		} else {
@@ -230,15 +227,17 @@ func remember(bodyMap map[string]interface{}, remember map[string]string, rememb
 	return err
 }
 
-func getByPath(m interface{}, path ...interface{}) interface{} {
+func getByPath(m interface{}, path ...string) interface{} {
 
 	for _, p := range path {
-		switch p := p.(type) {
-		case string:
+		//fmt.Println(p)
+		idx, err := strconv.Atoi(p)
+		if err != nil {
 			m = m.(map[string]interface{})[p]
-		case int:
-			m = m.([]interface{})[p]
+		} else {
+			m = m.([]interface{})[idx]
 		}
+
 	}
 	return m
 }
@@ -360,9 +359,10 @@ func (e BodyExpectation) check(resp Response) error {
 	errs := []string{}
 	for path, expectedValue := range e.pathExpectations {
 		splitPath := strings.Split(path, ".")
+		// TODO need rememberedMap here:  expectedValue = putRememberedVars(expectedValue, rememberedMap)
 		found := searchByPath(resp.bodyAsMap(), expectedValue, splitPath...)
 		if !found {
-			err := "Expected value: [" + expectedValue + "] on path: [" + path + "] is not found"
+			err := "Expected value: [" + expectedValue + "] on path: [" + path + "] is not found" // TODO specific message for functions
 			errs = append(errs, err)
 		}
 	}
@@ -382,5 +382,5 @@ func (e BodyExpectation) check(resp Response) error {
 // TODO add company name to test case (track snapshot usage)
 // TODO human json / yaml
 // TODO xml support
-// TODO {savedValue} in params
 // TODO "description" in Call for better reporting
+// TODO rename remember > keep or memo ?

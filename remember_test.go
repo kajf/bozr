@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"testing"
+	"encoding/json"
+)
 
 func TestGetByPathSimple(t *testing.T) {
 	token := "abc"
@@ -28,6 +31,28 @@ func TestGetByPath2ndLevel(t *testing.T) {
 		t.Error(
 			"For", "token.name",
 			"expected", name,
+			"got", got,
+		)
+	}
+}
+
+func TestGetByPathWithIndex(t *testing.T) {
+	s := `{
+		"items":[
+			{"id":"417857","status":"OK"},
+			{"id":"417858","status":"OK"}
+		]
+	 	}`
+	var m map[string]interface{}
+	err := json.Unmarshal([]byte(s), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	got := getByPath(m, "items", "0", "id")
+	if got != "417857" {
+		t.Error(
+			"expected", "417857",
 			"got", got,
 		)
 	}
