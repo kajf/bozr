@@ -246,6 +246,20 @@ func getByPath(m interface{}, path ...interface{}) interface{} {
 func searchByPath(m interface{}, s string, path ...string) (bool) {
 	for idx, p := range path {
 		//fmt.Println("s ", idx, "p ", p)
+		// TODO refactor to separate function part from path parts
+		if idx == len(path) - 1 {
+			if p == "size()" {
+				arr, ok := m.([]interface{})
+				if ok {
+					arrLen, err := strconv.Atoi(s)
+					if err == nil && arrLen == len(arr) {
+						return true
+					}
+				}
+			}
+		} // last path part could be a function
+
+
 		switch typedM := m.(type) {
 		case map[string]interface{}:
 			m = typedM[p]
@@ -261,7 +275,6 @@ func searchByPath(m interface{}, s string, path ...string) (bool) {
 					return true
 				}
 			}
-
 		case []interface{}:
 			//fmt.Println("path ", path[idx:])
 			for _, obj := range typedM {
@@ -366,6 +379,5 @@ func (e BodyExpectation) check(resp Response) error {
 }
 
 // TODO stop test if call fails
-// TODO expect matchers: equal, anyOf, arrHasSize, arrHasItems
 // TODO add company name to test case (track snapshot usage)
 // TODO human json / yaml

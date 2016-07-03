@@ -47,7 +47,7 @@ func TestSearchByPathKey(t *testing.T) {
 	}
 }
 
-func TestSearchByPathArray(t *testing.T) {
+func TestSearchByPathInArray(t *testing.T) {
 
 	s := `{"root":[
 		{"key":"-1", "name":"Test 1"},
@@ -60,6 +60,24 @@ func TestSearchByPathArray(t *testing.T) {
 	}
 
 	found := searchByPath(m, "test 2", "root", "name")
+
+	if !found {
+		t.Error()
+	}
+}
+
+func TestSearchByPathArray(t *testing.T) {
+	s := `{"root":[
+		{"key":"-1", "name":"Test 1"},
+		{"key":"-2", "name":"test 2"}
+	      ]}`
+	var m map[string]interface{}
+	err := json.Unmarshal([]byte(s), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	found := searchByPath(m, "2", "root", "size()")
 
 	if !found {
 		t.Error()
