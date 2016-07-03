@@ -55,12 +55,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Test Cases: %v\n", testCases)
+	//fmt.Printf("Test Cases: %v\n", testCases)
 
 	rememberedMap := make(map[string]string)
 
-	call(testCases[0], testCases[0].Calls[0], rememberedMap) //TODO cycle
-	call(testCases[0], testCases[0].Calls[1], rememberedMap)
+	for _, testCase := range testCases  {
+		for _, c := range testCase.Calls {
+			call(testCase, c, rememberedMap)
+		}
+	}
 
 }
 
@@ -112,7 +115,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 func call(testCase TestCase, call Call, rememberMap map[string]string) (failedExpectations []string) {
 	on := call.On
 
-	req, _ := http.NewRequest(on.Method, *host + on.Url, nil) //TODO extract url to param
+	req, _ := http.NewRequest(on.Method, *host + on.Url, nil)
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, putRememberedVars(value, rememberMap))
@@ -365,3 +368,4 @@ func (e BodyExpectation) check(resp Response) error {
 // TODO stop test if call fails
 // TODO expect matchers: equal, anyOf, arrHasSize, arrHasItems
 // TODO add company name to test case (track snapshot usage)
+// TODO human json / yaml
