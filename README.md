@@ -13,7 +13,7 @@ glide install
 Dependencies:
 - https://github.com/xeipuuv/gojsonschema
 
-## Command-line params
+## Command-line arguments
 - d - path to directory with test-cases-json files 
 - h - remote host address to run tests against
 ```bash
