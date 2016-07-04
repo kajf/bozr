@@ -60,13 +60,41 @@ func main() {
 	//fmt.Printf("Test Cases: %v\n", testCases)
 
 	rememberedMap := make(map[string]string)
+	failedExpectations := []string{}
+
+	var callFailedExpectations []string
+	var callErrs []error
 
 	for _, testCase := range testCases  {
 		for _, c := range testCase.Calls {
-			call(testCase, c, rememberedMap)
+			callFailedExpectations, err = call(testCase, c, rememberedMap)
+			if err != nil {
+				callErrs = append(callErrs, err)
+			}
+			failedExpectations = append(failedExpectations, callFailedExpectations...)
 		}
 	}
 
+	failed := printSummary(len(testCases), len(failedExpectations), len(callErrs))
+	if failed {
+		os.Exit(2)
+	} // test run failed
+}
+
+func printSummary(numCases int, numFailedExpectations int, numErrs int)(failed bool)  {
+	fmt.Println("\t\t~~~ Summary ~~~")
+	fmt.Printf("\t\t# of test cases : %v\n", numCases)
+	fmt.Printf("\t\t# of failed expectations: %v\n", numFailedExpectations)
+	fmt.Printf("\t\t# Errors: %v\n", numErrs)
+
+	if numErrs > 0 || numFailedExpectations > 0 {
+		fmt.Println("\t\t~~~ Test run FAILURE! ~~~")
+		return true
+	} // test run failed
+
+	fmt.Println("\t\t~~~ Test run SUCCESS ~~~")
+
+	return false
 }
 
 type testCaseLoader struct {
@@ -114,7 +142,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 	return nil
 }
 
-func call(testCase TestCase, call Call, rememberMap map[string]string) (failedExpectations []string) {
+func call(testCase TestCase, call Call, rememberMap map[string]string) (failedExpectations []string, err error) {
 	on := call.On
 
 	req, _ := http.NewRequest(on.Method, *host + on.Url, bytes.NewBuffer([]byte(on.Body)))
@@ -134,7 +162,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 	resp, err := client.Do(req)
 
 	if err != nil {
-		fmt.Println("Error when sending request")
+		fmt.Println("Error when sending request", err)
 		return
 	}
 
@@ -158,6 +186,8 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 		checkErr := exp.check(testResp)
 		if checkErr != nil {
 			result.Cause = checkErr
+			failedExpectations = append(failedExpectations, checkErr.Error())
+
 			break
 		}
 	}
@@ -377,11 +407,12 @@ func (e BodyExpectation) check(resp Response) error {
 	return nil
 }
 
-// TODO stop test if call fails
-// TODO matchers: not()
-// TODO expect response headers
-// TODO add company name to test case (track snapshot usage)
-// TODO xml support
-// TODO "description" in Call for better reporting
-// TODO rename remember > keep or memo ?
+// TODO exit with non-zero if has failed tests
 // TODO jenkins
+// TODO expect response headers
+// TODO xml support
+
+// TODO "description" in Call for better reporting
+// TODO on.body loading from file (move large files out of test case json)
+// TODO matchers: not() ?
+// TODO rename remember > keep or memo ?
