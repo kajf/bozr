@@ -67,9 +67,12 @@ func main() {
 	var callFailedExpectations []string
 	var callErrs []error
 
+	reporter := NewConsoleReporter()
+
+	// test case runner?
 	for _, testCase := range testCases {
 		for _, c := range testCase.Calls {
-			callFailedExpectations, err = call(testCase, c, rememberedMap)
+			callFailedExpectations, err = call(testCase, c, reporter, rememberedMap)
 			if err != nil {
 				callErrs = append(callErrs, err)
 			}
@@ -77,26 +80,7 @@ func main() {
 		}
 	}
 
-	failed := printSummary(len(testCases), len(failedExpectations), len(callErrs))
-	if failed {
-		os.Exit(1)
-	} // test run failed
-}
-
-func printSummary(numCases int, numFailedExpectations int, numErrs int) (failed bool) {
-	fmt.Println("\t\t~~~ Summary ~~~")
-	fmt.Printf("\t\t# of test cases : %v\n", numCases)
-	fmt.Printf("\t\t# of failed expectations: %v\n", numFailedExpectations)
-	fmt.Printf("\t\t# Errors: %v\n", numErrs)
-
-	if numErrs > 0 || numFailedExpectations > 0 {
-		fmt.Println("\t\t~~~ Test run FAILURE! ~~~")
-		return true
-	} // test run failed
-
-	fmt.Println("\t\t~~~ Test run SUCCESS ~~~")
-
-	return false
+	reporter.Flush()
 }
 
 type testCaseLoader struct {
@@ -144,7 +128,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 	return nil
 }
 
-func call(testCase TestCase, call Call, rememberMap map[string]string) (failedExpectations []string, err error) {
+func call(testCase TestCase, call Call, reporter Reporter, rememberMap map[string]string) (failedExpectations []string, err error) {
 	on := call.On
 
 	req, _ := http.NewRequest(on.Method, *host+on.Url, bytes.NewBuffer([]byte(on.Body)))
@@ -180,7 +164,6 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 	// fmt.Printf("Resp: %v\n", string(body))
 
 	testResp := Response{http: *resp, body: string(body)}
-	reporter := NewConsoleReporter()
 	result := TestResult{Case: testCase, Resp: testResp}
 
 	exps := expectations(call)
