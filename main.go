@@ -79,7 +79,7 @@ func main() {
 
 	failed := printSummary(len(testCases), len(failedExpectations), len(callErrs))
 	if failed {
-		os.Exit(2)
+		os.Exit(1)
 	} // test run failed
 }
 
@@ -342,7 +342,6 @@ func (e Response) bodyAsMap() map[string]interface{} {
 	if contentType == "application/json" {
 		err = json.Unmarshal([]byte(e.body), &bodyMap)
 	}
-	fmt.Println(bodyMap)
 
 	if err != nil {
 		panic(err.Error())
