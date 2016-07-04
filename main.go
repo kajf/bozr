@@ -1,19 +1,21 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/xeipuuv/gojsonschema"
-	"strconv"
-	"bytes"
 )
 
 type TestCase struct {
@@ -28,23 +30,23 @@ type Call struct {
 }
 
 type On struct {
-	Method  string             `json:"method"`
-	Url     string             `json:"url"`
-	Headers map[string]string  `json:"headers"`
-	Params  map[string]string  `json:"params"`
-	Body    string             `json:"body"`
+	Method  string            `json:"method"`
+	Url     string            `json:"url"`
+	Headers map[string]string `json:"headers"`
+	Params  map[string]string `json:"params"`
+	Body    string            `json:"body"`
 }
 
 type Expect struct {
-	StatusCode  int                    `json:"statusCode"`
-	ContentType string                 `json:"contentType"`
-	Body map[string]string 		   `json:"body"`
-	BodySchema  string                 `json:"bodySchema"`
+	StatusCode  int               `json:"statusCode"`
+	ContentType string            `json:"contentType"`
+	Body        map[string]string `json:"body"`
+	BodySchema  string            `json:"bodySchema"`
 }
 
 var (
 	suiteDir = flag.String("d", ".", "Path to the directory that contains test suite.")
-	host = flag.String("h", "http://localhost:8080", "Test server address")
+	host     = flag.String("h", "http://localhost:8080", "Test server address")
 )
 
 func main() {
@@ -65,7 +67,7 @@ func main() {
 	var callFailedExpectations []string
 	var callErrs []error
 
-	for _, testCase := range testCases  {
+	for _, testCase := range testCases {
 		for _, c := range testCase.Calls {
 			callFailedExpectations, err = call(testCase, c, rememberedMap)
 			if err != nil {
@@ -81,7 +83,7 @@ func main() {
 	} // test run failed
 }
 
-func printSummary(numCases int, numFailedExpectations int, numErrs int)(failed bool)  {
+func printSummary(numCases int, numFailedExpectations int, numErrs int) (failed bool) {
 	fmt.Println("\t\t~~~ Summary ~~~")
 	fmt.Printf("\t\t# of test cases : %v\n", numCases)
 	fmt.Printf("\t\t# of failed expectations: %v\n", numFailedExpectations)
@@ -145,7 +147,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 func call(testCase TestCase, call Call, rememberMap map[string]string) (failedExpectations []string, err error) {
 	on := call.On
 
-	req, _ := http.NewRequest(on.Method, *host + on.Url, bytes.NewBuffer([]byte(on.Body)))
+	req, _ := http.NewRequest(on.Method, *host+on.Url, bytes.NewBuffer([]byte(on.Body)))
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, putRememberedVars(value, rememberMap))
@@ -156,7 +158,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 		q.Add(key, putRememberedVars(value, rememberMap))
 	}
 	req.URL.RawQuery = q.Encode()
-	fmt.Println(req)
+	// fmt.Println(req)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -175,7 +177,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 	}
 
 	//fmt.Printf("Code: %v\n", resp.Status)
-	fmt.Printf("Resp: %v\n", string(body))
+	// fmt.Printf("Resp: %v\n", string(body))
 
 	testResp := Response{http: *resp, body: string(body)}
 	reporter := NewConsoleReporter()
@@ -206,7 +208,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (failedEx
 func putRememberedVars(str string, rememberMap map[string]string) string {
 	res := str
 	for varName, val := range rememberMap {
-		placeholder := "{" + varName + "}";
+		placeholder := "{" + varName + "}"
 		res = strings.Replace(res, placeholder, val, -1)
 	}
 	return res
@@ -231,7 +233,7 @@ func expectations(call Call) []ResponseExpectation {
 	}
 
 	if len(call.Expect.Body) > 0 {
-		exps = append(exps, BodyExpectation{pathExpectations:call.Expect.Body})
+		exps = append(exps, BodyExpectation{pathExpectations: call.Expect.Body})
 	}
 
 	// and so on
@@ -250,7 +252,7 @@ func remember(bodyMap map[string]interface{}, remember map[string]string, rememb
 		} else {
 			err = errors.New("Remembered value not found: %v\n")
 		}
-			//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
+		//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
 
 	}
 
@@ -272,11 +274,11 @@ func getByPath(m interface{}, path ...string) interface{} {
 	return m
 }
 
-func searchByPath(m interface{}, s string, path ...string) (bool) {
+func searchByPath(m interface{}, s string, path ...string) bool {
 	for idx, p := range path {
 		//fmt.Println("s ", idx, "p ", p)
 		// TODO refactor to separate function part from path parts
-		if idx == len(path) - 1 {
+		if idx == len(path)-1 {
 			if p == "size()" {
 				if arr, ok := m.([]interface{}); ok {
 					arrLen, err := strconv.Atoi(s)
@@ -287,14 +289,13 @@ func searchByPath(m interface{}, s string, path ...string) (bool) {
 			}
 		} // last path part could be a function
 
-
 		switch typedM := m.(type) {
 		case map[string]interface{}:
 			m = typedM[p]
 			//fmt.Println("[",m, "] [", s,"]", reflect.TypeOf(m))
 
 			if str, ok := m.(string); ok {
-				if (str == s) {
+				if str == s {
 					return true
 				}
 			} else if flt, ok := m.(float64); ok {
@@ -319,8 +320,8 @@ func searchByPath(m interface{}, s string, path ...string) (bool) {
 }
 
 type TestResult struct {
-	Case  TestCase
-	Resp  Response
+	Case TestCase
+	Resp Response
 	// in case test failed, cause must be specified
 	Cause error
 }
@@ -330,14 +331,24 @@ type Response struct {
 	body string
 }
 
-func (e Response) bodyAsMap() (map[string]interface{}) {
+func (e Response) bodyAsMap() map[string]interface{} {
 	var bodyMap map[string]interface{}
-	err := json.Unmarshal([]byte(e.body), &bodyMap)
+	var err error
+
+	contentType, _, _ := mime.ParseMediaType(e.http.Header.Get("content-type"))
+	if contentType == "application/xml" {
+		err = xml.Unmarshal([]byte(e.body), &bodyMap)
+	}
+	if contentType == "application/json" {
+		err = json.Unmarshal([]byte(e.body), &bodyMap)
+	}
+	fmt.Println(bodyMap)
+
 	if err != nil {
 		panic(err.Error())
 	}
 
-	return bodyMap;
+	return bodyMap
 }
 
 type ResponseExpectation interface {
@@ -372,7 +383,7 @@ func (e BodySchemaExpectation) check(resp Response) error {
 	if !result.Valid() {
 		msg := "Unexpected Body Schema:\n"
 		for _, desc := range result.Errors() {
-			msg = fmt.Sprintf(msg + "%s\n", desc)
+			msg = fmt.Sprintf(msg+"%s\n", desc)
 		}
 		return errors.New(msg)
 	}
