@@ -18,6 +18,16 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+// TestSuite represents file with test cases.
+type TestSuite struct {
+	// file name
+	Name string
+	// path to a file
+	PackageName string
+	// test cases listed in a file
+	Cases []TestCase
+}
+
 type TestCase struct {
 	Description string `json:"description"`
 	Calls       []Call `json:"calls"`
@@ -53,7 +63,7 @@ func main() {
 	flag.Parse()
 
 	loader := testCaseLoader{}
-	testCases, err := loader.loadDir(*suiteDir)
+	suits, err := loader.loadDir(*suiteDir)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
@@ -62,21 +72,24 @@ func main() {
 	//fmt.Printf("Test Cases: %v\n", testCases)
 
 	rememberedMap := make(map[string]string)
-	failedExpectations := []string{}
 
-	var callFailedExpectations []string
-	var callErrs []error
-
-	reporter := NewConsoleReporter()
+	f, err := os.Create("report.xml")
+	if err != nil {
+		panic(err)
+	}
+	reporter := NewJUnitReporter(f)
 
 	// test case runner?
-	for _, testCase := range testCases {
-		for _, c := range testCase.Calls {
-			callFailedExpectations, err = call(testCase, c, reporter, rememberedMap)
-			if err != nil {
-				callErrs = append(callErrs, err)
+	for _, suite := range suits {
+		for _, testCase := range suite.Cases {
+			for _, c := range testCase.Calls {
+				tr, err := call(testCase, c, rememberedMap)
+				if err != nil {
+					panic(err)
+				}
+				tr.Suite = suite
+				reporter.Report(*tr)
 			}
-			failedExpectations = append(failedExpectations, callFailedExpectations...)
 		}
 	}
 
@@ -84,16 +97,16 @@ func main() {
 }
 
 type testCaseLoader struct {
-	tests []TestCase
+	suits []TestSuite
 }
 
-func (s *testCaseLoader) loadDir(dir string) ([]TestCase, error) {
+func (s *testCaseLoader) loadDir(dir string) ([]TestSuite, error) {
 	err := filepath.Walk(dir, s.loadFile)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.tests, nil
+	return s.suits, nil
 }
 
 func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) error {
@@ -124,11 +137,19 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 		return nil
 	}
 
-	s.tests = append(s.tests, testCases...)
+	absPath, err := filepath.Abs(*suiteDir)
+	if err != nil {
+		return nil
+	}
+
+	pack := strings.TrimSuffix(strings.TrimPrefix(path, absPath), info.Name())
+	name := strings.TrimSuffix(info.Name(), filepath.Ext(info.Name()))
+	su := TestSuite{Name: name, PackageName: pack, Cases: testCases}
+	s.suits = append(s.suits, su)
 	return nil
 }
 
-func call(testCase TestCase, call Call, reporter Reporter, rememberMap map[string]string) (failedExpectations []string, err error) {
+func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestResult, error) {
 	on := call.On
 
 	req, _ := http.NewRequest(on.Method, *host+on.Url, bytes.NewBuffer([]byte(on.Body)))
@@ -149,7 +170,7 @@ func call(testCase TestCase, call Call, reporter Reporter, rememberMap map[strin
 
 	if err != nil {
 		fmt.Println("Error when sending request", err)
-		return
+		return nil, err
 	}
 
 	defer resp.Body.Close()
@@ -157,35 +178,32 @@ func call(testCase TestCase, call Call, reporter Reporter, rememberMap map[strin
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading response")
-		return
+		return nil, err
 	}
 
 	//fmt.Printf("Code: %v\n", resp.Status)
 	// fmt.Printf("Resp: %v\n", string(body))
 
 	testResp := Response{http: *resp, body: body}
-	result := TestResult{Case: testCase, Resp: testResp}
+	result := &TestResult{Case: testCase, Resp: testResp}
 
 	exps := expectations(call)
 	for _, exp := range exps {
 		checkErr := exp.check(testResp)
 		if checkErr != nil {
 			result.Cause = checkErr
-			failedExpectations = append(failedExpectations, checkErr.Error())
-
-			break
+			return result, nil
 		}
 	}
-	reporter.Report(result)
 
 	err = remember(testResp.bodyAsMap(), call.Remember, rememberMap)
 	fmt.Printf("rememberMap: %v\n", rememberMap)
 	if err != nil {
 		fmt.Println("Error remember")
-		return
+		return nil, err
 	}
 
-	return
+	return result, nil
 }
 
 func putRememberedVars(str string, rememberMap map[string]string) string {
@@ -311,8 +329,9 @@ func searchByPath(m interface{}, s string, path ...string) bool {
 }
 
 type TestResult struct {
-	Case TestCase
-	Resp Response
+	Suite TestSuite
+	Case  TestCase
+	Resp  Response
 	// in case test failed, cause must be specified
 	Cause error
 }
