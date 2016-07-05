@@ -163,7 +163,7 @@ func call(testCase TestCase, call Call, reporter Reporter, rememberMap map[strin
 	//fmt.Printf("Code: %v\n", resp.Status)
 	// fmt.Printf("Resp: %v\n", string(body))
 
-	testResp := Response{http: *resp, body: string(body)}
+	testResp := Response{http: *resp, body: body}
 	result := TestResult{Case: testCase, Resp: testResp}
 
 	exps := expectations(call)
@@ -311,7 +311,7 @@ type TestResult struct {
 
 type Response struct {
 	http http.Response
-	body string
+	body []byte
 }
 
 func (e Response) bodyAsMap() map[string]interface{} {
@@ -320,10 +320,10 @@ func (e Response) bodyAsMap() map[string]interface{} {
 
 	contentType, _, _ := mime.ParseMediaType(e.http.Header.Get("content-type"))
 	if contentType == "application/xml" {
-		err = xml.Unmarshal([]byte(e.body), &bodyMap)
+		err = xml.Unmarshal(e.body, &bodyMap)
 	}
 	if contentType == "application/json" {
-		err = json.Unmarshal([]byte(e.body), &bodyMap)
+		err = json.Unmarshal(e.body, &bodyMap)
 	}
 
 	if err != nil {
@@ -355,7 +355,7 @@ type BodySchemaExpectation struct {
 
 func (e BodySchemaExpectation) check(resp Response) error {
 	schemaLoader := gojsonschema.NewReferenceLoader(e.schemaURI)
-	documentLoader := gojsonschema.NewStringLoader(resp.body)
+	documentLoader := gojsonschema.NewStringLoader(string(resp.body))
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 	if err != nil {
