@@ -219,6 +219,14 @@ func expectations(call Call) []ResponseExpectation {
 		exps = append(exps, BodyExpectation{pathExpectations: call.Expect.Body})
 	}
 
+	if call.Expect.ContentType != "" {
+		extractFunc := func(resp http.Response) string {
+			contentType, _, _ := mime.ParseMediaType(resp.Header.Get("content-type"))
+			return contentType
+		}
+		exps = append(exps, HeaderExpectation{"content-type", call.Expect.ContentType, extractFunc})
+	}
+
 	// and so on
 	return exps
 }
@@ -397,6 +405,31 @@ func (e BodyExpectation) check(resp Response) error {
 		return errors.New(msg)
 	}
 
+	return nil
+}
+
+type HeaderExpectation struct {
+	headerName  string
+	headerValue string
+	extractFunc func(http.Response) string
+}
+
+func (e HeaderExpectation) check(resp Response) error {
+	var value string
+	if e.extractFunc == nil {
+		value = resp.http.Header.Get(e.headerName)
+	} else {
+		value = e.extractFunc(resp.http)
+	}
+
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return fmt.Errorf("Missing header. Expected \"%s: %s\"", e.headerName, e.headerValue)
+	}
+	if e.headerValue != "" && e.headerValue != value {
+		msg := "Unexpected header. Expected \"%s: %s\". Actual \"%s: %s\""
+		return fmt.Errorf(msg, e.headerName, e.headerValue, e.headerName, value)
+	}
 	return nil
 }
 
