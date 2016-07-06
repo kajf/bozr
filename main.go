@@ -452,12 +452,12 @@ func (e HeaderExpectation) check(resp Response) error {
 	return nil
 }
 
-// TODO exit with non-zero if has failed tests
-// TODO jenkins
+// TODO jenkins: junit report xml
 // TODO expect response headers
-// TODO xml support
-
-// TODO "description" in Call for better reporting
+// TODO separate path and cmd line key for json/xml schema folder
 // TODO on.body loading from file (move large files out of test case json)
+
+// optional/under discussion
+// TODO "description" in Call for better reporting
 // TODO matchers: not() ?
 // TODO rename remember > keep or memo ?
