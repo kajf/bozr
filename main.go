@@ -76,12 +76,6 @@ func main() {
 	path, _ := filepath.Abs("./report")
 
 	reporter := NewJUnitReporter(path)
-
-	f, err := os.Create("report.xml")
-	if err != nil {
-		panic(err)
-	}
-	reporter := NewJUnitReporter(f)
 	//consoleReporter := NewConsoleReporter()
 
 	// test case runner?

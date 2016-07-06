@@ -167,7 +167,7 @@ func newSuite(result TestResult) *suite {
 }
 
 func (r JUnitXMLReporter) Flush() {
-
+	// r.flushSuite()
 }
 
 func NewJUnitReporter(outdir string) Reporter {
