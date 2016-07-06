@@ -1,5 +1,25 @@
 [
   {
+    "description": "Snapshot Prepare",
+    "calls": [
+      {
+        "on": {
+          "method": "GET",
+          "url": "/ta/rest/v1/test/prepare",
+          "headers" : {
+            "accept" : "application/json"
+          },
+          "params": {
+            "companies": "rest.all"
+          }
+        },
+        "expect": {
+          "statusCode": 200
+        }
+      }
+    ]
+  },
+  {
     "description": "GetFilterIDNonexistent",
     "calls": [
       {
@@ -10,9 +30,9 @@
             "accept" : "application/json"
           },
           "params": {
-            "company": "acpizza",
-            "username": "db",
-            "password": "Winter@123"
+            "company": "rest.all",
+            "username": "managerViewRateTables",
+            "password": "Password1!"
           }
         },
         "expect": {
@@ -166,6 +186,26 @@
             "items.size()": "1",
             "items.status": "OK"
           }
+        }
+      }
+    ]
+  },
+  {
+    "description": "Snapshot Reset",
+    "calls": [
+      {
+        "on": {
+          "method": "GET",
+          "url": "/ta/rest/v1/test/cleanup",
+          "headers" : {
+            "accept" : "application/json"
+          },
+          "params": {
+            "companies": "rest.all"
+          }
+        },
+        "expect": {
+          "statusCode": 200
         }
       }
     ]

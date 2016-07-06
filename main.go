@@ -78,6 +78,7 @@ func main() {
 		panic(err)
 	}
 	reporter := NewJUnitReporter(f)
+	//consoleReporter := NewConsoleReporter()
 
 	// test case runner?
 	for _, suite := range suits {
@@ -89,11 +90,13 @@ func main() {
 				}
 				tr.Suite = suite
 				reporter.Report(*tr)
+				//consoleReporter.Report(*tr)
 			}
 		}
 	}
 
 	reporter.Flush()
+	//consoleReporter.Flush() // should be last since calls os.Exit
 }
 
 type testCaseLoader struct {
@@ -459,5 +462,7 @@ func (e HeaderExpectation) check(resp Response) error {
 
 // optional/under discussion
 // TODO "description" in Call for better reporting
+// TODO "comment" in test case to describe in more details (sentence)
 // TODO matchers: not() ?
 // TODO rename remember > keep or memo ?
+// TODO full body expectation from file (security testing)
