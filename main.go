@@ -77,6 +77,13 @@ func main() {
 
 	reporter := NewJUnitReporter(path)
 
+	f, err := os.Create("report.xml")
+	if err != nil {
+		panic(err)
+	}
+	reporter := NewJUnitReporter(f)
+	//consoleReporter := NewConsoleReporter()
+
 	// test case runner?
 	for _, suite := range suits {
 		for _, testCase := range suite.Cases {
@@ -87,11 +94,13 @@ func main() {
 				}
 				tr.Suite = suite
 				reporter.Report(*tr)
+				//consoleReporter.Report(*tr)
 			}
 		}
 	}
 
 	reporter.Flush()
+	//consoleReporter.Flush() // should be last since calls os.Exit
 }
 
 type testCaseLoader struct {
@@ -450,12 +459,14 @@ func (e HeaderExpectation) check(resp Response) error {
 	return nil
 }
 
-// TODO exit with non-zero if has failed tests
-// TODO jenkins
+// TODO jenkins: junit report xml
 // TODO expect response headers
-// TODO xml support
-
-// TODO "description" in Call for better reporting
+// TODO separate path and cmd line key for json/xml schema folder
 // TODO on.body loading from file (move large files out of test case json)
+
+// optional/under discussion
+// TODO "description" in Call for better reporting
+// TODO "comment" in test case to describe in more details (sentence)
 // TODO matchers: not() ?
 // TODO rename remember > keep or memo ?
+// TODO full body expectation from file (security testing)
