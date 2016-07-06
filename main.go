@@ -73,11 +73,9 @@ func main() {
 
 	rememberedMap := make(map[string]string)
 
-	f, err := os.Create("report.xml")
-	if err != nil {
-		panic(err)
-	}
-	reporter := NewJUnitReporter(f)
+	path, _ := filepath.Abs("./report")
+
+	reporter := NewJUnitReporter(path)
 
 	// test case runner?
 	for _, suite := range suits {

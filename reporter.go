@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
-	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -70,17 +70,18 @@ func NewConsoleReporter() Reporter {
 	return &ConsoleReporter{}
 }
 
+// JUnitXMLReporter produces separate xml file for each test sute
 type JUnitXMLReporter struct {
-	Writer io.Writer
-	suits  []*suite
-}
+	// output directory
+	OutPath string
 
-type suites struct {
-	XMLName string  `xml:"testsuites"`
-	Suits   []suite `xml:"testsuite"`
+	// current suite
+	// when suite is being changed, flush previous one
+	suite *suite
 }
 
 type suite struct {
+	XMLName     string `xml:"testsuite"`
 	ID          int    `xml:"id,attr"`
 	Name        string `xml:"name,attr"`
 	PackageName string `xml:"package,attr"`
@@ -114,49 +115,59 @@ type failure struct {
 }
 
 func (r *JUnitXMLReporter) Report(result TestResult) {
-	s := r.findSuite(result.Suite.Name)
-	if s == nil {
-		s = &suite{
-			ID:          0,
-			Name:        result.Suite.Name,
-			PackageName: result.Suite.PackageName,
-			TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05"),
-			HostName:    "test",
-		}
-		r.suits = append(r.suits, s)
+	if r.suite == nil {
+		r.suite = newSuite(result)
+	}
+
+	if r.suite.Name != result.Suite.Name {
+		r.flushSuite()
+		r.suite = newSuite(result)
 	}
 
 	testCase := tc{Name: result.Case.Description}
 	if result.Cause != nil {
 		testCase.Failure = &failure{Type: result.Cause.Error()}
-		s.Failures = s.Failures + 1
+		r.suite.Failures = r.suite.Failures + 1
 	}
-	s.Tests = s.Tests + 1
-	s.ID = s.ID + 1
-	s.Cases = append(s.Cases, testCase)
+	r.suite.Tests = r.suite.Tests + 1
+	r.suite.ID = r.suite.ID + 1
+	r.suite.Cases = append(r.suite.Cases, testCase)
 }
 
-func (r *JUnitXMLReporter) findSuite(name string) *suite {
-	for _, s := range r.suits {
-		if s.Name == name {
-			return s
-		}
+func (r JUnitXMLReporter) flushSuite() {
+	fileName := strings.Replace(r.suite.PackageName, "/", "_", -1) + r.suite.Name + ".xml"
+	fp := filepath.Join(r.OutPath, fileName)
+	err := os.MkdirAll(r.OutPath, 0777)
+	if err != nil {
+		panic(err)
 	}
-	return nil
+	f, err := os.Create(fp)
+	if err != nil {
+		panic(err)
+	}
+
+	data, err := xml.Marshal(r.suite)
+	if err != nil {
+		panic(err)
+	}
+
+	f.Write(data)
+}
+
+func newSuite(result TestResult) *suite {
+	return &suite{
+		ID:          0,
+		Name:        result.Suite.Name,
+		PackageName: result.Suite.PackageName,
+		TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05"),
+		HostName:    "test",
+	}
 }
 
 func (r JUnitXMLReporter) Flush() {
-	var data []suite
-	for _, d := range r.suits {
-		data = append(data, *d)
-	}
-	d, err := xml.Marshal(suites{Suits: data, XMLName: "test22"})
-	if err != nil {
-		return
-	}
-	r.Writer.Write(d)
+
 }
 
-func NewJUnitReporter(writer io.Writer) Reporter {
-	return &JUnitXMLReporter{Writer: writer}
+func NewJUnitReporter(outdir string) Reporter {
+	return &JUnitXMLReporter{OutPath: outdir}
 }
