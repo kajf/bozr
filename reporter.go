@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -80,34 +81,58 @@ type suites struct {
 }
 
 type suite struct {
+	ID          int    `xml:"id,attr"`
 	Name        string `xml:"name,attr"`
 	PackageName string `xml:"package,attr"`
-	Tests       int    `xml:"tests,attr"`
+	TimeStamp   string `xml:"timestamp,attr"`
 	Time        uint16 `xml:"time,attr"`
-	Cases       []tc   `xml:"testcase"`
+	HostName    string `xml:"hostname,attr"`
+
+	Tests    int `xml:"tests,attr"`
+	Failures int `xml:"failures,attr"`
+	Errors   int `xml:"errors,attr"`
+
+	Properties properties `xml:"properties"`
+	Cases      []tc       `xml:"testcase"`
+
+	SystemOut string `xml:"system-out"`
+	SystemErr string `xml:"system-err"`
+}
+
+type properties struct {
 }
 
 type tc struct {
-	Name    string   `xml:"name,attr"`
-	Failure *failure `xml:"failure,omitempty"`
+	Name      string   `xml:"name,attr"`
+	ClassName string   `xml:"classname,attr"`
+	Time      uint16   `xml:"time,attr"`
+	Failure   *failure `xml:"failure,omitempty"`
 }
 
 type failure struct {
-	Message string `xml:"message,attr"`
+	Type string `xml:"type,attr"`
 }
 
 func (r *JUnitXMLReporter) Report(result TestResult) {
 	s := r.findSuite(result.Suite.Name)
 	if s == nil {
-		s = &suite{Name: result.Suite.Name, PackageName: result.Suite.PackageName}
+		s = &suite{
+			ID:          0,
+			Name:        result.Suite.Name,
+			PackageName: result.Suite.PackageName,
+			TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05"),
+			HostName:    "test",
+		}
 		r.suits = append(r.suits, s)
 	}
 
 	testCase := tc{Name: result.Case.Description}
 	if result.Cause != nil {
-		testCase.Failure = &failure{Message: result.Cause.Error()}
+		testCase.Failure = &failure{Type: result.Cause.Error()}
+		s.Failures = s.Failures + 1
 	}
 	s.Tests = s.Tests + 1
+	s.ID = s.ID + 1
 	s.Cases = append(s.Cases, testCase)
 }
 
