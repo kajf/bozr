@@ -111,7 +111,9 @@ type tc struct {
 }
 
 type failure struct {
-	Type string `xml:"type,attr"`
+	// not clear what type is but it's required
+	Type    string `xml:"type,attr"`
+	Message string `xml:"message,attr"`
 }
 
 func (r *JUnitXMLReporter) Report(result TestResult) {
@@ -126,7 +128,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 
 	testCase := tc{Name: result.Case.Description}
 	if result.Cause != nil {
-		testCase.Failure = &failure{Type: result.Cause.Error()}
+		testCase.Failure = &failure{Type: result.Cause.Error(), Message: result.Cause.Error()}
 		r.suite.Failures = r.suite.Failures + 1
 	}
 	r.suite.Tests = r.suite.Tests + 1
