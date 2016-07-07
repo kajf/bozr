@@ -76,7 +76,7 @@ func main() {
 	path, _ := filepath.Abs("./report")
 
 	reporter := NewJUnitReporter(path)
-	//consoleReporter := NewConsoleReporter()
+	consoleReporter := NewConsoleReporter()
 
 	// test case runner?
 	for _, suite := range suits {
@@ -88,13 +88,13 @@ func main() {
 				}
 				tr.Suite = suite
 				reporter.Report(*tr)
-				//consoleReporter.Report(*tr)
+				consoleReporter.Report(*tr)
 			}
 		}
 	}
 
 	reporter.Flush()
-	//consoleReporter.Flush() // should be last since calls os.Exit
+	consoleReporter.Flush() // should be last since calls os.Exit
 }
 
 type testCaseLoader struct {
@@ -151,6 +151,8 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 }
 
 func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestResult, error) {
+	debugMsg("--- Starting call ...") // TODO add call description
+
 	on := call.On
 
 	req, _ := http.NewRequest(on.Method, *host+on.Url, bytes.NewBuffer([]byte(on.Body)))
@@ -164,7 +166,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 		q.Add(key, putRememberedVars(value, rememberMap))
 	}
 	req.URL.RawQuery = q.Encode()
-	// fmt.Println(req)
+	debugMsg("Request: ", req)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -183,7 +185,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 	}
 
 	//fmt.Printf("Code: %v\n", resp.Status)
-	// fmt.Printf("Resp: %v\n", string(body))
+	debugMsg("Resp: ", string(body))
 
 	testResp := Response{http: *resp, body: body}
 	result := &TestResult{Case: testCase, Resp: testResp}
@@ -198,7 +200,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 	}
 
 	err = remember(testResp.bodyAsMap(), call.Remember, rememberMap)
-	fmt.Printf("rememberMap: %v\n", rememberMap)
+	debugMsg("Remember: ", rememberMap)
 	if err != nil {
 		fmt.Println("Error remember")
 		return nil, err
@@ -361,6 +363,11 @@ func (e Response) bodyAsMap() map[string]interface{} {
 	return bodyMap
 }
 
+func debugMsg(a ...interface{}) {
+	fmt.Print("\t")
+	fmt.Println(a...)
+}
+
 type ResponseExpectation interface {
 	check(resp Response) error
 }
@@ -457,6 +464,8 @@ func (e HeaderExpectation) check(resp Response) error {
 // TODO expect response headers
 // TODO separate path and cmd line key for json/xml schema folder
 // TODO on.body loading from file (move large files out of test case json)
+// TODO xml parsing to map (see failing TestXmlUnmarshal)
+// TODO add -t (troubleshoot) key for reporting more info to console
 
 // optional/under discussion
 // TODO "description" in Call for better reporting
