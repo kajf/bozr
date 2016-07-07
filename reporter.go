@@ -137,7 +137,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 }
 
 func (r JUnitXMLReporter) flushSuite() {
-	fileName := strings.Replace(r.suite.PackageName, "/", "_", -1) + r.suite.Name + ".xml"
+	fileName := strings.Replace(filepath.ToSlash(r.suite.PackageName), "/", "_", -1) + r.suite.Name + ".xml"
 	fp := filepath.Join(r.OutPath, fileName)
 	err := os.MkdirAll(r.OutPath, 0777)
 	if err != nil {
