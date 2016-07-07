@@ -17,6 +17,8 @@ type Reporter interface {
 }
 
 type ConsoleReporter struct {
+	ExitCode int
+
 	total  int
 	failed int
 }
@@ -35,7 +37,7 @@ func (r ConsoleReporter) reportSuccess(result TestResult) {
 	c := color.New(color.FgGreen).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("PASSED")
-	fmt.Printf("] %s %s\n", result.Case.Description, result.Duration)
+	fmt.Printf("] %s \t%s\n", result.Case.Description, result.Duration)
 }
 
 func (r ConsoleReporter) reportError(result TestResult) {
@@ -51,7 +53,7 @@ func (r ConsoleReporter) reportError(result TestResult) {
 }
 
 func (r ConsoleReporter) Flush() {
-	fmt.Println("~~~ Summary ~~~")
+	fmt.Println("\n~~~ Summary ~~~")
 	fmt.Printf("# of test cases : %v\n", r.total)
 	fmt.Printf("# Errors: %v\n", r.failed)
 
@@ -62,12 +64,12 @@ func (r ConsoleReporter) Flush() {
 	} // test run failed
 
 	fmt.Println("~~~ Test run SUCCESS ~~~")
-	os.Exit(0)
+	os.Exit(r.ExitCode)
 }
 
 // NewConsoleReporter returns new instance of console reporter
 func NewConsoleReporter() Reporter {
-	return &ConsoleReporter{}
+	return &ConsoleReporter{ExitCode: 0}
 }
 
 // JUnitXMLReporter produces separate xml file for each test sute
@@ -114,6 +116,7 @@ type failure struct {
 	// not clear what type is but it's required
 	Type    string `xml:"type,attr"`
 	Message string `xml:"message,attr"`
+	Details string `xml:",chardata"`
 }
 
 func (r *JUnitXMLReporter) Report(result TestResult) {
@@ -129,6 +132,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 	testCase := tc{Name: result.Case.Description, ClassName: result.Suite.Name, Time: result.Duration.Seconds()}
 	if result.Cause != nil {
 		testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Cause.Error()}
+		testCase.Failure.Details = formatResponse(result.Resp)
 		r.suite.Failures = r.suite.Failures + 1
 	}
 	r.suite.Tests = r.suite.Tests + 1
@@ -167,10 +171,45 @@ func newSuite(result TestResult) *suite {
 	}
 }
 
+func formatResponse(resp Response) string {
+	http := resp.http
+
+	var headers string
+	for k, v := range http.Header {
+		headers = fmt.Sprintf("%s%s: %s\n", headers, k, strings.Join(v, " "))
+	}
+
+	body := fmt.Sprintf("%s", string(resp.body))
+	details := fmt.Sprintf("%s \n %s \n %s", http.Status, headers, body)
+	return details
+}
+
 func (r JUnitXMLReporter) Flush() {
 	r.flushSuite()
 }
 
 func NewJUnitReporter(outdir string) Reporter {
 	return &JUnitXMLReporter{OutPath: outdir}
+}
+
+// MultiReporter broadcasts events to another reporters.
+type MultiReporter struct {
+	Reporters []Reporter
+}
+
+func (r MultiReporter) Report(result TestResult) {
+	for _, reporter := range r.Reporters {
+		reporter.Report(result)
+	}
+}
+
+func (r MultiReporter) Flush() {
+	for _, reporter := range r.Reporters {
+		reporter.Flush()
+	}
+}
+
+// NewMultiReporter creates new reporter that broadcasts events to another reporters.
+func NewMultiReporter(reporters ...Reporter) Reporter {
+	return &MultiReporter{Reporters: reporters}
 }

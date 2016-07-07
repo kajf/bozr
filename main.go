@@ -42,7 +42,7 @@ type Call struct {
 
 type On struct {
 	Method  string            `json:"method"`
-	Url     string            `json:"url"`
+	URL     string            `json:"url"`
 	Headers map[string]string `json:"headers"`
 	Params  map[string]string `json:"params"`
 	Body    string            `json:"body"`
@@ -58,6 +58,7 @@ type Expect struct {
 var (
 	suiteDir = flag.String("d", ".", "Path to the directory that contains test suite.")
 	host     = flag.String("h", "http://localhost:8080", "Test server address")
+	verbose  = flag.Bool("v", false, "Verbose mode")
 )
 
 func main() {
@@ -70,14 +71,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	//fmt.Printf("Test Cases: %v\n", testCases)
-
 	rememberedMap := make(map[string]string)
 
 	path, _ := filepath.Abs("./report")
-
-	reporter := NewJUnitReporter(path)
-	consoleReporter := NewConsoleReporter()
+	reporter := NewMultiReporter(NewJUnitReporter(path))
 
 	// test case runner?
 	for _, suite := range suits {
@@ -89,13 +86,11 @@ func main() {
 				}
 				tr.Suite = suite
 				reporter.Report(*tr)
-				consoleReporter.Report(*tr)
 			}
 		}
 	}
 
 	reporter.Flush()
-	consoleReporter.Flush() // should be last since calls os.Exit
 }
 
 type testCaseLoader struct {
@@ -157,7 +152,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 
 	on := call.On
 
-	req, _ := http.NewRequest(on.Method, *host+on.Url, bytes.NewBuffer([]byte(on.Body)))
+	req, _ := http.NewRequest(on.Method, *host+on.URL, bytes.NewBuffer([]byte(on.Body)))
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, putRememberedVars(value, rememberMap))
@@ -369,6 +364,9 @@ func (e Response) bodyAsMap() map[string]interface{} {
 }
 
 func debugMsg(a ...interface{}) {
+	if !*verbose {
+		return
+	}
 	fmt.Print("\t")
 	fmt.Println(a...)
 }
@@ -383,7 +381,7 @@ type StatusExpectation struct {
 
 func (e StatusExpectation) check(resp Response) error {
 	if resp.http.StatusCode != e.statusCode {
-		msg := fmt.Sprintf("Unexpected Status Code. Expected: %d, Actual: %d", e.statusCode, resp.http.StatusCode)
+		msg := fmt.Sprintf("Unexpected Status Code. Expected: %d, Actual: %d\n", e.statusCode, resp.http.StatusCode)
 		return errors.New(msg)
 	}
 	return nil
@@ -456,16 +454,15 @@ func (e HeaderExpectation) check(resp Response) error {
 
 	value = strings.TrimSpace(value)
 	if value == "" {
-		return fmt.Errorf("Missing header. Expected \"%s: %s\"", e.headerName, e.headerValue)
+		return fmt.Errorf("Missing header. Expected \"%s: %s\"\n", e.headerName, e.headerValue)
 	}
 	if e.headerValue != "" && e.headerValue != value {
-		msg := "Unexpected header. Expected \"%s: %s\". Actual \"%s: %s\""
+		msg := "Unexpected header. Expected \"%s: %s\". Actual \"%s: %s\"\n"
 		return fmt.Errorf(msg, e.headerName, e.headerValue, e.headerName, value)
 	}
 	return nil
 }
 
-// TODO jenkins: junit report xml
 // TODO expect response headers
 // TODO separate path and cmd line key for json/xml schema folder
 // TODO on.body loading from file (move large files out of test case json)
