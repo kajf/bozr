@@ -471,6 +471,7 @@ func (e HeaderExpectation) check(resp Response) error {
 // TODO on.body loading from file (move large files out of test case json)
 // TODO xml parsing to map (see failing TestXmlUnmarshal)
 // TODO add -t (troubleshoot) key for reporting more info to console
+// TODO add suite.json schema validation to prevent invalid cases (invalid expectation is in file, but never checked)
 
 // optional/under discussion
 // TODO "description" in Call for better reporting
