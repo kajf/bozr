@@ -126,9 +126,9 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 		r.suite = newSuite(result)
 	}
 
-	testCase := tc{Name: result.Case.Description, ClassName: result.Case.Description}
+	testCase := tc{Name: result.Case.Description, ClassName: result.Suite.Name}
 	if result.Cause != nil {
-		testCase.Failure = &failure{Type: result.Cause.Error(), Message: result.Cause.Error()}
+		testCase.Failure = &failure{Type: "Failed Expectation", Message: result.Cause.Error()}
 		r.suite.Failures = r.suite.Failures + 1
 	}
 	r.suite.Tests = r.suite.Tests + 1
