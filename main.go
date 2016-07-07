@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -152,6 +153,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 
 func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestResult, error) {
 	debugMsg("--- Starting call ...") // TODO add call description
+	start := time.Now()
 
 	on := call.On
 
@@ -169,6 +171,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 	debugMsg("Request: ", req)
 
 	client := &http.Client{}
+
 	resp, err := client.Do(req)
 
 	if err != nil {
@@ -186,9 +189,10 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 
 	//fmt.Printf("Code: %v\n", resp.Status)
 	debugMsg("Resp: ", string(body))
+	end := time.Now()
 
 	testResp := Response{http: *resp, body: body}
-	result := &TestResult{Case: testCase, Resp: testResp}
+	result := &TestResult{Case: testCase, Resp: testResp, Duration: end.Sub(start)}
 
 	exps := expectations(call)
 	for _, exp := range exps {
@@ -336,7 +340,8 @@ type TestResult struct {
 	Case  TestCase
 	Resp  Response
 	// in case test failed, cause must be specified
-	Cause error
+	Cause    error
+	Duration time.Duration
 }
 
 type Response struct {

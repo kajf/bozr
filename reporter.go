@@ -35,7 +35,7 @@ func (r ConsoleReporter) reportSuccess(result TestResult) {
 	c := color.New(color.FgGreen).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("PASSED")
-	fmt.Printf("] %s\n", result.Case.Description)
+	fmt.Printf("] %s %s\n", result.Case.Description, result.Duration)
 }
 
 func (r ConsoleReporter) reportError(result TestResult) {
@@ -106,7 +106,7 @@ type properties struct {
 type tc struct {
 	Name      string   `xml:"name,attr"`
 	ClassName string   `xml:"classname,attr"`
-	Time      uint16   `xml:"time,attr"`
+	Time      float64  `xml:"time,attr"`
 	Failure   *failure `xml:"failure,omitempty"`
 }
 
@@ -126,7 +126,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 		r.suite = newSuite(result)
 	}
 
-	testCase := tc{Name: result.Case.Description, ClassName: result.Suite.Name}
+	testCase := tc{Name: result.Case.Description, ClassName: result.Suite.Name, Time: result.Duration.Seconds()}
 	if result.Cause != nil {
 		testCase.Failure = &failure{Type: "Failed Expectation", Message: result.Cause.Error()}
 		r.suite.Failures = r.suite.Failures + 1
@@ -162,7 +162,7 @@ func newSuite(result TestResult) *suite {
 		Name:        result.Suite.Name,
 		PackageName: result.Suite.PackageName,
 		TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05"),
-		HostName:    "test",
+		HostName:    "localhost",
 	}
 }
 
