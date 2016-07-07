@@ -81,13 +81,13 @@ type JUnitXMLReporter struct {
 }
 
 type suite struct {
-	XMLName     string `xml:"testsuite"`
-	ID          int    `xml:"id,attr"`
-	Name        string `xml:"name,attr"`
-	PackageName string `xml:"package,attr"`
-	TimeStamp   string `xml:"timestamp,attr"`
-	Time        uint16 `xml:"time,attr"`
-	HostName    string `xml:"hostname,attr"`
+	XMLName     string  `xml:"testsuite"`
+	ID          int     `xml:"id,attr"`
+	Name        string  `xml:"name,attr"`
+	PackageName string  `xml:"package,attr"`
+	TimeStamp   string  `xml:"timestamp,attr"`
+	Time        float64 `xml:"time,attr"`
+	HostName    string  `xml:"hostname,attr"`
 
 	Tests    int `xml:"tests,attr"`
 	Failures int `xml:"failures,attr"`
@@ -128,11 +128,12 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 
 	testCase := tc{Name: result.Case.Description, ClassName: result.Suite.Name, Time: result.Duration.Seconds()}
 	if result.Cause != nil {
-		testCase.Failure = &failure{Type: "Failed Expectation", Message: result.Cause.Error()}
+		testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Cause.Error()}
 		r.suite.Failures = r.suite.Failures + 1
 	}
 	r.suite.Tests = r.suite.Tests + 1
 	r.suite.ID = r.suite.ID + 1
+	r.suite.Time = r.suite.Time + result.Duration.Seconds()
 	r.suite.Cases = append(r.suite.Cases, testCase)
 }
 
