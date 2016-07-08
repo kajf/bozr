@@ -137,7 +137,6 @@
         "expect": {
           "statusCode": 200,
           "contentType": "application/json",
-          "body": {},
           "bodySchema" : "login-schema.json"
         },
         "remember": {
@@ -153,7 +152,7 @@
             "Accept": "application/json",
             "Content-Type": "application/json"
           },
-          "body" : "{\"rate_tables\": [{\"name\": \"Rate Table50\"}]}"
+          "bodyFile" : "rate_table.json"
         },
         "expect": {
           "statusCode": 200,

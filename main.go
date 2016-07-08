@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -41,11 +40,12 @@ type Call struct {
 }
 
 type On struct {
-	Method  string            `json:"method"`
-	URL     string            `json:"url"`
-	Headers map[string]string `json:"headers"`
-	Params  map[string]string `json:"params"`
-	Body    string            `json:"body"`
+	Method   string            `json:"method"`
+	URL      string            `json:"url"`
+	Headers  map[string]string `json:"headers"`
+	Params   map[string]string `json:"params"`
+	Body     string            `json:"body"`
+	BodyFile string            `json:"bodyFile"`
 }
 
 type Expect struct {
@@ -152,7 +152,17 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 
 	on := call.On
 
-	req, _ := http.NewRequest(on.Method, *host+on.URL, bytes.NewBuffer([]byte(on.Body)))
+	dat := []byte(on.Body)
+	if on.BodyFile != "" {
+		uri := getFileUti(*suiteDir, on.BodyFile)
+		if d, err := ioutil.ReadFile(uri); err == nil{
+			dat = d
+		} else {
+			debugMsg("Can't read body file: ", err.Error())
+		}
+	}
+
+	req, _ := http.NewRequest(on.Method, *host + on.URL, bytes.NewBuffer(dat))
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, putRememberedVars(value, rememberMap))
@@ -170,7 +180,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 	resp, err := client.Do(req)
 
 	if err != nil {
-		fmt.Println("Error when sending request", err)
+		debugMsg("Error when sending request", err)
 		return nil, err
 	}
 
@@ -178,7 +188,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error reading response")
+		debugMsg("Error reading response")
 		return nil, err
 	}
 
@@ -201,7 +211,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 	err = remember(testResp.bodyAsMap(), call.Remember, rememberMap)
 	debugMsg("Remember: ", rememberMap)
 	if err != nil {
-		fmt.Println("Error remember")
+		debugMsg("Error remember")
 		return nil, err
 	}
 
@@ -217,8 +227,7 @@ func putRememberedVars(str string, rememberMap map[string]string) string {
 	return res
 }
 
-func expectations(call Call) []ResponseExpectation {
-	var exps []ResponseExpectation
+func expectations(call Call) (exps []ResponseExpectation) {
 
 	if call.Expect.StatusCode != -1 {
 		exps = append(exps, StatusExpectation{statusCode: call.Expect.StatusCode})
@@ -226,12 +235,7 @@ func expectations(call Call) []ResponseExpectation {
 
 	if call.Expect.BodySchema != "" {
 		// for now use path relative to suiteDir
-		uri, err := filepath.Abs(*suiteDir)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		uri = "file:///" + filepath.ToSlash(filepath.Join(uri, call.Expect.BodySchema))
+		uri := "file:///" + getFileUti(*suiteDir, call.Expect.BodySchema)
 		exps = append(exps, BodySchemaExpectation{schemaURI: uri})
 	}
 
@@ -249,6 +253,17 @@ func expectations(call Call) []ResponseExpectation {
 
 	// and so on
 	return exps
+}
+
+func getFileUti(dir string, file string) string {
+	uri, err := filepath.Abs(dir)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	uri = filepath.ToSlash(filepath.Join(uri, file))
+
+	return uri
 }
 
 func remember(bodyMap map[string]interface{}, remember map[string]string, rememberedMap map[string]string) (err error) {
@@ -518,7 +533,6 @@ func (e HeaderExpectation) check(resp Response) error {
 }
 
 // TODO add file name to test case report (same names in different files are annoying)
-// TODO on.body loading from file (move large files out of test case json)
 // TODO expect response headers
 // TODO separate path and cmd line key for json/xml schema folder
 // TODO xml parsing to map (see failing TestXmlUnmarshal)
