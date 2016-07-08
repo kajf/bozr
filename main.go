@@ -74,7 +74,7 @@ func main() {
 	rememberedMap := make(map[string]string)
 
 	path, _ := filepath.Abs("./report")
-	reporter := NewMultiReporter(NewJUnitReporter(path))
+	reporter := NewMultiReporter(NewJUnitReporter(path), NewConsoleReporter())
 
 	// test case runner?
 	for _, suite := range suits {
@@ -257,61 +257,76 @@ func remember(bodyMap map[string]interface{}, remember map[string]string, rememb
 
 		splitPath := strings.Split(path, ".")
 
-		rememberVar := getByPath(bodyMap, splitPath...)
-		if rememberVar != nil {
-			rememberedMap[varName] = rememberVar.(string)
+		if rememberVar, err := getByPath(bodyMap, splitPath...); err == nil {
+			rememberedMap[varName] = rememberVar
 		} else {
-			err = errors.New("Remembered value not found: %v\n")
+			strErr := fmt.Sprintf("Remembered value not found, path: %v", path)
+			err = errors.New(strErr)
 		}
 		//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
-
 	}
 
 	return err
 }
 
-func getByPath(m interface{}, path ...string) interface{} {
+// exact value by exact path
+func getByPath(m interface{}, path ...string) (string, error) {
 
 	for _, p := range path {
 		//fmt.Println(p)
-		idx, err := strconv.Atoi(p)
-		if err != nil {
-			m = m.(map[string]interface{})[p]
-		} else {
-			m = m.([]interface{})[idx]
+		funcVal, ok := pathFunction(m, p)
+		if ok {
+			return funcVal, nil
 		}
 
+		idx, err := strconv.Atoi(p)
+		if err != nil {
+			//fmt.Println(err)
+			mp, ok := m.(map[string]interface{})
+			if !ok {
+				str := fmt.Sprintf("Can't cast to Map and get key [%v] in path %v", p, path)
+				return "", errors.New(str)
+			}
+			m = mp[p]
+		} else {
+			arr, ok := m.([]interface{})
+			if !ok {
+				str := fmt.Sprintf("Can't cast to Array and get index [%v] in path %v", idx, path)
+				return "", errors.New(str)
+			}
+			if idx >= len(arr) {
+				str := fmt.Sprintf("Array only has [%v] elements. Can't get element by index [%v] (counts from zero)", len(arr), idx)
+				return "", errors.New(str)
+			}
+			m = arr[idx]
+		}
 	}
-	return m
+
+	if str, ok := castToString(m); ok {
+		return str, nil
+	} else {
+		strErr := fmt.Sprintf("Can't cast path result to string: %v", m)
+		return "", errors.New(strErr)
+	}
 }
 
+// search passing maps and arrays
 func searchByPath(m interface{}, s string, path ...string) bool {
 	for idx, p := range path {
 		//fmt.Println("s ", idx, "p ", p)
-		// TODO refactor to separate function part from path parts
-		if idx == len(path)-1 {
-			if p == "size()" {
-				if arr, ok := m.([]interface{}); ok {
-					arrLen, err := strconv.Atoi(s)
-					if err == nil && arrLen == len(arr) {
-						return true
-					}
-				}
+		funcVal, ok := pathFunction(m, p)
+		if ok {
+			if s == funcVal {
+				return true
 			}
-		} // last path part could be a function
+		}
 
 		switch typedM := m.(type) {
 		case map[string]interface{}:
 			m = typedM[p]
 			//fmt.Println("[",m, "] [", s,"]", reflect.TypeOf(m))
-
-			if str, ok := m.(string); ok {
+			if str, ok := castToString(m); ok {
 				if str == s {
-					return true
-				}
-			} else if flt, ok := m.(float64); ok {
-				// numbers (like ids) are parsed as float64 from json
-				if strconv.FormatFloat(flt, 'f', 0, 64) == s {
 					return true
 				}
 			}
@@ -324,10 +339,31 @@ func searchByPath(m interface{}, s string, path ...string) bool {
 				}
 			}
 		}
-
 	}
 
 	return false
+}
+
+func castToString(m interface{}) (string, bool) {
+	if str, ok := m.(string); ok {
+		return str, ok
+	} else if flt, ok := m.(float64); ok {
+		// numbers (like ids) are parsed as float64 from json
+		return strconv.FormatFloat(flt, 'f', 0, 64), ok
+	} else {
+		return "", ok
+	}
+}
+
+func pathFunction(m interface{}, pathPart string) (string, bool) {
+
+	if pathPart == "size()" {
+		if arr, ok := m.([]interface{}); ok {
+			return strconv.Itoa(len(arr)), true
+		}
+	}
+
+	return "", false
 }
 
 type TestResult struct {
@@ -419,12 +455,30 @@ func (e BodyExpectation) check(resp Response) error {
 
 	errs := []string{}
 	for path, expectedValue := range e.pathExpectations {
+		exactMatch := !strings.HasPrefix(path, "~")
+
+		path := strings.Replace(path, "~", "", -1)
+
 		splitPath := strings.Split(path, ".")
+
 		// TODO need rememberedMap here:  expectedValue = putRememberedVars(expectedValue, rememberedMap)
-		found := searchByPath(resp.bodyAsMap(), expectedValue, splitPath...)
-		if !found {
-			err := "Expected value: [" + expectedValue + "] on path: [" + path + "] is not found" // TODO specific message for functions
-			errs = append(errs, err)
+		m := resp.bodyAsMap()
+
+		if (exactMatch) {
+			val, err := getByPath(m, splitPath...)
+			if val != expectedValue {
+				str := fmt.Sprintf("Expected value [%s] on path [%s] does not match [%v].", expectedValue, path, val)
+				if err != nil {
+					str += " " + err.Error()
+				}
+				errs = append(errs, str)
+			}
+		} else {
+			found := searchByPath(m, expectedValue, splitPath...)
+			if !found {
+				err := "Expected value: [" + expectedValue + "] is not found by path: [" + path + "]" // TODO specific message for functions
+				errs = append(errs, err)
+			}
 		}
 	}
 	if len(errs) > 0 {
@@ -463,11 +517,11 @@ func (e HeaderExpectation) check(resp Response) error {
 	return nil
 }
 
+// TODO add file name to test case report (same names in different files are annoying)
+// TODO on.body loading from file (move large files out of test case json)
 // TODO expect response headers
 // TODO separate path and cmd line key for json/xml schema folder
-// TODO on.body loading from file (move large files out of test case json)
 // TODO xml parsing to map (see failing TestXmlUnmarshal)
-// TODO add -t (troubleshoot) key for reporting more info to console
 // TODO add suite.json schema validation to prevent invalid cases (invalid expectation is in file, but never checked)
 
 // optional/under discussion

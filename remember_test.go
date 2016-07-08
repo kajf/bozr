@@ -7,9 +7,15 @@ import (
 
 func TestGetByPathSimple(t *testing.T) {
 	token := "abc"
-	m := map[string]interface{}{"token": token, "bar": 2}
 
-	got := getByPath(m, "token")
+	s := `{"token":"` + token + `","ttl":3600000,"units":"milliseconds"}`
+	var m map[string]interface{}
+	err := json.Unmarshal([]byte(s), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	got, _ := getByPath(m, "token")
 
 	if got != token {
 		t.Error(
@@ -25,7 +31,7 @@ func TestGetByPath2ndLevel(t *testing.T) {
 	token := map[string]interface{}{"name": name}
 	m := map[string]interface{}{"token": token, "bar": 2}
 
-	got := getByPath(m, "token", "name")
+	got, _ := getByPath(m, "token", "name")
 
 	if got != name {
 		t.Error(
@@ -49,7 +55,7 @@ func TestGetByPathWithIndex(t *testing.T) {
 		t.Error(err)
 	}
 
-	got := getByPath(m, "items", "0", "id")
+	got, _ := getByPath(m, "items", "0", "id")
 	if got != "417857" {
 		t.Error(
 			"expected", "417857",
@@ -58,12 +64,102 @@ func TestGetByPathWithIndex(t *testing.T) {
 	}
 }
 
+func TestGetByPathArraySize(t *testing.T) {
+	s := `{
+		"items":[
+			{"status":"OK"},
+			{"status":"OK"}
+		]
+	 	}`
+	var m map[string]interface{}
+	err := json.Unmarshal([]byte(s), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	got, err := getByPath(m, "items", "size()")
+	if got != "2" || err != nil {
+		t.Error(
+			"expected 2",
+			"got", got,
+			"err", err,
+		)
+	}
+}
+
+func TestGetByPathArrayOutOfBounds(t *testing.T) {
+	s := `{
+		"items":[
+			{"id":"-1","status":"OK"},
+			{"id":"-2","status":"OK"}
+		]
+	 	}`
+	var m map[string]interface{}
+	err := json.Unmarshal([]byte(s), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	got, err := getByPath(m, "items", "2", "id")
+	if got != "" || err == nil {
+		t.Error(
+			"expected nil",
+			"got", got,
+			"err", err,
+		)
+	}
+}
+
+func TestGetByPathNotArrayWithIndex(t *testing.T) {
+	s := `{
+		"items":
+			{"id":"-1","status":"OK"}
+	 	}`
+	var m map[string]interface{}
+	err := json.Unmarshal([]byte(s), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	got, err := getByPath(m, "items", "1", "id")
+	if got != "" || err == nil {
+		t.Error(
+			"expected nil",
+			"got", got,
+			"err", err,
+		)
+	}
+}
+
+func TestGetByPathNotIndexWithArray(t *testing.T) {
+	s := `{
+		"items":[
+			{"id":"-1","status":"OK"},
+			{"id":"-2","status":"OK"}
+		]
+	 	}`
+	var m map[string]interface{}
+	err := json.Unmarshal([]byte(s), &m)
+	if err != nil {
+		t.Error(err)
+	}
+
+	got, err := getByPath(m, "items", "id")
+	if got != "" || err == nil {
+		t.Error(
+			"expected nil",
+			"got", got,
+			"err", err,
+		)
+	}
+}
+
 func TestGetByPathEmpty(t *testing.T) {
 	emptyMap := make(map[string]interface{})
 
-	got := getByPath(emptyMap, "token")
+	got, _ := getByPath(emptyMap, "token")
 
-	if got != nil {
+	if got != "" {
 		t.Error(
 			"For", "token",
 			"expected", nil,

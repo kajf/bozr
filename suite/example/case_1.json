@@ -90,8 +90,8 @@
           "statusCode": 200,
           "contentType": "application/json",
           "body": {
-            "rate_tables.id": "417601",
-            "rate_tables.description": "Test Rate Table1"
+            "~rate_tables.id": "417601",
+            "~rate_tables.description": "Test Rate Table1"
           }
         }
       }
@@ -163,7 +163,7 @@
           "contentType": "application/json",
           "body": {
             "items.size()": "1",
-            "items.status": "OK"
+            "~items.status": "OK"
           }
         }
       }
