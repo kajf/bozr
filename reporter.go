@@ -37,14 +37,14 @@ func (r ConsoleReporter) reportSuccess(result TestResult) {
 	c := color.New(color.FgGreen).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("PASSED")
-	fmt.Printf("] %s \t%s\n", result.Case.Description, result.Duration)
+	fmt.Printf("] %s - %s \t%s\n", result.Suite.Name, result.Case.Description, result.Duration)
 }
 
 func (r ConsoleReporter) reportError(result TestResult) {
 	c := color.New(color.FgRed).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("FAILED")
-	fmt.Printf("] %s\n", result.Case.Description)
+	fmt.Printf("] %s - %s \n", result.Suite.Name, result.Case.Description)
 	lines := strings.Split(result.Cause.Error(), "\n")
 
 	for _, line := range lines {
