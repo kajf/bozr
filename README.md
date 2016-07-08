@@ -16,6 +16,7 @@ Dependencies:
 ## Command-line arguments
 - d - path to directory with test-cases-json files 
 - h - remote host address to run tests against
+- v - verbose console output
 ```bash
-t-rest -h http://localhost:8080 -d ./suites
+t-rest -h http://localhost:8080 -d ./suites -v
 ```
