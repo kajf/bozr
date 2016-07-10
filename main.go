@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"encoding/xml"
 	"errors"
 	"flag"
 	"fmt"
@@ -16,6 +15,7 @@ import (
 	"strings"
 	"time"
 	"github.com/xeipuuv/gojsonschema"
+	"github.com/clbanning/mxj"
 )
 
 // TestSuite represents file with test cases.
@@ -208,7 +208,13 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 		}
 	}
 
-	err = remember(testResp.bodyAsMap(), call.Remember, rememberMap)
+	m, err := testResp.bodyAsMap()
+	if err != nil {
+		debugMsg("Can't parse response body to Map for [Remember]")
+		return nil, err
+	}
+
+	err = remember(m, call.Remember, rememberMap)
 	debugMsg("Remember: ", rememberMap)
 	if err != nil {
 		debugMsg("Error remember")
@@ -395,23 +401,23 @@ type Response struct {
 	body []byte
 }
 
-func (e Response) bodyAsMap() map[string]interface{} {
+func (e Response) bodyAsMap() (map[string]interface{}, error) {
 	var bodyMap map[string]interface{}
 	var err error
 
 	contentType, _, _ := mime.ParseMediaType(e.http.Header.Get("content-type"))
 	if contentType == "application/xml" {
-		err = xml.Unmarshal(e.body, &bodyMap)
+		m, err := mxj.NewMapXml(e.body)
+		if err == nil {
+			bodyMap = m.Old() // cast to map
+		}
 	}
+
 	if contentType == "application/json" {
 		err = json.Unmarshal(e.body, &bodyMap)
 	}
 
-	if err != nil {
-		panic(err.Error())
-	}
-
-	return bodyMap
+	return bodyMap, err
 }
 
 func debugMsg(a ...interface{}) {
@@ -477,7 +483,12 @@ func (e BodyExpectation) check(resp Response) error {
 		splitPath := strings.Split(path, ".")
 
 		// TODO need rememberedMap here:  expectedValue = putRememberedVars(expectedValue, rememberedMap)
-		m := resp.bodyAsMap()
+		m, err := resp.bodyAsMap()
+		if err != nil {
+			str := "Can't parse response body to Map." // TODO specific message for functions
+			str += " " + err.Error()
+			errs = append(errs, str)
+		}
 
 		if (exactMatch) {
 			val, err := getByPath(m, splitPath...)
@@ -532,15 +543,11 @@ func (e HeaderExpectation) check(resp Response) error {
 	return nil
 }
 
-// TODO add file name to test case report (same names in different files are annoying)
-// TODO expect response headers
 // TODO separate path and cmd line key for json/xml schema folder
-// TODO xml parsing to map (see failing TestXmlUnmarshal)
 // TODO add suite.json schema validation to prevent invalid cases (invalid expectation is in file, but never checked)
 
 // optional/under discussion
 // TODO "description" in Call for better reporting
-// TODO "comment" in test case to describe in more details (sentence)
 // TODO matchers: not() ?
 // TODO rename remember > keep or memo ?
 // TODO full body expectation from file (security testing)

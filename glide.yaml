@@ -4,3 +4,5 @@ import:
 - package: github.com/fatih/color
 - package: github.com/mattn/go-colorable
 - package: github.com/mattn/go-isatty
+- package: github.com/clbanning/mxj
+- package: github.com/fatih/structs

@@ -2,21 +2,26 @@ package main
 
 import (
 	"testing"
-	"encoding/xml"
+	"github.com/clbanning/mxj"
 )
 
-func TestXmlUnmarshal(t *testing.T) {
-	s := `<pay_period_profiles></pay_period_profiles>`
-	var m map[string]interface{}
-	err := xml.Unmarshal([]byte(s), &m)
+func TestXmlUnmarshalMxj(t *testing.T) {
+	expectedVal := "22"
+	s := `<pay_period_profiles>
+		<pay_period_profile>123</pay_period_profile>
+		<pay_period_profile>` + expectedVal + `</pay_period_profile>
+	     </pay_period_profiles>`
+	m, err := mxj.NewMapXml([]byte(s))
 	if err != nil {
 		t.Error(err)
 	}
 
-	//if got != "417857" {
-	//	t.Error(
-	//		"expected", "417857",
-	//		"got", got,
-	//	)
-	//}
+	got, err := getByPath(m.Old(), "pay_period_profiles", "pay_period_profile", "1")
+	if got != expectedVal || err != nil {
+		t.Error(
+			"expected", expectedVal,
+			"got", got,
+			"err", err,
+		)
+	}
 }

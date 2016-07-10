@@ -1,10 +1,14 @@
-hash: 6a0f2b3540215ddb0f6aac61f531848e4670427dacc8599a73448850ade1e6fa
-updated: 2016-07-01T20:35:21.1536808+03:00
+hash: aa3d347bb509aa909279eb2a342d0044e4f83c47b54cf17e0c0307cca19cc3ee
+updated: 2016-07-10T23:18:30.1193308+03:00
 imports:
+- name: github.com/clbanning/mxj
+  version: bdbb707fca2decb4efd865b0656df7e74dcbbbdb
 - name: github.com/fatih/color
   version: 87d4004f2ab62d0d255e0a38f1680aa534549fe3
   subpackages:
   - github.com\fatih\color
+- name: github.com/fatih/structs
+  version: be738c8546f55b34e60125afa50ed73a9a9c460e
 - name: github.com/mattn/go-colorable
   version: 9056b7a9f2d1f2d96498d6d146acd1f9d5ed3d59
   subpackages:
