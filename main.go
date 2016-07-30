@@ -337,10 +337,11 @@ func debugMsgF(tpl string, a ...interface{}) {
 	fmt.Printf(tpl, a...)
 }
 
-// TODO add suite.json schema validation to prevent invalid cases (invalid expectation is in file, but never checked)
+// TODO finilize suite schema
 
 // optional/under discussion
 // TODO "description" in Call for better reporting
 // TODO matchers: not() ?
 // TODO rename remember > keep or memo ?
 // TODO full body expectation from file (security testing)
+// TODO concurrent tests run
