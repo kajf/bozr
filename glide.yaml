@@ -6,3 +6,5 @@ import:
 - package: github.com/mattn/go-isatty
 - package: github.com/clbanning/mxj
 - package: github.com/fatih/structs
+- package: github.com/lestrrat/go-libxml2
+- package: github.com/pkg/errors

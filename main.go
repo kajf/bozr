@@ -14,8 +14,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/xeipuuv/gojsonschema"
+
 	"github.com/clbanning/mxj"
+
+	"github.com/lestrrat/go-libxml2"
+	"github.com/lestrrat/go-libxml2/xsd"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 // TestSuite represents file with test cases.
@@ -155,14 +159,14 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 	dat := []byte(on.Body)
 	if on.BodyFile != "" {
 		uri := getFileUti(*suiteDir, on.BodyFile)
-		if d, err := ioutil.ReadFile(uri); err == nil{
+		if d, err := ioutil.ReadFile(uri); err == nil {
 			dat = d
 		} else {
 			debugMsg("Can't read body file: ", err.Error())
 		}
 	}
 
-	req, _ := http.NewRequest(on.Method, *host + on.URL, bytes.NewBuffer(dat))
+	req, _ := http.NewRequest(on.Method, *host+on.URL, bytes.NewBuffer(dat))
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, putRememberedVars(value, rememberMap))
@@ -241,7 +245,7 @@ func expectations(call Call) (exps []ResponseExpectation) {
 
 	if call.Expect.BodySchema != "" {
 		// for now use path relative to suiteDir
-		uri := "file:///" + getFileUti(*suiteDir, call.Expect.BodySchema)
+		uri := getFileUti(*suiteDir, call.Expect.BodySchema)
 		exps = append(exps, BodySchemaExpectation{schemaURI: uri})
 	}
 
@@ -444,12 +448,28 @@ func (e StatusExpectation) check(resp Response) error {
 	return nil
 }
 
+// BodySchemaExpectation validate response body against schema.
+// Content-Type header is used to identify json schema or xsd will be used.
 type BodySchemaExpectation struct {
 	schemaURI string
 }
 
 func (e BodySchemaExpectation) check(resp Response) error {
-	schemaLoader := gojsonschema.NewReferenceLoader(e.schemaURI)
+	contentType, _, _ := mime.ParseMediaType(resp.http.Header.Get("content-type"))
+
+	if contentType == "application/json" {
+		return e.checkJSON(resp)
+	}
+
+	if contentType == "application/xml" {
+		return e.checkXML(resp)
+	}
+
+	return fmt.Errorf("Unsupported content type: %s", contentType)
+}
+
+func (e BodySchemaExpectation) checkJSON(resp Response) error {
+	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + e.schemaURI)
 	documentLoader := gojsonschema.NewStringLoader(string(resp.body))
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
@@ -461,6 +481,43 @@ func (e BodySchemaExpectation) check(resp Response) error {
 		msg := "Unexpected Body Schema:\n"
 		for _, desc := range result.Errors() {
 			msg = fmt.Sprintf(msg+"%s\n", desc)
+		}
+		return errors.New(msg)
+	}
+
+	return nil
+}
+
+func (e BodySchemaExpectation) checkXML(resp Response) error {
+	xsdfile := e.schemaURI
+	fmt.Println(xsdfile)
+
+	f, err := os.Open(xsdfile)
+	if err != nil {
+		return fmt.Errorf("failed to open schema file: %s", err)
+	}
+	defer f.Close()
+
+	buf, err := ioutil.ReadAll(f)
+	if err != nil {
+		return fmt.Errorf("failed to read schema file: %s", err)
+	}
+
+	s, err := xsd.Parse(buf)
+	if err != nil {
+		return fmt.Errorf("failed to parse schema file: %s", err)
+	}
+	defer s.Free()
+
+	d, err := libxml2.ParseString(string(resp.body))
+	if err != nil {
+		return fmt.Errorf("failed to parse XML: %s", err)
+	}
+
+	if err := s.Validate(d); err != nil {
+		msg := "Unexpected Body Schema:\n"
+		for _, e := range err.(xsd.SchemaValidationError).Errors() {
+			msg = fmt.Sprintf("%s\t%s\n", msg, e.Error())
 		}
 		return errors.New(msg)
 	}
@@ -490,7 +547,7 @@ func (e BodyExpectation) check(resp Response) error {
 			errs = append(errs, str)
 		}
 
-		if (exactMatch) {
+		if exactMatch {
 			val, err := getByPath(m, splitPath...)
 			if val != expectedValue {
 				str := fmt.Sprintf("Expected value [%s] on path [%s] does not match [%v].", expectedValue, path, val)
