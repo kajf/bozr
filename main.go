@@ -56,59 +56,6 @@ func main() {
 	reporter.Flush()
 }
 
-type testCaseLoader struct {
-	suits []TestSuite
-}
-
-func (s *testCaseLoader) loadDir(dir string) ([]TestSuite, error) {
-	err := filepath.Walk(dir, s.loadFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.suits, nil
-}
-
-func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) error {
-	if err != nil {
-		return nil
-	}
-
-	if info.IsDir() {
-		return nil
-	}
-
-	if !strings.HasSuffix(info.Name(), ".json") {
-		return nil
-	}
-
-	debugMsgF("Process file: %s\n", info.Name())
-	content, e := ioutil.ReadFile(path)
-
-	if e != nil {
-		debugMsgF("File error: %v\n", e)
-		return nil
-	}
-
-	var testCases []TestCase
-	err = json.Unmarshal(content, &testCases)
-	if err != nil {
-		debugMsgF("Parse error: %v\n", err)
-		return nil
-	}
-
-	absPath, err := filepath.Abs(*suiteDir)
-	if err != nil {
-		return nil
-	}
-
-	pack := strings.TrimSuffix(strings.TrimPrefix(path, absPath), info.Name())
-	name := strings.TrimSuffix(info.Name(), filepath.Ext(info.Name()))
-	su := TestSuite{Name: name, PackageName: pack, Cases: testCases}
-	s.suits = append(s.suits, su)
-	return nil
-}
-
 func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestResult, error) {
 	debugMsg("--- Starting call ...") // TODO add call description
 	start := time.Now()
