@@ -59,7 +59,7 @@ func (e BodySchemaExpectation) checkJSON(resp Response) error {
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 	if err != nil {
-		panic(err.Error())
+		return fmt.Errorf("failed to load schema file: %s", err)
 	}
 
 	if !result.Valid() {
@@ -74,10 +74,7 @@ func (e BodySchemaExpectation) checkJSON(resp Response) error {
 }
 
 func (e BodySchemaExpectation) checkXML(resp Response) error {
-	xsdfile := e.schemaURI
-	fmt.Println(xsdfile)
-
-	f, err := os.Open(xsdfile)
+	f, err := os.Open(e.schemaURI)
 	if err != nil {
 		return fmt.Errorf("failed to open schema file: %s", err)
 	}

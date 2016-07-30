@@ -82,18 +82,18 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 		return nil
 	}
 
-	fmt.Printf("Process file: %s\n", info.Name())
+	debugMsgF("Process file: %s\n", info.Name())
 	content, e := ioutil.ReadFile(path)
 
 	if e != nil {
-		fmt.Printf("File error: %v\n", e)
+		debugMsgF("File error: %v\n", e)
 		return nil
 	}
 
 	var testCases []TestCase
 	err = json.Unmarshal(content, &testCases)
 	if err != nil {
-		fmt.Printf("Parse error: %v\n", err)
+		debugMsgF("Parse error: %v\n", err)
 		return nil
 	}
 
@@ -375,6 +375,13 @@ func debugMsg(a ...interface{}) {
 	}
 	fmt.Print("\t")
 	fmt.Println(a...)
+}
+
+func debugMsgF(tpl string, a ...interface{}) {
+	if !*verbose {
+		return
+	}
+	fmt.Printf(tpl, a...)
 }
 
 // TODO separate path and cmd line key for json/xml schema folder
