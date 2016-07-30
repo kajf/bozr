@@ -53,18 +53,14 @@ func (r ConsoleReporter) reportError(result TestResult) {
 }
 
 func (r ConsoleReporter) Flush() {
-	fmt.Println("\n~~~ Summary ~~~")
-	fmt.Printf("# of test cases : %v\n", r.total)
-	fmt.Printf("# Errors: %v\n", r.failed)
+	fmt.Println("\nFinished")
+	fmt.Println("--------------------")
 
-	if r.failed > 0 {
-		fmt.Println("~~~ Test run FAILURE! ~~~")
-		os.Exit(1)
-		return
-	} // test run failed
-
-	fmt.Println("~~~ Test run SUCCESS ~~~")
-	os.Exit(r.ExitCode)
+	coler := color.New(color.FgGreen).Add(color.Bold)
+	if r.failed != 0 {
+		coler = color.New(color.FgRed).Add(color.Bold)
+	}
+	coler.Printf("%v tests, %v failures\n", r.total, r.failed)
 }
 
 // NewConsoleReporter returns new instance of console reporter
@@ -142,6 +138,9 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 }
 
 func (r JUnitXMLReporter) flushSuite() {
+	if r.suite == nil {
+		return
+	}
 	fileName := strings.Replace(filepath.ToSlash(r.suite.PackageName), "/", "_", -1) + r.suite.Name + ".xml"
 	fp := filepath.Join(r.OutPath, fileName)
 	err := os.MkdirAll(r.OutPath, 0777)
