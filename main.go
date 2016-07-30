@@ -16,48 +16,7 @@ import (
 	"time"
 
 	"github.com/clbanning/mxj"
-
-	"github.com/lestrrat/go-libxml2"
-	"github.com/lestrrat/go-libxml2/xsd"
-	"github.com/xeipuuv/gojsonschema"
 )
-
-// TestSuite represents file with test cases.
-type TestSuite struct {
-	// file name
-	Name string
-	// path to a file
-	PackageName string
-	// test cases listed in a file
-	Cases []TestCase
-}
-
-type TestCase struct {
-	Description string `json:"description"`
-	Calls       []Call `json:"calls"`
-}
-
-type Call struct {
-	On       On                `json:"on"`
-	Expect   Expect            `json:"expect"`
-	Remember map[string]string `json:"remember"`
-}
-
-type On struct {
-	Method   string            `json:"method"`
-	URL      string            `json:"url"`
-	Headers  map[string]string `json:"headers"`
-	Params   map[string]string `json:"params"`
-	Body     string            `json:"body"`
-	BodyFile string            `json:"bodyFile"`
-}
-
-type Expect struct {
-	StatusCode  int               `json:"statusCode"`
-	ContentType string            `json:"contentType"`
-	Body        map[string]string `json:"body"`
-	BodySchema  string            `json:"bodySchema"`
-}
 
 var (
 	suiteDir = flag.String("d", ".", "Path to the directory that contains test suite.")
@@ -158,7 +117,7 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 
 	dat := []byte(on.Body)
 	if on.BodyFile != "" {
-		uri := getFileUti(*suiteDir, on.BodyFile)
+		uri := getFileUri(*suiteDir, on.BodyFile)
 		if d, err := ioutil.ReadFile(uri); err == nil {
 			dat = d
 		} else {
@@ -245,7 +204,7 @@ func expectations(call Call) (exps []ResponseExpectation) {
 
 	if call.Expect.BodySchema != "" {
 		// for now use path relative to suiteDir
-		uri := getFileUti(*suiteDir, call.Expect.BodySchema)
+		uri := getFileUri(*suiteDir, call.Expect.BodySchema)
 		exps = append(exps, BodySchemaExpectation{schemaURI: uri})
 	}
 
@@ -265,7 +224,7 @@ func expectations(call Call) (exps []ResponseExpectation) {
 	return exps
 }
 
-func getFileUti(dir string, file string) string {
+func getFileUri(dir string, file string) string {
 	uri, err := filepath.Abs(dir)
 	if err != nil {
 		fmt.Println(err)
@@ -391,20 +350,6 @@ func pathFunction(m interface{}, pathPart string) (string, bool) {
 	return "", false
 }
 
-type TestResult struct {
-	Suite TestSuite
-	Case  TestCase
-	Resp  Response
-	// in case test failed, cause must be specified
-	Cause    error
-	Duration time.Duration
-}
-
-type Response struct {
-	http http.Response
-	body []byte
-}
-
 func (e Response) bodyAsMap() (map[string]interface{}, error) {
 	var bodyMap map[string]interface{}
 	var err error
@@ -430,174 +375,6 @@ func debugMsg(a ...interface{}) {
 	}
 	fmt.Print("\t")
 	fmt.Println(a...)
-}
-
-type ResponseExpectation interface {
-	check(resp Response) error
-}
-
-type StatusExpectation struct {
-	statusCode int
-}
-
-func (e StatusExpectation) check(resp Response) error {
-	if resp.http.StatusCode != e.statusCode {
-		msg := fmt.Sprintf("Unexpected Status Code. Expected: %d, Actual: %d\n", e.statusCode, resp.http.StatusCode)
-		return errors.New(msg)
-	}
-	return nil
-}
-
-// BodySchemaExpectation validate response body against schema.
-// Content-Type header is used to identify json schema or xsd will be used.
-type BodySchemaExpectation struct {
-	schemaURI string
-}
-
-func (e BodySchemaExpectation) check(resp Response) error {
-	contentType, _, _ := mime.ParseMediaType(resp.http.Header.Get("content-type"))
-
-	if contentType == "application/json" {
-		return e.checkJSON(resp)
-	}
-
-	if contentType == "application/xml" {
-		return e.checkXML(resp)
-	}
-
-	return fmt.Errorf("Unsupported content type: %s", contentType)
-}
-
-func (e BodySchemaExpectation) checkJSON(resp Response) error {
-	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + e.schemaURI)
-	documentLoader := gojsonschema.NewStringLoader(string(resp.body))
-
-	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	if !result.Valid() {
-		msg := "Unexpected Body Schema:\n"
-		for _, desc := range result.Errors() {
-			msg = fmt.Sprintf(msg+"%s\n", desc)
-		}
-		return errors.New(msg)
-	}
-
-	return nil
-}
-
-func (e BodySchemaExpectation) checkXML(resp Response) error {
-	xsdfile := e.schemaURI
-	fmt.Println(xsdfile)
-
-	f, err := os.Open(xsdfile)
-	if err != nil {
-		return fmt.Errorf("failed to open schema file: %s", err)
-	}
-	defer f.Close()
-
-	buf, err := ioutil.ReadAll(f)
-	if err != nil {
-		return fmt.Errorf("failed to read schema file: %s", err)
-	}
-
-	s, err := xsd.Parse(buf)
-	if err != nil {
-		return fmt.Errorf("failed to parse schema file: %s", err)
-	}
-	defer s.Free()
-
-	d, err := libxml2.ParseString(string(resp.body))
-	if err != nil {
-		return fmt.Errorf("failed to parse XML: %s", err)
-	}
-
-	if err := s.Validate(d); err != nil {
-		msg := "Unexpected Body Schema:\n"
-		for _, e := range err.(xsd.SchemaValidationError).Errors() {
-			msg = fmt.Sprintf("%s\t%s\n", msg, e.Error())
-		}
-		return errors.New(msg)
-	}
-
-	return nil
-}
-
-type BodyExpectation struct {
-	pathExpectations map[string]string
-}
-
-func (e BodyExpectation) check(resp Response) error {
-
-	errs := []string{}
-	for path, expectedValue := range e.pathExpectations {
-		exactMatch := !strings.HasPrefix(path, "~")
-
-		path := strings.Replace(path, "~", "", -1)
-
-		splitPath := strings.Split(path, ".")
-
-		// TODO need rememberedMap here:  expectedValue = putRememberedVars(expectedValue, rememberedMap)
-		m, err := resp.bodyAsMap()
-		if err != nil {
-			str := "Can't parse response body to Map." // TODO specific message for functions
-			str += " " + err.Error()
-			errs = append(errs, str)
-		}
-
-		if exactMatch {
-			val, err := getByPath(m, splitPath...)
-			if val != expectedValue {
-				str := fmt.Sprintf("Expected value [%s] on path [%s] does not match [%v].", expectedValue, path, val)
-				if err != nil {
-					str += " " + err.Error()
-				}
-				errs = append(errs, str)
-			}
-		} else {
-			found := searchByPath(m, expectedValue, splitPath...)
-			if !found {
-				err := "Expected value: [" + expectedValue + "] is not found by path: [" + path + "]" // TODO specific message for functions
-				errs = append(errs, err)
-			}
-		}
-	}
-	if len(errs) > 0 {
-		var msg string
-		for _, err := range errs {
-			msg += err + "\n"
-		}
-		return errors.New(msg)
-	}
-
-	return nil
-}
-
-type HeaderExpectation struct {
-	headerName  string
-	headerValue string
-	extractFunc func(http.Response) string
-}
-
-func (e HeaderExpectation) check(resp Response) error {
-	var value string
-	if e.extractFunc == nil {
-		value = resp.http.Header.Get(e.headerName)
-	} else {
-		value = e.extractFunc(resp.http)
-	}
-
-	value = strings.TrimSpace(value)
-	if value == "" {
-		return fmt.Errorf("Missing header. Expected \"%s: %s\"\n", e.headerName, e.headerValue)
-	}
-	if e.headerValue != "" && e.headerValue != value {
-		msg := "Unexpected header. Expected \"%s: %s\". Actual \"%s: %s\"\n"
-		return fmt.Errorf(msg, e.headerName, e.headerValue, e.headerName, value)
-	}
-	return nil
 }
 
 // TODO separate path and cmd line key for json/xml schema folder
