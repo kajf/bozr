@@ -161,26 +161,26 @@ func (e BodyExpectation) check(resp Response) error {
 
 // HeaderExpectation validates one header in a response.
 type HeaderExpectation struct {
-	headerName  string
-	headerValue string
+	Name        string
+	Value       string
 	extractFunc func(http.Response) string
 }
 
 func (e HeaderExpectation) check(resp Response) error {
 	var value string
 	if e.extractFunc == nil {
-		value = resp.http.Header.Get(e.headerName)
+		value = resp.http.Header.Get(e.Name)
 	} else {
 		value = e.extractFunc(resp.http)
 	}
 
 	value = strings.TrimSpace(value)
 	if value == "" {
-		return fmt.Errorf("Missing header. Expected \"%s: %s\"\n", e.headerName, e.headerValue)
+		return fmt.Errorf("Missing header. Expected \"%s: %s\"\n", e.Name, e.Value)
 	}
-	if e.headerValue != "" && e.headerValue != value {
+	if e.Value != "" && e.Value != value {
 		msg := "Unexpected header. Expected \"%s: %s\". Actual \"%s: %s\"\n"
-		return fmt.Errorf(msg, e.headerName, e.headerValue, e.headerName, value)
+		return fmt.Errorf(msg, e.Name, e.Value, e.Name, value)
 	}
 	return nil
 }

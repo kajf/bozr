@@ -212,6 +212,12 @@ func expectations(call Call) (exps []ResponseExpectation) {
 		exps = append(exps, BodyExpectation{pathExpectations: call.Expect.Body})
 	}
 
+	if len(call.Expect.Headers) > 0 {
+		for k, v := range call.Expect.Headers {
+			exps = append(exps, HeaderExpectation{Name: k, Value: v})
+		}
+	}
+
 	if call.Expect.ContentType != "" {
 		extractFunc := func(resp http.Response) string {
 			contentType, _, _ := mime.ParseMediaType(resp.Header.Get("content-type"))
@@ -384,7 +390,6 @@ func debugMsgF(tpl string, a ...interface{}) {
 	fmt.Printf(tpl, a...)
 }
 
-// TODO separate path and cmd line key for json/xml schema folder
 // TODO add suite.json schema validation to prevent invalid cases (invalid expectation is in file, but never checked)
 
 // optional/under discussion

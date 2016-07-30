@@ -36,8 +36,10 @@ type On struct {
 }
 
 type Expect struct {
-	StatusCode  int               `json:"statusCode"`
+	StatusCode int `json:"statusCode"`
+	// shortcut for content-type header
 	ContentType string            `json:"contentType"`
+	Headers     map[string]string `json:"headers"`
 	Body        map[string]string `json:"body"`
 	BodySchema  string            `json:"bodySchema"`
 }
