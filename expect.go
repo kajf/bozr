@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"mime"
-	"net/http"
 	"os"
 	"strings"
 
@@ -34,7 +33,7 @@ func (e StatusExpectation) check(resp Response) error {
 }
 
 // BodySchemaExpectation validates response body against schema.
-// Content-Type header is used to identify json schema or xsd will be used.
+// Content-Type header is used to identify either json schema or xsd is applied.
 type BodySchemaExpectation struct {
 	schemaURI string
 }
@@ -163,15 +162,13 @@ func (e BodyExpectation) check(resp Response) error {
 type HeaderExpectation struct {
 	Name        string
 	Value       string
-	extractFunc func(http.Response) string
+	ValueParser func(string) string
 }
 
 func (e HeaderExpectation) check(resp Response) error {
-	var value string
-	if e.extractFunc == nil {
-		value = resp.http.Header.Get(e.Name)
-	} else {
-		value = e.extractFunc(resp.http)
+	value := resp.http.Header.Get(e.Name)
+	if e.ValueParser != nil {
+		value = e.ValueParser(value)
 	}
 
 	value = strings.TrimSpace(value)

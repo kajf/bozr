@@ -166,11 +166,15 @@ func expectations(call Call) (exps []ResponseExpectation) {
 	}
 
 	if call.Expect.ContentType != "" {
-		extractFunc := func(resp http.Response) string {
-			contentType, _, _ := mime.ParseMediaType(resp.Header.Get("content-type"))
+		parser := func(value string) string {
+			contentType, _, _ := mime.ParseMediaType(value)
 			return contentType
 		}
-		exps = append(exps, HeaderExpectation{"content-type", call.Expect.ContentType, extractFunc})
+		exps = append(exps, HeaderExpectation{
+			Name:        "content-type",
+			Value:       call.Expect.ContentType,
+			ValueParser: parser,
+		})
 	}
 
 	// and so on
