@@ -44,7 +44,16 @@ Test suite (suite_name.json)
             └ remember
 ## Call Section 'Expect'
 Section represents assertions for http response of the call
-
+JSON example
+```json
+    "expect": {
+        "statusCode": 200,
+        "contentType": "application/json",
+        "body": {
+            "errors.size()": "0"
+        }
+    }
+```
 Assertions | Description | Example
 ------------ | ------------- | --------------
 statusCode | expected http response header 'Status Code' | 200
@@ -53,13 +62,14 @@ bodySchema | path to json schema to validate respnse body against (path relative
 body | body matchers: equals, search, size |
 
 ### 'Expect' body matchers
-JSON example
 ```json
-    "body": {
-        "users.1.user.surname" : "Doe",
-        "~users.user.name":"Joe",
-        "errors.size()": "0"
-    }
+    "expect": {
+        "body": {
+            "users.1.surname" : "Doe",
+            "~users.name":"Joe",
+            "errors.size()": "0"
+        }
+    }    
 ```
 Type | Assertion | Example
 ------------ | ------------- | --------------
