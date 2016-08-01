@@ -1,0 +1,7 @@
+# IDE and editors
+.vscode
+
+# vendoring
+vendor
+
+report
