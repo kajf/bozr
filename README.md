@@ -1,23 +1,6 @@
 # t-rest
 Minimalistic tool to perform REST API tests based on JSON description
 
-## Dependency management
-To build project you need a dependency management tool - https://glide.sh/
-After you installed it, you can run the following command to download all dependencies:
-
-```bash
-cd t-rest
-glide install
-```
-
-Dependencies:
-- github.com/xeipuuv/gojsonschema
-- github.com/fatih/color
-- github.com/mattn/go-colorable
-- github.com/mattn/go-isatty
-- github.com/clbanning/mxj
-- github.com/fatih/structs
-
 ## Command-line arguments
 - d - path to directory with test-cases-json files
 - h - remote host address to run tests against
@@ -101,3 +84,20 @@ Type | Assertion | Example
 equals | Root 'users' array zero element has value of 'id' equal to '123'  | "users.0.id" : "123"
 search | Root 'users' array contains element with 'name' equal to 'Jack'  | "users.name" : "Jack"
 size | Root 'company' element has 'users' array with '22' elements within 'buildings' array | "company.buildings.users.size()" : "22"
+
+## Dependency management
+To build project you need a dependency management tool - https://glide.sh/
+After you installed it, you can run the following command to download all dependencies:
+
+```bash
+cd t-rest
+glide install
+```
+
+Dependencies:
+- github.com/xeipuuv/gojsonschema
+- github.com/fatih/color
+- github.com/mattn/go-colorable
+- github.com/mattn/go-isatty
+- github.com/clbanning/mxj
+- github.com/fatih/structs
