@@ -42,8 +42,33 @@ Test suite (suite_name.json)
             ├ on
             ├ expect
             └ remember
-## Call Section 'Expect'
-Section represents assertions for http response of the call
+## Section 'On'
+Represents http request parameters
+```json
+    "on": {
+        "method": "POST",
+        "url": "/api/company/users",
+        "headers": {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        "params": {
+            "role": "admin"
+        },
+        "bodyFile" : "admins.json"
+    }
+```
+Field | Description 
+------------ | ------------- 
+method | http method 
+url | http request URL
+headers | http request headers
+params | http query params
+bodyFile | file to send as a request payload (path relative to test suite json)
+body | string to send as a request payload
+
+## Section 'Expect'
+Represents assertions for http response of the call
 JSON example
 ```json
     "expect": {
@@ -54,11 +79,11 @@ JSON example
         }
     }
 ```
-Assertions | Description | Example
+Assertion | Description | Example
 ------------ | ------------- | --------------
 statusCode | expected http response header 'Status Code' | 200
 contentType | expected http response 'Content-Type' | application/json
-bodySchema | path to json schema to validate respnse body against (path relative to test suite file) | login-schema.json
+bodySchema | path to json schema to validate response body against (path relative to test suite file) | login-schema.json
 body | body matchers: equals, search, size |
 
 ### 'Expect' body matchers
