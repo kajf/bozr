@@ -50,9 +50,9 @@ Assertions | Description | Example
 statusCode | expected http response header 'Status Code' | 200
 contentType | expected http response 'Content-Type' | application/json
 bodySchema | path to json schema to validate respnse body against (path relative to test suite file) | login-schema.json
-body | body matchers: equals, search, size() |
+body | body matchers: equals, search, size |
 
-### 'Expect' body mathcers
+### 'Expect' body matchers
 JSON example
 ```json
     "body": {
@@ -63,6 +63,6 @@ JSON example
 ```
 Type | Assertion | Example
 ------------ | ------------- | --------------
-equals | Root 'users' array zero element 'user' has value of 'id' field equal to '123'  | "users.0.user.id" : "123"
-search | Root 'users' array contains 'user' element with 'name' field equal to 'Jack'  | "users.user.name" : "Jack"
+equals | Root 'users' array zero element has value of 'id' equal to '123'  | "users.0.id" : "123"
+search | Root 'users' array contains element with 'name' equal to 'Jack'  | "users.name" : "Jack"
 size | Root 'company' element has 'users' array with '22' elements within 'buildings' array | "company.buildings.users.size()" : "22"
