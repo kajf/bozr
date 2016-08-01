@@ -12,7 +12,6 @@ glide install
 
 Dependencies:
 - github.com/xeipuuv/gojsonschema
-- github.com/xeipuuv/gojsonschema
 - github.com/fatih/color
 - github.com/mattn/go-colorable
 - github.com/mattn/go-isatty
