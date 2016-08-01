@@ -3,13 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"mime"
-	"os"
 	"strings"
 
-	"github.com/lestrrat/go-libxml2"
-	"github.com/lestrrat/go-libxml2/xsd"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -45,10 +41,6 @@ func (e BodySchemaExpectation) check(resp Response) error {
 		return e.checkJSON(resp)
 	}
 
-	if contentType == "application/xml" {
-		return e.checkXML(resp)
-	}
-
 	return fmt.Errorf("Unsupported content type: %s", contentType)
 }
 
@@ -65,40 +57,6 @@ func (e BodySchemaExpectation) checkJSON(resp Response) error {
 		msg := "Unexpected Body Schema:\n"
 		for _, desc := range result.Errors() {
 			msg = fmt.Sprintf(msg+"%s\n", desc)
-		}
-		return errors.New(msg)
-	}
-
-	return nil
-}
-
-func (e BodySchemaExpectation) checkXML(resp Response) error {
-	f, err := os.Open(e.schemaURI)
-	if err != nil {
-		return fmt.Errorf("failed to open schema file: %s", err)
-	}
-	defer f.Close()
-
-	buf, err := ioutil.ReadAll(f)
-	if err != nil {
-		return fmt.Errorf("failed to read schema file: %s", err)
-	}
-
-	s, err := xsd.Parse(buf)
-	if err != nil {
-		return fmt.Errorf("failed to parse schema file: %s", err)
-	}
-	defer s.Free()
-
-	d, err := libxml2.ParseString(string(resp.body))
-	if err != nil {
-		return fmt.Errorf("failed to parse XML: %s", err)
-	}
-
-	if err := s.Validate(d); err != nil {
-		msg := "Unexpected Body Schema:\n"
-		for _, e := range err.(xsd.SchemaValidationError).Errors() {
-			msg = fmt.Sprintf("%s\t%s\n", msg, e.Error())
 		}
 		return errors.New(msg)
 	}
