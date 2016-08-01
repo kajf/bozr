@@ -50,11 +50,19 @@ Assertions | Description | Example
 statusCode | expected http response header 'Status Code' | 200
 contentType | expected http response 'Content-Type' | application/json
 bodySchema | path to json schema to validate respnse body against (path relative to test suite file) | login-schema.json
-body | body matchers: equals, like, size() |
+body | body matchers: equals, search, size() |
 
 ### 'Expect' body mathcers
-Type | Description | Example
+JSON example
+```json
+    "body": {
+        "users.1.user.surname" : "Doe",
+        "~users.user.name":"Joe",
+        "errors.size()": "0"
+    }
+```
+Type | Assertion | Example
 ------------ | ------------- | --------------
-equals | Exact path within response body. Should contain array indexes and full tree path to element | "employees.0.id" : "123"
-like | |
-size | |
+equals | Root 'users' array zero element 'user' has value of 'id' field equal to '123'  | "users.0.user.id" : "123"
+search | Root 'users' array contains 'user' element with 'name' field equal to 'Jack'  | "users.user.name" : "Jack"
+size | Root 'company' element has 'users' array with '22' elements within 'buildings' array | "company.buildings.users.size()" : "22"
