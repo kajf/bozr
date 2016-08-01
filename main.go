@@ -76,7 +76,11 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		}
 	}
 
-	req, _ := http.NewRequest(on.Method, *host+on.URL, bytes.NewBuffer(dat))
+	url := *host + on.URL
+	if strings.HasPrefix(on.URL, "http://") || strings.HasPrefix(on.URL, "https://") {
+		url = on.URL
+	}
+	req, _ := http.NewRequest(on.Method, url, bytes.NewBuffer(dat))
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, putRememberedVars(value, rememberMap))
@@ -265,10 +269,9 @@ func getByPath(m interface{}, path ...string) (string, error) {
 
 	if str, ok := castToString(m); ok {
 		return str, nil
-	} else {
-		strErr := fmt.Sprintf("Can't cast path result to string: %v", m)
-		return "", errors.New(strErr)
 	}
+	strErr := fmt.Sprintf("Can't cast path result to string: %v", m)
+	return "", errors.New(strErr)
 }
 
 // search passing maps and arrays
@@ -332,7 +335,7 @@ func (e Response) bodyAsMap() (map[string]interface{}, error) {
 	var err error
 
 	contentType, _, _ := mime.ParseMediaType(e.http.Header.Get("content-type"))
-	if contentType == "application/xml" {
+	if contentType == "application/xml" || contentType == "text/xml" {
 		m, err := mxj.NewMapXml(e.body)
 		if err == nil {
 			bodyMap = m.Old() // cast to map
