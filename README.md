@@ -41,9 +41,9 @@ Represents http request parameters
         "bodyFile" : "admins.json"
     }
 ```
-Field | Description 
------------- | ------------- 
-method | http method 
+Field | Description
+------------ | -------------
+method | http method
 url | http request URL
 headers | http request headers
 params | http query params
@@ -77,13 +77,17 @@ body | body matchers: equals, search, size |
             "~users.name":"Joe",
             "errors.size()": "0"
         }
-    }    
+    }
 ```
 Type | Assertion | Example
 ------------ | ------------- | --------------
 equals | Root 'users' array zero element has value of 'id' equal to '123'  | "users.0.id" : "123"
 search | Root 'users' array contains element with 'name' equal to 'Jack'  | "users.name" : "Jack"
 size | Root 'company' element has 'users' array with '22' elements within 'buildings' array | "company.buildings.users.size()" : "22"
+
+XML:
+- To match attribute use `-` symbol before attribute name. E.g. `users.0.-id`
+- Namespace are ignored
 
 ## Dependency management
 To build project you need a dependency management tool - https://glide.sh/
