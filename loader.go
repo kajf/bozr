@@ -72,7 +72,6 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 		Dir:   dir,
 		Cases: testCases,
 	}
-	fmt.Printf("%v+\n", su)
 	s.suits = append(s.suits, su)
 	return nil
 }
