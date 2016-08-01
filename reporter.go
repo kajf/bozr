@@ -164,7 +164,7 @@ func newSuite(result TestResult) *suite {
 	return &suite{
 		ID:          0,
 		Name:        result.Suite.Name,
-		PackageName: result.Suite.PackageName,
+		PackageName: result.Suite.Dir,
 		TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05"),
 		HostName:    "localhost",
 	}

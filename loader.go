@@ -13,10 +13,12 @@ import (
 )
 
 type testCaseLoader struct {
-	suits []TestSuite
+	suits   []TestSuite
+	rootDir string
 }
 
 func (s *testCaseLoader) loadDir(dir string) ([]TestSuite, error) {
+	s.rootDir = dir
 	err := filepath.Walk(dir, s.loadFile)
 	if err != nil {
 		return nil, err
@@ -54,7 +56,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 
 	if e != nil {
 		debugMsgF("File error: %v\n", e)
-		return nil
+		return filepath.SkipDir
 	}
 
 	var testCases []TestCase
@@ -64,14 +66,13 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 		return nil
 	}
 
-	absPath, err := filepath.Abs(*suiteDir)
-	if err != nil {
-		return nil
+	dir, _ := filepath.Rel(s.rootDir, filepath.Dir(path))
+	su := TestSuite{
+		Name:  strings.TrimSuffix(info.Name(), filepath.Ext(info.Name())),
+		Dir:   dir,
+		Cases: testCases,
 	}
-
-	pack := strings.TrimSuffix(strings.TrimPrefix(path, absPath), info.Name())
-	name := strings.TrimSuffix(info.Name(), filepath.Ext(info.Name()))
-	su := TestSuite{Name: name, PackageName: pack, Cases: testCases}
+	fmt.Printf("%v+\n", su)
 	s.suits = append(s.suits, su)
 	return nil
 }

@@ -43,10 +43,7 @@ func main() {
 	for _, suite := range suits {
 		for _, testCase := range suite.Cases {
 			for _, c := range testCase.Calls {
-				tr, err := call(testCase, c, rememberedMap)
-				if err != nil {
-					panic(err)
-				}
+				tr := call(suite, testCase, c, rememberedMap)
 				tr.Suite = suite
 				reporter.Report(*tr)
 			}
@@ -56,19 +53,26 @@ func main() {
 	reporter.Flush()
 }
 
-func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestResult, error) {
+func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[string]string) (result *TestResult) {
 	debugMsg("--- Starting call ...") // TODO add call description
 	start := time.Now()
+	result = &TestResult{Case: testCase}
 
 	on := call.On
 
 	dat := []byte(on.Body)
 	if on.BodyFile != "" {
-		uri := getFileUri(*suiteDir, on.BodyFile)
+		uri, err := getTestAssetUri(testSuite.Dir, on.BodyFile)
+		if err != nil {
+			result.Cause = err
+			return
+		}
+
 		if d, err := ioutil.ReadFile(uri); err == nil {
 			dat = d
 		} else {
-			debugMsg("Can't read body file: ", err.Error())
+			result.Cause = fmt.Errorf("Can't read body file: %s", err.Error())
+			return
 		}
 	}
 
@@ -91,7 +95,8 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 
 	if err != nil {
 		debugMsg("Error when sending request", err)
-		return nil, err
+		result.Cause = err
+		return
 	}
 
 	defer resp.Body.Close()
@@ -99,7 +104,8 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		debugMsg("Error reading response")
-		return nil, err
+		result.Cause = err
+		return
 	}
 
 	//fmt.Printf("Code: %v\n", resp.Status)
@@ -107,31 +113,39 @@ func call(testCase TestCase, call Call, rememberMap map[string]string) (*TestRes
 	end := time.Now()
 
 	testResp := Response{http: *resp, body: body}
-	result := &TestResult{Case: testCase, Resp: testResp, Duration: end.Sub(start)}
+	result.Resp = testResp
+	result.Duration = end.Sub(start)
 
-	exps := expectations(call)
+	exps, err := expectations(call, testSuite.Dir)
+	if err != nil {
+		result.Cause = err
+		return
+	}
+
 	for _, exp := range exps {
 		checkErr := exp.check(testResp)
 		if checkErr != nil {
 			result.Cause = checkErr
-			return result, nil
+			return
 		}
 	}
 
 	m, err := testResp.bodyAsMap()
 	if err != nil {
 		debugMsg("Can't parse response body to Map for [Remember]")
-		return nil, err
+		result.Cause = err
+		return
 	}
 
 	err = remember(m, call.Remember, rememberMap)
 	debugMsg("Remember: ", rememberMap)
 	if err != nil {
 		debugMsg("Error remember")
-		return nil, err
+		result.Cause = err
+		return
 	}
 
-	return result, nil
+	return result
 }
 
 func putRememberedVars(str string, rememberMap map[string]string) string {
@@ -143,15 +157,18 @@ func putRememberedVars(str string, rememberMap map[string]string) string {
 	return res
 }
 
-func expectations(call Call) (exps []ResponseExpectation) {
-
+func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
+	var exps []ResponseExpectation
 	if call.Expect.StatusCode != -1 {
 		exps = append(exps, StatusExpectation{statusCode: call.Expect.StatusCode})
 	}
 
 	if call.Expect.BodySchema != "" {
 		// for now use path relative to suiteDir
-		uri := getFileUri(*suiteDir, call.Expect.BodySchema)
+		uri, err := getTestAssetUri(srcDir, call.Expect.BodySchema)
+		if err != nil {
+			return nil, err
+		}
 		exps = append(exps, BodySchemaExpectation{schemaURI: uri})
 	}
 
@@ -178,18 +195,21 @@ func expectations(call Call) (exps []ResponseExpectation) {
 	}
 
 	// and so on
-	return exps
+	return exps, nil
 }
 
-func getFileUri(dir string, file string) string {
-	uri, err := filepath.Abs(dir)
-	if err != nil {
-		fmt.Println(err)
+func getTestAssetUri(srcDir string, assetPath string) (string, error) {
+	if filepath.IsAbs(assetPath) {
+		// ignore srcDir
+		return assetPath, nil
 	}
 
-	uri = filepath.ToSlash(filepath.Join(uri, file))
+	uri, err := filepath.Abs(filepath.Join(*suiteDir, srcDir, assetPath))
+	if err != nil {
+		return "", errors.New("Invalid file path: " + assetPath)
+	}
 
-	return uri
+	return filepath.ToSlash(uri), nil
 }
 
 func remember(bodyMap map[string]interface{}, remember map[string]string, rememberedMap map[string]string) (err error) {

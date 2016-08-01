@@ -9,8 +9,9 @@ import (
 type TestSuite struct {
 	// file name
 	Name string
-	// path to a file
-	PackageName string
+	// Path to a directory where suite is located
+	// Relative to the suite root
+	Dir string
 	// test cases listed in a file
 	Cases []TestCase
 }
