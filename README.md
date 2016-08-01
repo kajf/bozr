@@ -28,3 +28,20 @@ Dependencies:
 ```bash
 t-rest -h http://localhost:8080 -d ./suites -v
 ```
+## Test Suite Format
+Test suite (suite_name.json)
+
+    ├ Test A [single test]
+    │   ├ Call one
+    │   │   ├ on [single http request]
+    │   │   ├ expect [http response asserts: code, headers, body, schema, etc.]
+    │   │   └ remember [optionally remember variable(s) for the next call to use in request params, headers or body]
+    │   └ Call two
+    │       ├ on
+    │       ├ expect
+    │       └ remember
+    └ Test B
+        └ Call one
+            ├ on
+            ├ expect
+            └ remember
