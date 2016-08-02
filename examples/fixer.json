@@ -1,0 +1,48 @@
+[{
+  "description": "Example of a test that passes.",
+  "calls": [
+    {
+      "on" : {
+        "url" : "http://api.fixer.io/latest",
+        "method":"GET",
+        "params": {
+          "base": "USD"
+        },
+        "headers": {
+          "accept": "application/json"
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "contentType": "application/json",
+        "body" : {
+          "base": "USD"
+        }
+      }
+    }
+  ]
+},
+{
+  "description": "Example of a test that does not pass.",
+  "calls": [
+    {
+      "on" : {
+        "url" : "http://api.fixer.io/latest",
+        "method":"GET",
+        "params": {
+          "base": "USD"
+        },
+        "headers": {
+          "accept": "application/json"
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "contentType": "application/json",
+        "body" : {
+          "base": "EUR"
+        }
+      }
+    }
+  ]
+}]

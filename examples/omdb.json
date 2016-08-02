@@ -1,0 +1,24 @@
+[{
+  "description": "XML example. Checking attributes in the response.",
+  "calls": [
+    {
+      "on" : {
+        "url" : "http://www.omdbapi.com/",
+        "method":"GET",
+        "params": {
+          "t": "Transformers",
+          "r": "xml"
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "contentType": "text/xml",
+        "body" : {
+          "root.movie.-year":"2007",
+          "root.movie.-director":"Michael Bay"
+        },
+        "bodySchema": "omdb-schema.xsd"
+      }
+    }
+  ]
+}]

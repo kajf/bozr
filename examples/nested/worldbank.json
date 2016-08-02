@@ -1,0 +1,22 @@
+
+[{
+  "description": "Example of a test from nested folder.",
+  "calls": [
+    {
+      "on" : {
+        "url" : "http://api.worldbank.org/countries/all/indicators/SP.POP.TOTL?date=2000:2001",
+        "method":"GET",
+        "params": {
+          "date": "2000:2001"
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "contentType": "text/xml",
+        "body" : {
+          "data.data.0.date":"2001"
+        }
+      }
+    }
+  ]
+}]
