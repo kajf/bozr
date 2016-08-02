@@ -1,28 +1,40 @@
-hash: 2773bc689cca9c2b1a47c7312a83ef68425a724d7db163a270c1ae8d71ee66ad
-updated: 2016-07-30T00:42:25.895817608+03:00
+hash: aa3d347bb509aa909279eb2a342d0044e4f83c47b54cf17e0c0307cca19cc3ee
+updated: 2016-08-02T19:40:08.6771271+03:00
 imports:
 - name: github.com/clbanning/mxj
   version: bdbb707fca2decb4efd865b0656df7e74dcbbbdb
+  subpackages:
+  - github.com\clbanning\mxj
 - name: github.com/fatih/color
   version: 87d4004f2ab62d0d255e0a38f1680aa534549fe3
+  subpackages:
+  - github.com\fatih\color
 - name: github.com/fatih/structs
-  version: be738c8546f55b34e60125afa50ed73a9a9c460e
-- name: github.com/lestrrat/go-libxml2
-  version: 29a7f58d96509c74e2837259e4b95bd8ff742a53
+  version: 14f46232cd7bc732dc67313a9e4d3d210e082587
+  subpackages:
+  - github.com\fatih\structs
 - name: github.com/mattn/go-colorable
   version: 9056b7a9f2d1f2d96498d6d146acd1f9d5ed3d59
+  subpackages:
+  - github.com\mattn\go-colorable
 - name: github.com/mattn/go-isatty
   version: 56b76bdf51f7708750eac80fa38b952bb9f32639
-- name: github.com/pkg/errors
-  version: 1d2e60385a13aaa66134984235061c2f9302520e
+  subpackages:
+  - github.com\mattn\go-isatty
 - name: github.com/xeipuuv/gojsonpointer
   version: e0fe6f68307607d540ed8eac07a342c33fa1b54a
+  subpackages:
+  - github.com\xeipuuv\gojsonpointer
 - name: github.com/xeipuuv/gojsonreference
   version: e02fc20de94c78484cd5ffb007f8af96be030a45
+  subpackages:
+  - github.com\xeipuuv\gojsonreference
 - name: github.com/xeipuuv/gojsonschema
-  version: c539bca196be50ccdd1f0bcd9076de95f9081831
+  version: e4f482d0deea5bfc0522ab4582c5fdbd2edc98ad
+  subpackages:
+  - github.com\xeipuuv\gojsonschema
 - name: golang.org/x/sys
   version: 62bee037599929a6e9146f29d10dd5208c43507d
   subpackages:
-  - unix
+  - golang.org\x\sys\unix
 devImports: []
