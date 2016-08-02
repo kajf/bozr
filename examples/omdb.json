@@ -16,8 +16,7 @@
         "body" : {
           "root.movie.-year":"2007",
           "root.movie.-director":"Michael Bay"
-        },
-        "bodySchema": "omdb-schema.xsd"
+        }
       }
     }
   ]
