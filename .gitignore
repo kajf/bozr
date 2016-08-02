@@ -1,5 +1,6 @@
 # IDE and editors
 .vscode
+.idea
 
 # vendoring
 vendor
