@@ -87,7 +87,7 @@ size | Root 'company' element has 'users' array with '22' elements within 'build
 
 XML:
 - To match attribute use `-` symbol before attribute name. E.g. `users.0.-id`
-- Namespace are ignored
+- Namespaces are ignored
 
 ## Dependency management
 To build project you need a dependency management tool - https://glide.sh/
