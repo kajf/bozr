@@ -125,7 +125,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 		r.suite = newSuite(result)
 	}
 
-	testCase := tc{Name: result.Case.Description, ClassName: result.Suite.Name, Time: result.Duration.Seconds()}
+	testCase := tc{Name: result.Case.Description, ClassName: r.suite.PackageName + "." + result.Suite.Name, Time: result.Duration.Seconds()}
 	if result.Cause != nil {
 		testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Cause.Error()}
 		testCase.Failure.Details = formatResponse(result.Resp)
@@ -141,7 +141,7 @@ func (r JUnitXMLReporter) flushSuite() {
 	if r.suite == nil {
 		return
 	}
-	fileName := strings.Replace(filepath.ToSlash(r.suite.PackageName), "/", ".", -1) + "." + r.suite.Name + ".xml"
+	fileName := r.suite.PackageName + "." + r.suite.Name + ".xml"
 	fp := filepath.Join(r.OutPath, fileName)
 	err := os.MkdirAll(r.OutPath, 0777)
 	if err != nil {
@@ -164,7 +164,7 @@ func newSuite(result TestResult) *suite {
 	return &suite{
 		ID:          0,
 		Name:        result.Suite.Name,
-		PackageName: result.Suite.Dir,
+		PackageName: strings.Replace(filepath.ToSlash(result.Suite.Dir), "/", ".", -1),
 		TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05"),
 		HostName:    "localhost",
 	}
