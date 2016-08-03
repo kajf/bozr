@@ -6,7 +6,7 @@ Minimalistic tool to perform REST API tests based on JSON description
 - h - remote host address to run tests against
 - v - verbose console output
 ```bash
-t-rest -h http://localhost:8080 -d ./suites -v
+t-rest -h http://localhost:8080 -d ./examples -v
 ```
 ## Test Suite Format
 Test suite (suite_name.json)
