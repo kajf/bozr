@@ -77,21 +77,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		}
 	}
 
-	url := *host + on.URL
-	if strings.HasPrefix(on.URL, "http://") || strings.HasPrefix(on.URL, "https://") {
-		url = on.URL
-	}
-	req, _ := http.NewRequest(on.Method, url, bytes.NewBuffer(dat))
-
-	for key, value := range on.Headers {
-		req.Header.Add(key, putRememberedVars(value, rememberMap))
-	}
-
-	q := req.URL.Query()
-	for key, value := range on.Params {
-		q.Add(key, putRememberedVars(value, rememberMap))
-	}
-	req.URL.RawQuery = q.Encode()
+	req := populateRequest(on, string(dat), rememberMap)
 	debugMsg("Request: ", req)
 
 	client := &http.Client{}
@@ -153,7 +139,38 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	return result
 }
 
-func putRememberedVars(str string, rememberMap map[string]string) string {
+func populateRequest(on On, body string, rememberMap map[string]string) *http.Request {
+
+	url := urlPrefix(on.URL)
+
+	body = populateRememberedVars(body, rememberMap)
+	dat := []byte(body)
+
+	req, _ := http.NewRequest(on.Method, url, bytes.NewBuffer(dat))
+
+	for key, value := range on.Headers {
+		req.Header.Add(key, populateRememberedVars(value, rememberMap))
+	}
+
+	q := req.URL.Query()
+	for key, value := range on.Params {
+		q.Add(key, populateRememberedVars(value, rememberMap))
+	}
+	req.URL.RawQuery = q.Encode()
+
+	return req
+}
+
+func urlPrefix(url string) string {
+	res := *host + url
+	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+		url = url
+	}
+
+	return res
+}
+
+func populateRememberedVars(str string, rememberMap map[string]string) string {
 	res := str
 	for varName, val := range rememberMap {
 		placeholder := "{" + varName + "}"

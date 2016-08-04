@@ -3,6 +3,8 @@ package main
 import (
 	"testing"
 	"encoding/json"
+	"bytes"
+	"strings"
 )
 
 func TestGetByPathSimple(t *testing.T) {
@@ -168,11 +170,31 @@ func TestGetByPathEmpty(t *testing.T) {
 	}
 }
 
-func TestPutRememberedVars(t *testing.T) {
+func TestPopulateRequestBody(t *testing.T) {
+	//given
+	on := On{}
+	value := "abc"
+
+	// when
+	req := populateRequest(on, "pre {var} post", map[string]string{"var": value})
+
+	//then
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(req.Body)
+	got := buf.String()
+	if !strings.Contains(got, value) {
+		t.Error(
+			"body does not conatain value", value,
+			"got", got,
+		)
+	}
+}
+
+func TestPopulateRememberedVars(t *testing.T) {
 	token := "test_token"
 	rememberMap := map[string]string{"savedToken":token}
 
-	got := putRememberedVars("bearer {savedToken}", rememberMap)
+	got := populateRememberedVars("bearer {savedToken}", rememberMap)
 
 	if got != "bearer " + token {
 		t.Error(
@@ -182,12 +204,12 @@ func TestPutRememberedVars(t *testing.T) {
 	}
 }
 
-func TestPutRememberedVarsMultiple(t *testing.T) {
+func TestPopulateRememberedVarsMultiple(t *testing.T) {
 	token := "test_token"
 	second := "second"
 	rememberMap := map[string]string{"savedToken":token, "aSecond":second}
 
-	got := putRememberedVars("prefix {savedToken} middle {aSecond} postfix", rememberMap)
+	got := populateRememberedVars("prefix {savedToken} middle {aSecond} postfix", rememberMap)
 
 	expected := "prefix " + token + " middle " + second +" postfix"
 	if got != expected {
