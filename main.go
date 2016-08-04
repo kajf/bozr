@@ -34,14 +34,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	rememberedMap := make(map[string]string)
-
 	path, _ := filepath.Abs("./report")
 	reporter := NewMultiReporter(NewJUnitReporter(path), NewConsoleReporter())
 
 	// test case runner?
 	for _, suite := range suits {
 		for _, testCase := range suite.Cases {
+
+			rememberedMap := make(map[string]string)
+
 			for _, c := range testCase.Calls {
 				tr := call(suite, testCase, c, rememberedMap)
 				tr.Suite = suite
