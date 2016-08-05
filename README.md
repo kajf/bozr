@@ -14,6 +14,7 @@ t-rest -h http://localhost:8080 -d ./examples -v
 Test suite (suite_name.json)
 
     ├ Test A [single test]
+    |   ├ Name
     │   ├ Call one
     │   │   ├ on [single http request]
     │   │   ├ expect [http response asserts: code, headers, body, schema, etc.]
@@ -23,6 +24,7 @@ Test suite (suite_name.json)
     │       ├ expect
     │       └ remember
     └ Test B
+        ├ Name
         └ Call one
             ├ on
             ├ expect
