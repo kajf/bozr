@@ -1,40 +1,26 @@
-hash: aa3d347bb509aa909279eb2a342d0044e4f83c47b54cf17e0c0307cca19cc3ee
-updated: 2016-08-02T19:40:08.6771271+03:00
+hash: 9a4d2f5118dd16cc110b13b205db1a637cd8c697e83214cf8cfed0a736bcd735
+updated: 2016-08-05T23:24:30.913399056+03:00
 imports:
 - name: github.com/clbanning/mxj
   version: bdbb707fca2decb4efd865b0656df7e74dcbbbdb
-  subpackages:
-  - github.com\clbanning\mxj
 - name: github.com/fatih/color
   version: 87d4004f2ab62d0d255e0a38f1680aa534549fe3
-  subpackages:
-  - github.com\fatih\color
 - name: github.com/fatih/structs
   version: 14f46232cd7bc732dc67313a9e4d3d210e082587
-  subpackages:
-  - github.com\fatih\structs
 - name: github.com/mattn/go-colorable
   version: 9056b7a9f2d1f2d96498d6d146acd1f9d5ed3d59
-  subpackages:
-  - github.com\mattn\go-colorable
 - name: github.com/mattn/go-isatty
   version: 56b76bdf51f7708750eac80fa38b952bb9f32639
-  subpackages:
-  - github.com\mattn\go-isatty
+- name: github.com/pkg/errors
+  version: 2a9be18ecd8c148be18be08a811e33809206da19
 - name: github.com/xeipuuv/gojsonpointer
   version: e0fe6f68307607d540ed8eac07a342c33fa1b54a
-  subpackages:
-  - github.com\xeipuuv\gojsonpointer
 - name: github.com/xeipuuv/gojsonreference
   version: e02fc20de94c78484cd5ffb007f8af96be030a45
-  subpackages:
-  - github.com\xeipuuv\gojsonreference
 - name: github.com/xeipuuv/gojsonschema
   version: e4f482d0deea5bfc0522ab4582c5fdbd2edc98ad
-  subpackages:
-  - github.com\xeipuuv\gojsonschema
 - name: golang.org/x/sys
   version: 62bee037599929a6e9146f29d10dd5208c43507d
   subpackages:
-  - golang.org\x\sys\unix
+  - unix
 devImports: []
