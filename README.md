@@ -82,9 +82,9 @@ body | body matchers: equals, search, size |
     }
 ```
 Type | Assertion | Example
------------- | ------------- | --------------
+------ | ------------- | --------------
 equals | Root 'users' array zero element has value of 'id' equal to '123'  | "users.0.id" : "123"
-search | Root 'users' array contains element with 'name' equal to 'Jack'  | "users.name" : "Jack"
+search | Root 'users' array contains element(s) with 'name' equal to 'Jack' or 'Dan' and 'Ron'  | "~users.name" : "Jack" or "~users.name" : ["Dan","Ron"]
 size | Root 'company' element has 'users' array with '22' elements within 'buildings' array | "company.buildings.users.size()" : "22"
 
 XML:
