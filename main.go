@@ -181,7 +181,7 @@ func populateRememberedVars(str string, rememberMap map[string]string) string {
 func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 	var exps []ResponseExpectation
 	if call.Expect.StatusCode != 0 {
-		exps = append(exps, StatusExpectation{statusCode: call.Expect.StatusCode})
+		exps = append(exps, StatusCodeExpectation{statusCode: call.Expect.StatusCode})
 	}
 
 	if call.Expect.BodySchema != "" {
@@ -204,15 +204,7 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 	}
 
 	if call.Expect.ContentType != "" {
-		parser := func(value string) string {
-			contentType, _, _ := mime.ParseMediaType(value)
-			return contentType
-		}
-		exps = append(exps, HeaderExpectation{
-			Name:        "content-type",
-			Value:       call.Expect.ContentType,
-			ValueParser: parser,
-		})
+		exps = append(exps, ContentTypeExpectation{call.Expect.ContentType})
 	}
 
 	// and so on
