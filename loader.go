@@ -120,7 +120,7 @@ const suiteShapeSchema = `
   "items": {
     "type": "object",
     "properties": {
-      "description": {
+      "name": {
         "type": "string"
       },
       "calls": {
@@ -128,7 +128,7 @@ const suiteShapeSchema = `
       }
     },
     "required": [
-      "description",
+      "name",
       "calls"
     ]
   }
@@ -143,7 +143,7 @@ const suiteDetailedSchema = `
 	"items": {
 		"type": "object",
 		"properties": {
-			"description": {
+			"name": {
 				"type": "string"
 			},
 			"calls": {

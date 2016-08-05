@@ -1,5 +1,5 @@
 [{
-  "description": "Example of a test that passes.",
+  "name": "Example of a test that passes.",
   "calls": [
     {
       "on" : {
@@ -23,7 +23,7 @@
   ]
 },
 {
-  "description": "Example of a test that does not pass.",
+  "name": "Example of a test that does not pass.",
   "calls": [
     {
       "on" : {

@@ -17,8 +17,8 @@ type TestSuite struct {
 }
 
 type TestCase struct {
-	Description string `json:"description"`
-	Calls       []Call `json:"calls"`
+	Name  string `json:"name"`
+	Calls []Call `json:"calls"`
 }
 
 type Call struct {

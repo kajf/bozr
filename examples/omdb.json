@@ -1,5 +1,5 @@
 [{
-  "description": "XML example. Checking attributes in the response.",
+  "name": "XML example. Checking attributes in the response.",
   "calls": [
     {
       "on" : {

@@ -37,14 +37,14 @@ func (r ConsoleReporter) reportSuccess(result TestResult) {
 	c := color.New(color.FgGreen).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("PASSED")
-	fmt.Printf("] %s - %s \t%s\n", result.Suite.Name, result.Case.Description, result.Duration)
+	fmt.Printf("] %s - %s \t%s\n", result.Suite.Name, result.Case.Name, result.Duration)
 }
 
 func (r ConsoleReporter) reportError(result TestResult) {
 	c := color.New(color.FgRed).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("FAILED")
-	fmt.Printf("] %s - %s \n", result.Suite.Name, result.Case.Description)
+	fmt.Printf("] %s - %s \n", result.Suite.Name, result.Case.Name)
 	lines := strings.Split(result.Cause.Error(), "\n")
 
 	for _, line := range lines {
@@ -125,7 +125,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 		r.suite = newSuite(result)
 	}
 
-	testCase := tc{Name: result.Case.Description, ClassName: r.suite.PackageName + "." + result.Suite.Name, Time: result.Duration.Seconds()}
+	testCase := tc{Name: result.Case.Name, ClassName: r.suite.PackageName + "." + result.Suite.Name, Time: result.Duration.Seconds()}
 	if result.Cause != nil {
 		testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Cause.Error()}
 		testCase.Failure.Details = formatResponse(result.Resp)

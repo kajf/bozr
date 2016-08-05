@@ -1,6 +1,6 @@
 
 [{
-  "description": "Example of a test from nested folder.",
+  "name": "Example of a test from nested folder.",
   "calls": [
     {
       "on" : {

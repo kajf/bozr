@@ -181,7 +181,7 @@ func populateRememberedVars(str string, rememberMap map[string]string) string {
 
 func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 	var exps []ResponseExpectation
-	if call.Expect.StatusCode != -1 {
+	if call.Expect.StatusCode != 0 {
 		exps = append(exps, StatusExpectation{statusCode: call.Expect.StatusCode})
 	}
 
