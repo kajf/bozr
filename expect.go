@@ -74,8 +74,8 @@ func (e BodyExpectation) check(resp Response) error {
 
 	errs := []string{}
 	for path, expectedValue := range e.pathExpectations {
-		exactMatch := !strings.HasPrefix(path, "~")
 
+		matcherFunc := ChooseMatcher(path)
 		path := strings.Replace(path, "~", "", -1)
 
 		splitPath := strings.Split(path, ".")
@@ -88,21 +88,13 @@ func (e BodyExpectation) check(resp Response) error {
 			errs = append(errs, str)
 		}
 
-		if exactMatch {
-			val, err := getByPath(m, splitPath...)
-			if val != expectedValue {
-				str := fmt.Sprintf("Expected value [%s] on path [%s] does not match [%v].", expectedValue, path, val)
-				if err != nil {
-					str += " " + err.Error()
-				}
-				errs = append(errs, str)
-			}
-		} else {
-			found := searchByPath(m, expectedValue, splitPath...)
-			if !found {
-				err := "Expected value: [" + expectedValue + "] is not found by path: [" + path + "]" // TODO specific message for functions
-				errs = append(errs, err)
-			}
+		ok, err := matcherFunc(m, expectedValue, splitPath...)
+		if !ok {
+			str := fmt.Sprintf("Expected value [%s] on path [%s] does not match.", expectedValue, path)
+			errs = append(errs, str)
+		}
+		if err != nil {
+			errs = append(errs, err.Error())
 		}
 	}
 	if len(errs) > 0 {
