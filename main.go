@@ -99,7 +99,6 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		return
 	}
 
-	//fmt.Printf("Code: %v\n", resp.Status)
 	debugMsg("Resp: ", string(body))
 	end := time.Now()
 
@@ -123,7 +122,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 
 	m, err := testResp.bodyAsMap()
 	if err != nil {
-		debugMsg("Can't parse response body to Map for [Remember]")
+		debugMsg("Can't parse response body to Map for [remember]")
 		result.Cause = err
 		return
 	}
@@ -186,7 +185,6 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 	}
 
 	if call.Expect.BodySchema != "" {
-		// for now use path relative to suiteDir
 		uri, err := getTestAssetUri(srcDir, call.Expect.BodySchema)
 		if err != nil {
 			return nil, err
@@ -252,80 +250,6 @@ func remember(bodyMap map[string]interface{}, remember map[string]string, rememb
 	return err
 }
 
-// exact value by exact path
-func getByPath(m interface{}, path ...string) (string, error) {
-
-	for _, p := range path {
-		//fmt.Println(p)
-		funcVal, ok := pathFunction(m, p)
-		if ok {
-			return funcVal, nil
-		}
-
-		idx, err := strconv.Atoi(p)
-		if err != nil {
-			//fmt.Println(err)
-			mp, ok := m.(map[string]interface{})
-			if !ok {
-				str := fmt.Sprintf("Can't cast to Map and get key [%v] in path %v", p, path)
-				return "", errors.New(str)
-			}
-			m = mp[p]
-		} else {
-			arr, ok := m.([]interface{})
-			if !ok {
-				str := fmt.Sprintf("Can't cast to Array and get index [%v] in path %v", idx, path)
-				return "", errors.New(str)
-			}
-			if idx >= len(arr) {
-				str := fmt.Sprintf("Array only has [%v] elements. Can't get element by index [%v] (counts from zero)", len(arr), idx)
-				return "", errors.New(str)
-			}
-			m = arr[idx]
-		}
-	}
-
-	if str, ok := castToString(m); ok {
-		return str, nil
-	}
-	strErr := fmt.Sprintf("Can't cast path result to string: %v", m)
-	return "", errors.New(strErr)
-}
-
-// search passing maps and arrays
-func searchByPath(m interface{}, s string, path ...string) bool {
-	for idx, p := range path {
-		//fmt.Println("s ", idx, "p ", p)
-		funcVal, ok := pathFunction(m, p)
-		if ok {
-			if s == funcVal {
-				return true
-			}
-		}
-
-		switch typedM := m.(type) {
-		case map[string]interface{}:
-			m = typedM[p]
-			//fmt.Println("[",m, "] [", s,"]", reflect.TypeOf(m))
-			if str, ok := castToString(m); ok {
-				if str == s {
-					return true
-				}
-			}
-		case []interface{}:
-			//fmt.Println("path ", path[idx:])
-			for _, obj := range typedM {
-				found := searchByPath(obj, s, path[idx:]...)
-				if found {
-					return true
-				}
-			}
-		}
-	}
-
-	return false
-}
-
 func castToString(m interface{}) (string, bool) {
 	if str, ok := m.(string); ok {
 		return str, ok
@@ -385,7 +309,6 @@ func debugMsgF(tpl string, a ...interface{}) {
 // TODO finilize suite schema
 
 // optional/under discussion
-// TODO "description" in Call for better reporting
 // TODO matchers: not() ?
 // TODO rename remember > keep or memo ?
 // TODO full body expectation from file (security testing)
