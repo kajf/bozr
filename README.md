@@ -1,7 +1,7 @@
 # t-rest
 Minimalistic tool to perform REST API tests based on JSON description
 
-![](https://travis-ci.org/kajf/t-rest.svg?branch=master)
+[![Build Status](https://travis-ci.org/kajf/t-rest.svg?branch=master)](https://travis-ci.org/kajf/t-rest?branch=master)
 
 ## Command-line arguments
 - d - path to directory with test-cases-json files

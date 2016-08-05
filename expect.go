@@ -15,12 +15,12 @@ type ResponseExpectation interface {
 	check(resp Response) error
 }
 
-// StatusExpectation validates response HTTP code.
-type StatusExpectation struct {
+// StatusCodeExpectation validates response HTTP code.
+type StatusCodeExpectation struct {
 	statusCode int
 }
 
-func (e StatusExpectation) check(resp Response) error {
+func (e StatusCodeExpectation) check(resp Response) error {
 	if resp.http.StatusCode != e.statusCode {
 		msg := fmt.Sprintf("Unexpected Status Code. Expected: %d, Actual: %d\n", e.statusCode, resp.http.StatusCode)
 		return errors.New(msg)
@@ -130,4 +130,21 @@ func (e HeaderExpectation) check(resp Response) error {
 		return fmt.Errorf(msg, e.Name, e.Value, e.Name, value)
 	}
 	return nil
+}
+
+// ContentTypeExpectation validates media type returned in the Content-Type header.
+// Encoding information is excluded from matching value.
+// E.g. "application/json;charset=utf-8" header transofrmed to "applicaton/json" media type.
+type ContentTypeExpectation struct {
+	Value string
+}
+
+func (e ContentTypeExpectation) check(resp Response) error {
+	parser := func(value string) string {
+		contentType, _, _ := mime.ParseMediaType(value)
+		return contentType
+	}
+
+	headerCheck := HeaderExpectation{"content-type", e.Value, parser}
+	return headerCheck.check(resp)
 }

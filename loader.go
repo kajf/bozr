@@ -12,14 +12,25 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-type testCaseLoader struct {
-	suits   []TestSuite
-	rootDir string
+// JSONTestCaseLoader loads test cases stored as a JSON files.
+// It travers all directories under the RootDir and tries to
+// parse files that has a test suite shape.
+type JSONTestCaseLoader struct {
+	// starting point
+	RootDir string
+
+	suits []TestSuite
 }
 
-func (s *testCaseLoader) loadDir(dir string) ([]TestSuite, error) {
-	s.rootDir = dir
-	err := filepath.Walk(dir, s.loadFile)
+// NewJSONTestCaseLoader creates new json test case loader
+// for a given directory.
+func NewJSONTestCaseLoader(dir string) *JSONTestCaseLoader {
+	return &JSONTestCaseLoader{RootDir: dir}
+}
+
+// Load all test cases.
+func (s *JSONTestCaseLoader) Load() ([]TestSuite, error) {
+	err := filepath.Walk(s.RootDir, s.loadFile)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +38,7 @@ func (s *testCaseLoader) loadDir(dir string) ([]TestSuite, error) {
 	return s.suits, nil
 }
 
-func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) error {
+func (s *JSONTestCaseLoader) loadFile(path string, info os.FileInfo, err error) error {
 	if err != nil {
 		return nil
 	}
@@ -66,7 +77,7 @@ func (s *testCaseLoader) loadFile(path string, info os.FileInfo, err error) erro
 		return nil
 	}
 
-	dir, _ := filepath.Rel(s.rootDir, filepath.Dir(path))
+	dir, _ := filepath.Rel(s.RootDir, filepath.Dir(path))
 	su := TestSuite{
 		Name:  strings.TrimSuffix(info.Name(), filepath.Ext(info.Name())),
 		Dir:   dir,
