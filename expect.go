@@ -67,7 +67,7 @@ func (e BodySchemaExpectation) checkJSON(resp Response) error {
 // BodyExpectation validates values under a certain path in a body.
 // Applies to json and xml.
 type BodyExpectation struct {
-	pathExpectations map[string]string
+	pathExpectations map[string]interface{}
 }
 
 func (e BodyExpectation) check(resp Response) error {

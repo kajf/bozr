@@ -7,14 +7,12 @@ import (
 
 func TestSearchByPathId(t *testing.T) {
 
-	s := `{"rate_tables":[
+	m, err := jsonAsMap(`{"rate_tables":[
 		{
 		"id":417601,
 		"name":"Test Rate Table1"
 		}
-	      ]}`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	      ]}`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -28,14 +26,13 @@ func TestSearchByPathId(t *testing.T) {
 
 func TestSearchByPathKey(t *testing.T) {
 
-	s := `{"root":[
-		{
-		"key":"-1",
-		"name":"Test"
-		}
-	      ]}`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	m, err := jsonAsMap(
+		`{"root":[
+				{
+				"key":"-1",
+				"name":"Test"
+				}
+	      ]}`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -49,17 +46,15 @@ func TestSearchByPathKey(t *testing.T) {
 
 func TestSearchByPathInArray(t *testing.T) {
 
-	s := `{"root":[
+	m, err := jsonAsMap(`{"root":[
 		{"key":"-1", "name":"Test 1"},
 		{"key":"-2", "name":"test 2"}
-	      ]}`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	      ]}`)
 	if err != nil {
 		t.Error(err)
 	}
 
-	found,_ := searchByPath(m, "test 2", "root", "name")
+	found, _ := searchByPath(m, "test 2", "root", "name")
 
 	if !found {
 		t.Error()
@@ -67,12 +62,10 @@ func TestSearchByPathInArray(t *testing.T) {
 }
 
 func TestSearchByPathArray(t *testing.T) {
-	s := `{"root":[
+	m, err := jsonAsMap(`{"root":[
 		{"key":"-1", "name":"Test 1"},
 		{"key":"-2", "name":"test 2"}
-	      ]}`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	      ]}`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -86,7 +79,7 @@ func TestSearchByPathArray(t *testing.T) {
 
 func TestSearchByPathSingleObject(t *testing.T) {
 
-	s := `{
+	m, err := jsonAsMap(`{
 		"first":{
 			"key":"-1",
 			"name":"Test 1"
@@ -95,9 +88,7 @@ func TestSearchByPathSingleObject(t *testing.T) {
 			"key":"-2",
 			"name":"test 2"
 			}
-	      }`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	  }`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -111,14 +102,12 @@ func TestSearchByPathSingleObject(t *testing.T) {
 
 func TestSearchByPathNotFound(t *testing.T) {
 
-	s := `{
+	m, err := jsonAsMap(`{
 		"single":{
 			"key":"-1",
 			"name":"Test 1"
 			}
-	      }`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	    }`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -130,12 +119,101 @@ func TestSearchByPathNotFound(t *testing.T) {
 	}
 }
 
+func TestSearchByPathExactHasArray(t *testing.T) {
+	m, err := jsonAsMap(`{
+		"items":[
+			{"id":"a","status":"OK"},
+			{"id":"b","status":"OK"}
+		]
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	arr := []string{"a", "b"}
+	ok, err := searchByPath(m, arr, "items", "id")
+	if !ok || err != nil {
+		t.Error(err)
+	}
+}
+
+func TestSearchByPathHasNotAllArrayItems(t *testing.T) {
+	m, err := jsonAsMap(`{
+		"items":[
+			{"id":"a","status":"OK"},
+			{"id":"b","status":"OK"}
+		]
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	arr := []string{"a", "b", "c"}
+	ok, err := searchByPath(m, arr, "items", "id")
+	if ok {
+		t.Error("Should have failed because of 'c'")
+	}
+}
+
+func TestSearchByPathInLargerSet(t *testing.T) {
+	m, err := jsonAsMap(`{
+		"items":[
+			{"id":"a","status":"OK"},
+			{"id":"b","status":"OK"},
+			{"id":"c","status":"OK"}
+		]
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	arr := []string{"a", "b"}
+	ok, err := searchByPath(m, arr, "items", "id")
+	if !ok || err != nil {
+		t.Error(err)
+	}
+}
+
+func TestSearchByPathHasOneElementArray(t *testing.T) {
+	m, err := jsonAsMap(`{
+		"items":[
+			{"id":"a","status":"OK"},
+			{"id":"b","status":"OK"}
+		]
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	arr := []string{"a"}
+	ok, err := searchByPath(m, arr, "items", "id")
+	if !ok || err != nil {
+		t.Error(err)
+	}
+}
+
+func TestSearchByPathHasIntArr(t *testing.T) {
+	m, err := jsonAsMap(`{
+		"items":[
+			{"id":1,"status":"OK"},
+			{"id":2,"status":"OK"}
+		]
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	arr := []string{"1", "2"}
+	ok, err := searchByPath(m, arr, "items", "id")
+	if !ok || err != nil {
+		t.Error(err)
+	}
+}
+
 func TestGetByPathSimple(t *testing.T) {
 	token := "abc"
 
-	s := `{"token":"` + token + `","ttl":3600000,"units":"milliseconds"}`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	m, err := jsonAsMap(`{"token":"` + token + `","ttl":3600000,"units":"milliseconds"}`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -168,14 +246,12 @@ func TestGetByPath2ndLevel(t *testing.T) {
 }
 
 func TestGetByPathWithIndex(t *testing.T) {
-	s := `{
+	m, err := jsonAsMap(`{
 		"items":[
 			{"id":"417857","status":"OK"},
 			{"id":"417858","status":"OK"}
 		]
-	 	}`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	 	}`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -190,14 +266,12 @@ func TestGetByPathWithIndex(t *testing.T) {
 }
 
 func TestGetByPathArraySize(t *testing.T) {
-	s := `{
+	m, err := jsonAsMap(`{
 		"items":[
 			{"status":"OK"},
 			{"status":"OK"}
 		]
-	 	}`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	 	}`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -213,14 +287,12 @@ func TestGetByPathArraySize(t *testing.T) {
 }
 
 func TestGetByPathArrayOutOfBounds(t *testing.T) {
-	s := `{
+	m, err := jsonAsMap(`{
 		"items":[
 			{"id":"-1","status":"OK"},
 			{"id":"-2","status":"OK"}
 		]
-	 	}`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	 	}`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -236,12 +308,10 @@ func TestGetByPathArrayOutOfBounds(t *testing.T) {
 }
 
 func TestGetByPathNotArrayWithIndex(t *testing.T) {
-	s := `{
+	m, err := jsonAsMap(`{
 		"items":
 			{"id":"-1","status":"OK"}
-	 	}`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	 	}`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -257,14 +327,12 @@ func TestGetByPathNotArrayWithIndex(t *testing.T) {
 }
 
 func TestGetByPathNotIndexWithArray(t *testing.T) {
-	s := `{
+	m, err := jsonAsMap(`{
 		"items":[
 			{"id":"-1","status":"OK"},
 			{"id":"-2","status":"OK"}
 		]
-	 	}`
-	var m map[string]interface{}
-	err := json.Unmarshal([]byte(s), &m)
+	 	}`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -291,4 +359,23 @@ func TestGetByPathEmpty(t *testing.T) {
 			"got", got,
 		)
 	}
+}
+
+func TestCastToString(t *testing.T) {
+
+	got, ok := castToString(1)
+
+	if got != "1" || !ok {
+		t.Error(
+			"expected", "1",
+			"got", got,
+		)
+	}
+}
+
+func jsonAsMap(s string) (map[string]interface{}, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal([]byte(s), &m)
+
+	return m, err
 }

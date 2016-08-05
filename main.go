@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -248,28 +247,6 @@ func remember(bodyMap map[string]interface{}, remember map[string]string, rememb
 	}
 
 	return err
-}
-
-func castToString(m interface{}) (string, bool) {
-	if str, ok := m.(string); ok {
-		return str, ok
-	} else if flt, ok := m.(float64); ok {
-		// numbers (like ids) are parsed as float64 from json
-		return strconv.FormatFloat(flt, 'f', 0, 64), ok
-	} else {
-		return "", ok
-	}
-}
-
-func pathFunction(m interface{}, pathPart string) (string, bool) {
-
-	if pathPart == "size()" {
-		if arr, ok := m.([]interface{}); ok {
-			return strconv.Itoa(len(arr)), true
-		}
-	}
-
-	return "", false
 }
 
 func (e Response) bodyAsMap() (map[string]interface{}, error) {
