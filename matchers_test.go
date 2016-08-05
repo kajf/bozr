@@ -130,7 +130,7 @@ func TestSearchByPathExactHasArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	arr := []string{"a", "b"}
+	arr := []interface{}{"a", "b"}
 	ok, err := searchByPath(m, arr, "items", "id")
 	if !ok || err != nil {
 		t.Error(err)
@@ -167,7 +167,7 @@ func TestSearchByPathInLargerSet(t *testing.T) {
 		t.Error(err)
 	}
 
-	arr := []string{"a", "b"}
+	arr := []interface{}{"a", "b"}
 	ok, err := searchByPath(m, arr, "items", "id")
 	if !ok || err != nil {
 		t.Error(err)
@@ -185,7 +185,7 @@ func TestSearchByPathHasOneElementArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	arr := []string{"a"}
+	arr := []interface{}{"a"}
 	ok, err := searchByPath(m, arr, "items", "id")
 	if !ok || err != nil {
 		t.Error(err)
@@ -203,7 +203,7 @@ func TestSearchByPathHasIntArr(t *testing.T) {
 		t.Error(err)
 	}
 
-	arr := []string{"1", "2"}
+	arr := []interface{}{"1", "2"}
 	ok, err := searchByPath(m, arr, "items", "id")
 	if !ok || err != nil {
 		t.Error(err)
@@ -356,18 +356,6 @@ func TestGetByPathEmpty(t *testing.T) {
 		t.Error(
 			"For", "token",
 			"expected", nil,
-			"got", got,
-		)
-	}
-}
-
-func TestCastToString(t *testing.T) {
-
-	got, ok := castToString(1)
-
-	if got != "1" || !ok {
-		t.Error(
-			"expected", "1",
 			"got", got,
 		)
 	}
