@@ -27,8 +27,8 @@ var (
 func main() {
 	flag.Parse()
 
-	loader := testCaseLoader{}
-	suits, err := loader.loadDir(*suiteDir)
+	loader := NewJSONTestCaseLoader(*suiteDir)
+	suits, err := loader.Load()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
@@ -63,7 +63,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 
 	dat := []byte(on.Body)
 	if on.BodyFile != "" {
-		uri, err := getTestAssetUri(testSuite.Dir, on.BodyFile)
+		uri, err := getTestAssetURI(testSuite.Dir, on.BodyFile)
 		if err != nil {
 			result.Cause = err
 			return
@@ -162,12 +162,11 @@ func populateRequest(on On, body string, rememberMap map[string]string) *http.Re
 }
 
 func urlPrefix(url string) string {
-	res := *host + url
 	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
-		url = url
+		return url
 	}
 
-	return res
+	return *host + url
 }
 
 func populateRememberedVars(str string, rememberMap map[string]string) string {
@@ -187,7 +186,7 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 
 	if call.Expect.BodySchema != "" {
 		// for now use path relative to suiteDir
-		uri, err := getTestAssetUri(srcDir, call.Expect.BodySchema)
+		uri, err := getTestAssetURI(srcDir, call.Expect.BodySchema)
 		if err != nil {
 			return nil, err
 		}
@@ -220,7 +219,7 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 	return exps, nil
 }
 
-func getTestAssetUri(srcDir string, assetPath string) (string, error) {
+func getTestAssetURI(srcDir string, assetPath string) (string, error) {
 	if filepath.IsAbs(assetPath) {
 		// ignore srcDir
 		return assetPath, nil
