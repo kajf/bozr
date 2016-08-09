@@ -210,6 +210,10 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 }
 
 func getTestAssetURI(srcDir string, assetPath string) (string, error) {
+	if strings.HasPrefix(assetPath, "http") || strings.HasPrefix(assetPath, "https") {
+		return assetPath, nil
+	}
+
 	if filepath.IsAbs(assetPath) {
 		// ignore srcDir
 		return assetPath, nil
@@ -220,7 +224,7 @@ func getTestAssetURI(srcDir string, assetPath string) (string, error) {
 		return "", errors.New("Invalid file path: " + assetPath)
 	}
 
-	return filepath.ToSlash(uri), nil
+	return "file:///" + filepath.ToSlash(uri), nil
 }
 
 func remember(bodyMap map[string]interface{}, remember map[string]string, rememberedMap map[string]string) (err error) {

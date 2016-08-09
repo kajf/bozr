@@ -45,7 +45,7 @@ func (e BodySchemaExpectation) check(resp Response) error {
 }
 
 func (e BodySchemaExpectation) checkJSON(resp Response) error {
-	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + e.schemaURI)
+	schemaLoader := gojsonschema.NewReferenceLoader(e.schemaURI)
 	documentLoader := gojsonschema.NewStringLoader(string(resp.body))
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
@@ -60,6 +60,7 @@ func (e BodySchemaExpectation) checkJSON(resp Response) error {
 		}
 		return errors.New(msg)
 	}
+	debugMsg("checked by schema")
 
 	return nil
 }
