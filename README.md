@@ -3,12 +3,20 @@ Minimalistic tool to perform REST API tests based on JSON description
 
 [![Build Status](https://travis-ci.org/kajf/t-rest.svg?branch=master)](https://travis-ci.org/kajf/t-rest?branch=master)
 
-## Command-line arguments
-- d - path to directory with test-cases-json files
-- h - remote host address to run tests against
-- v - verbose console output
+## Usage
+
 ```bash
-t-rest -h http://localhost:8080 -d ./examples -v
+t-rest [OPTIONS] <DIR>
+
+Options:
+  -d, --debug           Enable debug mode
+  -H, --host            Server to test
+  -h, --help            Print usage
+  -v, --version         Print version info
+
+Examples:
+  t-rest ./examples
+  t-rest -H http://example.com ./examples
 ```
 ## Test Suite Format
 Test suite (suite_name.json)
