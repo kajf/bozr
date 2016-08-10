@@ -24,12 +24,13 @@ const (
 func init() {
 	flag.Usage = func() {
 		h := "Usage:\n"
-		h += "  t-rest [OPTIONS] <DIR>\n\n"
+		h += "  t-rest [OPTIONS] DIR\n\n"
 
 		h += "Options:\n"
 		h += "  -d, --debug		Enable debug mode\n"
 		h += "  -H, --host		Server to test\n"
 		h += "  -h, --help		Print usage\n"
+		h += "      --junit		Enable junit xml reporter\n"
 		h += "  -v, --version		Print version information and quit\n\n"
 
 		h += "Examples:\n"
@@ -46,6 +47,7 @@ var (
 	debugFlag   bool
 	helpFlag    bool
 	versionFlag bool
+	junitFlag   bool
 )
 
 func main() {
@@ -59,6 +61,8 @@ func main() {
 
 	flag.BoolVar(&versionFlag, "v", false, "Print version information and quit")
 	flag.BoolVar(&versionFlag, "version", false, "Print version information and quit")
+
+	flag.BoolVar(&junitFlag, "junit", false, "Enable junit xml reporter")
 
 	flag.Parse()
 
@@ -87,8 +91,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	path, _ := filepath.Abs("./report")
-	reporter := NewMultiReporter(NewJUnitReporter(path), NewConsoleReporter())
+	reporters := []Reporter{NewConsoleReporter()}
+	if junitFlag {
+		path, _ := filepath.Abs("./report")
+		reporters = append(reporters, NewJUnitReporter(path))
+	}
+	reporter := NewMultiReporter(reporters...)
 
 	// test case runner?
 	for _, suite := range suits {
