@@ -23,10 +23,8 @@ const (
 
 func init() {
 	flag.Usage = func() {
-		h := "Minimalistic tool to perform REST API tests based on JSON description\n\n"
-
-		h += "Usage:\n"
-		h += "  t-rest [OPTIONS] [FILE|DIR]\n\n"
+		h := "Usage:\n"
+		h += "  t-rest [OPTIONS] <DIR>\n\n"
 
 		h += "Options:\n"
 		h += "  -d, --debug		Enable debug mode\n"
@@ -70,6 +68,14 @@ func main() {
 	}
 
 	if helpFlag {
+		flag.Usage()
+		return
+	}
+
+	suiteDir = flag.Arg(0)
+
+	if suiteDir == "" {
+		fmt.Print("You must specify a directory with tests.\n\n")
 		flag.Usage()
 		return
 	}
