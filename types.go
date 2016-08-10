@@ -37,12 +37,17 @@ type On struct {
 }
 
 type Expect struct {
-	StatusCode int                     `json:"statusCode"`
+	StatusCode int `json:"statusCode"`
 	// shortcut for content-type header
-	ContentType string                  `json:"contentType"`
-	Headers     map[string]string       `json:"headers"`
-	Body        map[string]interface{}  `json:"body"`
-	BodySchema  string                  `json:"bodySchema"`
+	ContentType    string                 `json:"contentType"`
+	Headers        map[string]string      `json:"headers"`
+	Body           map[string]interface{} `json:"body"`
+	BodySchemaFile string                 `json:"bodySchemaFile"`
+	BodySchemaURI  string                 `json:"bodySchemaURI"`
+}
+
+func (e Expect) hasSchema() bool {
+	return e.BodySchemaFile != "" || e.BodySchemaURI != ""
 }
 
 type TestResult struct {

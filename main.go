@@ -62,7 +62,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 
 	dat := []byte(on.Body)
 	if on.BodyFile != "" {
-		uri, err := getTestAssetURI(testSuite.Dir, on.BodyFile)
+		uri, err := toAbsPath(testSuite.Dir, on.BodyFile)
 		if err != nil {
 			result.Cause = err
 			return
@@ -182,13 +182,30 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 		exps = append(exps, StatusCodeExpectation{statusCode: call.Expect.StatusCode})
 	}
 
-	if call.Expect.BodySchema != "" {
-		// for now use path relative to suiteDir
-		uri, err := getTestAssetURI(srcDir, call.Expect.BodySchema)
-		if err != nil {
-			return nil, err
+	if call.Expect.hasSchema() {
+		var (
+			schemeURI string
+			err       error
+		)
+
+		if call.Expect.BodySchemaFile != "" {
+			schemeURI, err = toAbsPath(srcDir, call.Expect.BodySchemaFile)
+			if err != nil {
+				return nil, err
+			}
+			schemeURI = "file:///" + schemeURI
 		}
-		exps = append(exps, BodySchemaExpectation{schemaURI: uri})
+
+		if call.Expect.BodySchemaURI != "" {
+			isHTTP := strings.HasPrefix(call.Expect.BodySchemaURI, "http://")
+			isHTTPS := strings.HasPrefix(call.Expect.BodySchemaURI, "https://")
+			if !(isHTTP || isHTTPS) {
+				schemeURI = *host + call.Expect.BodySchemaURI
+			} else {
+				schemeURI = call.Expect.BodySchemaURI
+			}
+		}
+		exps = append(exps, BodySchemaExpectation{schemaURI: schemeURI})
 	}
 
 	if len(call.Expect.Body) > 0 {
@@ -209,11 +226,7 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 	return exps, nil
 }
 
-func getTestAssetURI(srcDir string, assetPath string) (string, error) {
-	if strings.HasPrefix(assetPath, "http") || strings.HasPrefix(assetPath, "https") {
-		return assetPath, nil
-	}
-
+func toAbsPath(srcDir string, assetPath string) (string, error) {
 	if filepath.IsAbs(assetPath) {
 		// ignore srcDir
 		return assetPath, nil
@@ -224,7 +237,7 @@ func getTestAssetURI(srcDir string, assetPath string) (string, error) {
 		return "", errors.New("Invalid file path: " + assetPath)
 	}
 
-	return "file:///" + filepath.ToSlash(uri), nil
+	return filepath.ToSlash(uri), nil
 }
 
 func remember(bodyMap map[string]interface{}, remember map[string]string, rememberedMap map[string]string) (err error) {
