@@ -78,7 +78,8 @@ Assertion | Description | Example
 ------------ | ------------- | --------------
 statusCode | expected http response header 'Status Code' | 200
 contentType | expected http response 'Content-Type' | application/json
-bodySchema | path to json schema to validate response body against (path relative to test suite file) | login-schema.json
+bodySchemaFile | path to json schema to validate response body against (path relative to test suite file) | login-schema.json
+bodySchemaURI | URI to json schema to validate response body against (absolute or relative to the host) | http://example.com/api/scheme/login-schema.json
 body | body matchers: equals, search, size |
 
 ### 'Expect' body matchers
