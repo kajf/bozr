@@ -17,16 +17,64 @@ import (
 	"github.com/clbanning/mxj"
 )
 
+const (
+	version = "0.8.0"
+)
+
+func init() {
+	flag.Usage = func() {
+		h := "Minimalistic tool to perform REST API tests based on JSON description\n\n"
+
+		h += "Usage:\n"
+		h += "  t-rest [OPTIONS] [FILE|DIR]\n\n"
+
+		h += "Options:\n"
+		h += "  -d, --debug		Enable debug mode\n"
+		h += "  -H, --host		Server to test\n"
+		h += "  -h, --help		Print usage\n"
+		h += "  -v, --version		Print version information and quit\n\n"
+
+		h += "Examples:\n"
+		h += "  t-rest ./examples\n"
+		h += "  t-rest -H http://example.com ./examples \n\n"
+
+		fmt.Fprintf(os.Stderr, h)
+	}
+}
+
 var (
-	suiteDir = flag.String("d", ".", "Path to the directory that contains test suite.")
-	host     = flag.String("h", "http://localhost:8080", "Test server address")
-	verbose  = flag.Bool("v", false, "Verbose mode")
+	suiteDir    string
+	hostFlag    string
+	debugFlag   bool
+	helpFlag    bool
+	versionFlag bool
 )
 
 func main() {
+	flag.BoolVar(&debugFlag, "d", false, "Enable debug mode")
+	flag.BoolVar(&debugFlag, "debug", false, "Enable debug mode")
+
+	flag.StringVar(&hostFlag, "H", "http://localhost:8080", "Test server address")
+
+	flag.BoolVar(&helpFlag, "h", false, "Print usage")
+	flag.BoolVar(&helpFlag, "help", false, "Print usage")
+
+	flag.BoolVar(&versionFlag, "v", false, "Print version information and quit")
+	flag.BoolVar(&versionFlag, "version", false, "Print version information and quit")
+
 	flag.Parse()
 
-	loader := NewJSONTestCaseLoader(*suiteDir)
+	if versionFlag {
+		fmt.Println("t-rest version " + version)
+		return
+	}
+
+	if helpFlag {
+		flag.Usage()
+		return
+	}
+
+	loader := NewJSONTestCaseLoader(suiteDir)
 	suits, err := loader.Load()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
@@ -164,7 +212,7 @@ func urlPrefix(url string) string {
 		return url
 	}
 
-	return *host + url
+	return hostFlag + url
 }
 
 func populateRememberedVars(str string, rememberMap map[string]string) string {
@@ -200,7 +248,7 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 			isHTTP := strings.HasPrefix(call.Expect.BodySchemaURI, "http://")
 			isHTTPS := strings.HasPrefix(call.Expect.BodySchemaURI, "https://")
 			if !(isHTTP || isHTTPS) {
-				schemeURI = *host + call.Expect.BodySchemaURI
+				schemeURI = hostFlag + call.Expect.BodySchemaURI
 			} else {
 				schemeURI = call.Expect.BodySchemaURI
 			}
@@ -232,7 +280,7 @@ func toAbsPath(srcDir string, assetPath string) (string, error) {
 		return assetPath, nil
 	}
 
-	uri, err := filepath.Abs(filepath.Join(*suiteDir, srcDir, assetPath))
+	uri, err := filepath.Abs(filepath.Join(suiteDir, srcDir, assetPath))
 	if err != nil {
 		return "", errors.New("Invalid file path: " + assetPath)
 	}
@@ -278,7 +326,7 @@ func (e Response) bodyAsMap() (map[string]interface{}, error) {
 }
 
 func debugMsg(a ...interface{}) {
-	if !*verbose {
+	if !debugFlag {
 		return
 	}
 	fmt.Print("\t")
@@ -286,7 +334,7 @@ func debugMsg(a ...interface{}) {
 }
 
 func debugMsgF(tpl string, a ...interface{}) {
-	if !*verbose {
+	if !debugFlag {
 		return
 	}
 	fmt.Printf(tpl, a...)
