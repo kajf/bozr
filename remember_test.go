@@ -12,7 +12,7 @@ func TestPopulateRequestBody(t *testing.T) {
 	value := "abc"
 
 	// when
-	req := populateRequest(on, "pre {var} post", map[string]string{"var": value})
+	req := populateRequest(on, "pre {var} post", map[string]interface{}{"var": value})
 
 	//then
 	buf := new(bytes.Buffer)
@@ -28,7 +28,7 @@ func TestPopulateRequestBody(t *testing.T) {
 
 func TestPopulateRememberedVars(t *testing.T) {
 	token := "test_token"
-	rememberMap := map[string]string{"savedToken":token}
+	rememberMap := map[string]interface{}{"savedToken":token}
 
 	got := populateRememberedVars("bearer {savedToken}", rememberMap)
 
@@ -43,7 +43,7 @@ func TestPopulateRememberedVars(t *testing.T) {
 func TestPopulateRememberedVarsMultiple(t *testing.T) {
 	token := "test_token"
 	second := "second"
-	rememberMap := map[string]string{"savedToken":token, "aSecond":second}
+	rememberMap := map[string]interface{}{"savedToken":token, "aSecond":second}
 
 	got := populateRememberedVars("prefix {savedToken} middle {aSecond} postfix", rememberMap)
 

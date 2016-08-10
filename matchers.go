@@ -21,17 +21,12 @@ func ChooseMatcher(path string) MatcherFunc {
 
 func equalsByPath(m interface{}, expectedValue interface{}, path ...string) (bool, error) {
 
-	switch typedExpectedValue := expectedValue.(type) {
-	case string:
-		val, err := getByPath(m, path...)
-		return (typedExpectedValue == val), err
-	}
-
-	return false, nil
+	val, err := getByPath(m, path...)
+	return (expectedValue == val), err
 }
 
 // exact value by exact path
-func getByPath(m interface{}, path ...string) (string, error) {
+func getByPath(m interface{}, path ...string) (interface{}, error) {
 
 	for _, p := range path {
 		//fmt.Println(p)
@@ -46,33 +41,29 @@ func getByPath(m interface{}, path ...string) (string, error) {
 			mp, ok := m.(map[string]interface{})
 			if !ok {
 				str := fmt.Sprintf("Can't cast to Map and get key [%v] in path %v", p, path)
-				return "", errors.New(str)
+				return nil, errors.New(str)
 			}
 			m = mp[p]
 		} else {
 			arr, ok := m.([]interface{})
 			if !ok {
 				str := fmt.Sprintf("Can't cast to Array and get index [%v] in path %v", idx, path)
-				return "", errors.New(str)
+				return nil, errors.New(str)
 			}
 			if idx >= len(arr) {
 				str := fmt.Sprintf("Array only has [%v] elements. Can't get element by index [%v] (counts from zero)", len(arr), idx)
-				return "", errors.New(str)
+				return nil, errors.New(str)
 			}
 			m = arr[idx]
 		}
 	}
 
-	if str, ok := castToString(m); ok {
-		return str, nil
-	}
-	strErr := fmt.Sprintf("Can't cast path result to string: %v", m)
-	return "", errors.New(strErr)
+	return m, nil
 }
 
 // search passing maps and arrays
 func searchByPath(m interface{}, expectedValue interface{}, path ...string) (bool, error) {
-	//fmt.Println("[",expectedValue, "] ", reflect.TypeOf(expectedValue))
+	//fmt.Println("searchByPath", m, expectedValue, path, reflect.TypeOf(expectedValue))
 	switch typedExpectedValue := expectedValue.(type) {
 	case []interface{}:
 		for _, obj := range typedExpectedValue {
@@ -81,11 +72,10 @@ func searchByPath(m interface{}, expectedValue interface{}, path ...string) (boo
 			}
 		}
 		return true, nil
-	case string:
+	case interface{}:
 		for idx, p := range path {
-			//fmt.Println("s ", idx, "p ", p)
-			funcVal, ok := pathFunction(m, p)
-			if ok {
+			//fmt.Println("iter ", idx, p)
+			if funcVal, ok := pathFunction(m, p); ok {
 				if typedExpectedValue == funcVal {
 					return true, nil
 				}
@@ -94,14 +84,13 @@ func searchByPath(m interface{}, expectedValue interface{}, path ...string) (boo
 			switch typedM := m.(type) {
 			case map[string]interface{}:
 				m = typedM[p]
-				//fmt.Println("[",m, "] ", reflect.TypeOf(m))
-				if str, ok := castToString(m); ok {
-					if str == typedExpectedValue {
+				//fmt.Println("mapped", m, reflect.TypeOf(m))
+
+				if m == typedExpectedValue {
 						return true, nil
-					}
 				}
 			case []interface{}:
-				//fmt.Println("path ", path[idx:])
+				//fmt.Println("arr ", path[idx:])
 				for _, obj := range typedM {
 					found, err := searchByPath(obj, typedExpectedValue, path[idx:]...)
 					if found {
@@ -114,25 +103,13 @@ func searchByPath(m interface{}, expectedValue interface{}, path ...string) (boo
 	return false, nil
 }
 
-func castToString(m interface{}) (string, bool) {
-	//fmt.Println("[",m, "] ", reflect.TypeOf(m))
-	if str, ok := m.(string); ok {
-		return str, ok
-	} else if flt, ok := m.(float64); ok {
-		// numbers (like ids) are parsed as float64 from json
-		return strconv.FormatFloat(flt, 'f', 0, 64), ok
-	} else {
-		return "", ok
-	}
-}
-
-func pathFunction(m interface{}, pathPart string) (string, bool) {
+func pathFunction(m interface{}, pathPart string) (float64, bool) {
 
 	if pathPart == "size()" {
 		if arr, ok := m.([]interface{}); ok {
-			return strconv.Itoa(len(arr)), true
+			return float64(len(arr)), true
 		}
 	}
 
-	return "", false
+	return -1, false
 }

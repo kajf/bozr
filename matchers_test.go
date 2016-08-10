@@ -17,7 +17,7 @@ func TestSearchByPathId(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := searchByPath(m, "417601", "rate_tables", "id")
+	found, _ := searchByPath(m, 417601.0, "rate_tables", "id")
 
 	if !found {
 		t.Error()
@@ -70,7 +70,7 @@ func TestSearchByPathArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := searchByPath(m, "2", "root", "size()")
+	found, _ := searchByPath(m, 2.0, "root", "size()")
 
 	if !found {
 		t.Error()
@@ -203,7 +203,7 @@ func TestSearchByPathHasIntArr(t *testing.T) {
 		t.Error(err)
 	}
 
-	arr := []interface{}{"1", "2"}
+	arr := []interface{}{1.0, 2.0}
 	ok, err := searchByPath(m, arr, "items", "id")
 	if !ok || err != nil {
 		t.Error(err)
@@ -277,7 +277,7 @@ func TestGetByPathArraySize(t *testing.T) {
 	}
 
 	got, err := getByPath(m, "items", "size()")
-	if got != "2" || err != nil {
+	if got != 2.0 || err != nil {
 		t.Error(
 			"expected 2",
 			"got", got,
@@ -298,7 +298,7 @@ func TestGetByPathArrayOutOfBounds(t *testing.T) {
 	}
 
 	got, err := getByPath(m, "items", "2", "id")
-	if got != "" || err == nil {
+	if got != nil || err == nil {
 		t.Error(
 			"expected nil",
 			"got", got,
@@ -317,7 +317,7 @@ func TestGetByPathNotArrayWithIndex(t *testing.T) {
 	}
 
 	got, err := getByPath(m, "items", "1", "id")
-	if got != "" || err == nil {
+	if got != nil || err == nil {
 		t.Error(
 			"expected nil",
 			"got", got,
@@ -338,7 +338,7 @@ func TestGetByPathNotIndexWithArray(t *testing.T) {
 	}
 
 	got, err := getByPath(m, "items", "id")
-	if got != "" || err == nil {
+	if got != nil || err == nil {
 		t.Error(
 			"expected nil",
 			"got", got,
@@ -352,7 +352,7 @@ func TestGetByPathEmpty(t *testing.T) {
 
 	got, _ := getByPath(emptyMap, "token")
 
-	if got != "" {
+	if got != nil {
 		t.Error(
 			"For", "token",
 			"expected", nil,

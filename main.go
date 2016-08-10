@@ -94,7 +94,7 @@ func main() {
 	for _, suite := range suits {
 		for _, testCase := range suite.Cases {
 
-			rememberedMap := make(map[string]string)
+			rememberedMap := make(map[string]interface{})
 
 			for _, c := range testCase.Calls {
 				tr := call(suite, testCase, c, rememberedMap)
@@ -107,7 +107,7 @@ func main() {
 	reporter.Flush()
 }
 
-func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[string]string) (result *TestResult) {
+func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[string]interface{}) (result *TestResult) {
 	debugMsg("--- Starting call ...") // TODO add call description
 	start := time.Now()
 	result = &TestResult{Case: testCase}
@@ -191,7 +191,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	return result
 }
 
-func populateRequest(on On, body string, rememberMap map[string]string) *http.Request {
+func populateRequest(on On, body string, rememberMap map[string]interface{}) *http.Request {
 
 	url := urlPrefix(on.URL)
 
@@ -221,11 +221,11 @@ func urlPrefix(url string) string {
 	return hostFlag + url
 }
 
-func populateRememberedVars(str string, rememberMap map[string]string) string {
+func populateRememberedVars(str string, rememberMap map[string]interface{}) string {
 	res := str
 	for varName, val := range rememberMap {
 		placeholder := "{" + varName + "}"
-		res = strings.Replace(res, placeholder, val, -1)
+		res = strings.Replace(res, placeholder, val.(string), -1)
 	}
 	return res
 }
@@ -294,7 +294,7 @@ func toAbsPath(srcDir string, assetPath string) (string, error) {
 	return filepath.ToSlash(uri), nil
 }
 
-func remember(bodyMap map[string]interface{}, remember map[string]string, rememberedMap map[string]string) (err error) {
+func remember(bodyMap map[string]interface{}, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
 
 	for varName, path := range remember {
 
