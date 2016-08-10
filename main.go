@@ -35,7 +35,7 @@ func init() {
 
 		h += "Examples:\n"
 		h += "  t-rest ./examples\n"
-		h += "  t-rest -H http://example.com ./examples \n\n"
+		h += "  t-rest -H http://example.com ./examples \n"
 
 		fmt.Fprintf(os.Stderr, h)
 	}

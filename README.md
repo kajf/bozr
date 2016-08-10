@@ -6,13 +6,14 @@ Minimalistic tool to perform REST API tests based on JSON description
 ## Usage
 
 ```bash
-t-rest [OPTIONS] <DIR>
+t-rest [OPTIONS] DIR
 
 Options:
-  -d, --debug           Enable debug mode
-  -H, --host            Server to test
-  -h, --help            Print usage
-  -v, --version         Print version info
+  -d, --debug		Enable debug mode
+  -H, --host		Server to test
+  -h, --help		Print usage
+      --junit		Enable junit xml reporter
+  -v, --version		Print version information and quit
 
 Examples:
   t-rest ./examples
