@@ -192,10 +192,20 @@ const suiteDetailedSchema = `
 								"contentType": {
 									"type": "string"
 								},
+								"headers": {
+									"type": "object"
+								},
 								"body": {
 									"type": "object"
+								},
+								"bodySchemaFile": {
+									"type": "string"
+								},
+								"bodySchemaURI": {
+									"type": "string"
 								}
-							}
+							},
+							"additionalProperties": false
 						}
 					},
 					"required": [

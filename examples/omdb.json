@@ -13,10 +13,15 @@
       "expect": {
         "statusCode": 200,
         "contentType": "text/xml",
+        "headers1": {
+          "CF-Cache-Status":"HIT"
+        },
         "body" : {
           "root.movie.-year":"2007",
           "root.movie.-director":"Michael Bay"
-        }
+        },
+        "bodySchemaFile" : "",
+        "bodySchemaURI" : ""
       }
     }
   ]
