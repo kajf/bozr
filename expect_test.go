@@ -79,6 +79,21 @@ func TestExpectedContentType(t *testing.T) {
 	}
 }
 
+func TestExpectedContentTypeIgnoreEncoding(t *testing.T) {
+	exp := ContentTypeExpectation{Value: "application/json"}
+
+	err := exp.check(Response{
+		http: http.Response{
+			Header: map[string][]string{"Content-Type": []string{"application/json; charset=utf-8"}},
+		},
+		body: nil,
+	})
+
+	if err != nil {
+		t.Error(err.Error())
+	}
+}
+
 func TestUnexpectedContentType(t *testing.T) {
 	exp := ContentTypeExpectation{Value: "application/json"}
 
@@ -102,7 +117,7 @@ func TestBodyExpectationBool(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations:m}
+	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(Response{
 		http: http.Response{
@@ -124,7 +139,7 @@ func TestBodyExpectationInt(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations:m}
+	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(Response{
 		http: http.Response{
@@ -146,7 +161,7 @@ func TestBodyExpectationSize(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations:m}
+	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(Response{
 		http: http.Response{
@@ -168,7 +183,7 @@ func TestBodyExpectationSearchBool(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations:m}
+	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(Response{
 		http: http.Response{
@@ -190,7 +205,7 @@ func TestBodyExpectationSearchInt(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations:m}
+	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(Response{
 		http: http.Response{
