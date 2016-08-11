@@ -105,6 +105,7 @@ func main() {
 			rememberedMap := make(map[string]interface{})
 
 			for _, c := range testCase.Calls {
+				addAll(c.Args, rememberedMap)
 				tr := call(suite, testCase, c, rememberedMap)
 				tr.Suite = suite
 				reporter.Report(*tr)
@@ -113,6 +114,12 @@ func main() {
 	}
 
 	reporter.Flush()
+}
+
+func addAll(src, target map[string]interface{}) {
+	for key, val := range src {
+		target[key] = val
+	}
 }
 
 func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[string]interface{}) (result *TestResult) {

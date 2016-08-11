@@ -2,11 +2,14 @@
   "name": "Example of a test that passes.",
   "calls": [
     {
+      "args": {
+        "currency": "USD"
+      },
       "on" : {
         "url" : "http://api.fixer.io/latest",
         "method":"GET",
         "params": {
-          "base": "USD"
+          "base": "{currency}"
         },
         "headers": {
           "accept": "application/json"
