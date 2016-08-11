@@ -25,16 +25,19 @@ Test suite (suite_name.json)
     ├ Test A [single test]
     |   ├ Name
     │   ├ Call one
+    |   |   ├ args [value(s) for placeholders to use in request params, headers or body]
     │   │   ├ on [single http request]
     │   │   ├ expect [http response asserts: code, headers, body, schema, etc.]
     │   │   └ remember [optionally remember variable(s) for the next call to use in request params, headers or body]
     │   └ Call two
+    |       ├ args
     │       ├ on
     │       ├ expect
     │       └ remember
     └ Test B
         ├ Name
         └ Call one
+            ├ args        
             ├ on
             ├ expect
             └ remember
@@ -71,7 +74,7 @@ JSON example
         "statusCode": 200,
         "contentType": "application/json",
         "body": {
-            "errors.size()": "0"
+            "errors.size()": 0
         }
     }
 ```
@@ -89,7 +92,7 @@ body | body matchers: equals, search, size |
         "body": {
             "users.1.surname" : "Doe",
             "~users.name":"Joe",
-            "errors.size()": "0"
+            "errors.size()": 0
         }
     }
 ```
@@ -97,11 +100,12 @@ Type | Assertion | Example
 ------ | ------------- | --------------
 equals | Root 'users' array zero element has value of 'id' equal to '123'  | "users.0.id" : "123"
 search | Root 'users' array contains element(s) with 'name' equal to 'Jack' or 'Dan' and 'Ron'  | "~users.name" : "Jack" or "~users.name" : ["Dan","Ron"]
-size | Root 'company' element has 'users' array with '22' elements within 'buildings' array | "company.buildings.users.size()" : "22"
+size | Root 'company' element has 'users' array with '22' elements within 'buildings' array | "company.buildings.users.size()" : 22
 
 XML:
 - To match attribute use `-` symbol before attribute name. E.g. `users.0.-id`
 - Namespaces are ignored
+- Only string matcher values are supported (since xml has no real data types, so everything is a string)
 
 ## Dependency management
 To build project you need a dependency management tool - https://glide.sh/
