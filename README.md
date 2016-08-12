@@ -2,7 +2,7 @@
 Minimalistic tool to perform REST API tests based on JSON description
 
 [![Build Status](https://travis-ci.org/kajf/t-rest.svg?branch=master)](https://travis-ci.org/kajf/t-rest?branch=master)
-
+[![Go Report Card](https://goreportcard.com/badge/github.com/kajf/t-rest)](https://goreportcard.com/report/github.com/kajf/t-rest)
 ## Usage
 
 ```bash
