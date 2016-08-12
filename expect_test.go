@@ -39,7 +39,7 @@ func TestExpectedHeader(t *testing.T) {
 
 	err := exp.check(Response{
 		http: http.Response{
-			Header: map[string][]string{"X-Test": []string{"PASS"}},
+			Header: map[string][]string{"X-Test": {"PASS"}},
 		},
 		body: nil,
 	})
@@ -54,7 +54,7 @@ func TestUnexpectedHeader(t *testing.T) {
 
 	err := exp.check(Response{
 		http: http.Response{
-			Header: map[string][]string{"X-Test": []string{"FAILED"}},
+			Header: map[string][]string{"X-Test": {"FAILED"}},
 		},
 		body: nil,
 	})
@@ -69,7 +69,7 @@ func TestExpectedContentType(t *testing.T) {
 
 	err := exp.check(Response{
 		http: http.Response{
-			Header: map[string][]string{"Content-Type": []string{"application/json"}},
+			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: nil,
 	})
@@ -84,7 +84,7 @@ func TestExpectedContentTypeIgnoreEncoding(t *testing.T) {
 
 	err := exp.check(Response{
 		http: http.Response{
-			Header: map[string][]string{"Content-Type": []string{"application/json; charset=utf-8"}},
+			Header: map[string][]string{"Content-Type": {"application/json; charset=utf-8"}},
 		},
 		body: nil,
 	})
@@ -99,7 +99,7 @@ func TestUnexpectedContentType(t *testing.T) {
 
 	err := exp.check(Response{
 		http: http.Response{
-			Header: map[string][]string{"Content-Type": []string{"text/html"}},
+			Header: map[string][]string{"Content-Type": {"text/html"}},
 		},
 		body: nil,
 	})
@@ -121,7 +121,7 @@ func TestBodyExpectationBool(t *testing.T) {
 
 	err = exp.check(Response{
 		http: http.Response{
-			Header: map[string][]string{"Content-Type": []string{"application/json"}},
+			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte("{\"flag\":true}"),
 	})
@@ -143,7 +143,7 @@ func TestBodyExpectationInt(t *testing.T) {
 
 	err = exp.check(Response{
 		http: http.Response{
-			Header: map[string][]string{"Content-Type": []string{"application/json"}},
+			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte("{\"len\":2}"),
 	})
@@ -165,7 +165,7 @@ func TestBodyExpectationSize(t *testing.T) {
 
 	err = exp.check(Response{
 		http: http.Response{
-			Header: map[string][]string{"Content-Type": []string{"application/json"}},
+			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte("{\"items\":[]}"),
 	})
@@ -187,7 +187,7 @@ func TestBodyExpectationSearchBool(t *testing.T) {
 
 	err = exp.check(Response{
 		http: http.Response{
-			Header: map[string][]string{"Content-Type": []string{"application/json"}},
+			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte("{\"flag\":true}"),
 	})
@@ -209,7 +209,7 @@ func TestBodyExpectationSearchInt(t *testing.T) {
 
 	err = exp.check(Response{
 		http: http.Response{
-			Header: map[string][]string{"Content-Type": []string{"application/json"}},
+			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte("{\"len\":2}"),
 	})
