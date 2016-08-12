@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"strconv"
-	"github.com/pkg/errors"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
-type MatcherFunc func(root interface{}, expectedValue interface{}, path  ...string) (bool, error)
+type MatcherFunc func(root interface{}, expectedValue interface{}, path ...string) (bool, error)
 
 func ChooseMatcher(path string) MatcherFunc {
 	exactMatch := !strings.HasPrefix(path, "~")
@@ -87,7 +88,7 @@ func searchByPath(m interface{}, expectedValue interface{}, path ...string) (boo
 				//fmt.Println("mapped", m, reflect.TypeOf(m))
 
 				if m == typedExpectedValue {
-						return true, nil
+					return true, nil
 				}
 			case []interface{}:
 				//fmt.Println("arr ", path[idx:])

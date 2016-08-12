@@ -1,9 +1,9 @@
 package main
 
 import (
-	"testing"
 	"bytes"
 	"strings"
+	"testing"
 )
 
 func TestPopulateRequestBody(t *testing.T) {
@@ -28,13 +28,13 @@ func TestPopulateRequestBody(t *testing.T) {
 
 func TestPopulateRememberedVars(t *testing.T) {
 	token := "test_token"
-	rememberMap := map[string]interface{}{"savedToken":token}
+	rememberMap := map[string]interface{}{"savedToken": token}
 
 	got := populateRememberedVars("bearer {savedToken}", rememberMap)
 
-	if got != "bearer " + token {
+	if got != "bearer "+token {
 		t.Error(
-			"expected", "bearer " + token,
+			"expected", "bearer "+token,
 			"got", got,
 		)
 	}
@@ -43,11 +43,11 @@ func TestPopulateRememberedVars(t *testing.T) {
 func TestPopulateRememberedVarsMultiple(t *testing.T) {
 	token := "test_token"
 	second := "second"
-	rememberMap := map[string]interface{}{"savedToken":token, "aSecond":second}
+	rememberMap := map[string]interface{}{"savedToken": token, "aSecond": second}
 
 	got := populateRememberedVars("prefix {savedToken} middle {aSecond} postfix", rememberMap)
 
-	expected := "prefix " + token + " middle " + second +" postfix"
+	expected := "prefix " + token + " middle " + second + " postfix"
 	if got != expected {
 		t.Error(
 			"expected[", expected,
