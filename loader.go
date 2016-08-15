@@ -12,38 +12,68 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// JSONTestCaseLoader loads test cases stored as a JSON files.
-// It travers all directories under the RootDir and tries to
-// parse files that has a test suite shape.
-type JSONTestCaseLoader struct {
-	// starting point
+type SuiteSource interface {
+	Next() *TestSuite
+}
+
+type DirSuiteSource struct {
 	RootDir string
 
-	suits []TestSuite
+	files []FileSuiteSource
+	pos   int
 }
 
-// NewJSONTestCaseLoader creates new json test case loader
-// for a given directory.
-func NewJSONTestCaseLoader(dir string) *JSONTestCaseLoader {
-	return &JSONTestCaseLoader{RootDir: dir}
+func (ds *DirSuiteSource) init() {
+	filepath.Walk(ds.RootDir, ds.addFileSource)
 }
 
-// Load all test cases.
-func (s *JSONTestCaseLoader) Load() ([]TestSuite, error) {
-	err := filepath.Walk(s.RootDir, s.loadFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.suits, nil
-}
-
-func (s *JSONTestCaseLoader) loadFile(path string, info os.FileInfo, err error) error {
+func (ds *DirSuiteSource) addFileSource(path string, info os.FileInfo, err error) error {
 	if err != nil {
 		return nil
 	}
 
 	if info.IsDir() {
+		return nil
+	}
+
+	ds.files = append(ds.files, FileSuiteSource{Path: path})
+	return nil
+}
+
+func (ds *DirSuiteSource) Next() *TestSuite {
+	if len(ds.files) <= ds.pos {
+		return nil
+	}
+
+	file := ds.files[ds.pos]
+	ds.pos = ds.pos + 1
+	su := file.Next()
+
+	if su == nil {
+		return nil
+	}
+
+	dir, _ := filepath.Rel(ds.RootDir, filepath.Dir(file.Path))
+	su.Dir = dir
+
+	return su
+}
+
+type FileSuiteSource struct {
+	Path string
+}
+
+func (fs *FileSuiteSource) Next() *TestSuite {
+	if fs.Path == "" {
+		return nil
+	}
+
+	path := fs.Path
+	fs.Path = ""
+	info, _ := os.Lstat(path)
+
+	if info.IsDir() {
+		fmt.Println("DIR")
 		return nil
 	}
 
@@ -56,35 +86,64 @@ func (s *JSONTestCaseLoader) loadFile(path string, info os.FileInfo, err error) 
 		return nil
 	}
 
-	err = validateSuite(path)
+	err := validateSuite(path)
 	if err != nil {
 		fmt.Printf("Invalid suite file: %s\n%s\n", path, err.Error())
 		return nil
 	}
 
-	debugMsgF("Process file: %s\n", info.Name())
 	content, e := ioutil.ReadFile(path)
 
 	if e != nil {
-		debugMsgF("File error: %v\n", e)
-		return filepath.SkipDir
+		fmt.Println("Cannot read file: " + e.Error())
+		return nil
 	}
 
 	var testCases []TestCase
 	err = json.Unmarshal(content, &testCases)
 	if err != nil {
-		debugMsgF("Parse error: %v\n", err)
+		fmt.Println("Cannot parse file: " + err.Error())
 		return nil
 	}
 
-	dir, _ := filepath.Rel(s.RootDir, filepath.Dir(path))
+	dir, _ := filepath.Rel(filepath.Dir(path), filepath.Dir(path))
 	su := TestSuite{
 		Name:  strings.TrimSuffix(info.Name(), filepath.Ext(info.Name())),
 		Dir:   dir,
 		Cases: testCases,
 	}
-	s.suits = append(s.suits, su)
-	return nil
+
+	return &su
+}
+
+func load(source SuiteSource, channel chan<- TestSuite) {
+	content := source.Next()
+
+	for content != nil {
+		channel <- *content
+		content = source.Next()
+	}
+
+	close(channel)
+}
+
+func NewDirLoader(rootDir string) <-chan TestSuite {
+	channel := make(chan TestSuite)
+
+	source := &DirSuiteSource{RootDir: rootDir}
+	source.init()
+
+	go load(source, channel)
+
+	return channel
+}
+
+func NewFileLoader(path string) <-chan TestSuite {
+	channel := make(chan TestSuite)
+
+	go load(&FileSuiteSource{Path: path}, channel)
+
+	return channel
 }
 
 func isSuite(path string) bool {
