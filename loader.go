@@ -75,6 +75,7 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 }
 
 type SuiteIterator interface {
+	HasNext() bool
 	Next() *TestSuite
 }
 
@@ -87,6 +88,7 @@ type DirSuiteIterator struct {
 
 func (ds *DirSuiteIterator) init() {
 	filepath.Walk(ds.RootDir, ds.addSuiteFile)
+	debugMsg("Collected: ", len(ds.files))
 }
 
 func (ds *DirSuiteIterator) addSuiteFile(path string, info os.FileInfo, err error) error {
@@ -105,6 +107,10 @@ func (ds *DirSuiteIterator) addSuiteFile(path string, info os.FileInfo, err erro
 	return nil
 }
 
+func (ds *DirSuiteIterator) HasNext() bool {
+	return len(ds.files) > ds.pos
+}
+
 func (ds *DirSuiteIterator) Next() *TestSuite {
 	if len(ds.files) <= ds.pos {
 		return nil
@@ -112,13 +118,15 @@ func (ds *DirSuiteIterator) Next() *TestSuite {
 
 	file := ds.files[ds.pos]
 	ds.pos = ds.pos + 1
-	su := file.ToSuite()
-
-	return su
+	return file.ToSuite()
 }
 
 type FileSuiteIterator struct {
 	Path string
+}
+
+func (fs *FileSuiteIterator) HasNext() bool {
+	return fs.Path != ""
 }
 
 func (fs *FileSuiteIterator) Next() *TestSuite {
@@ -133,11 +141,13 @@ func (fs *FileSuiteIterator) Next() *TestSuite {
 }
 
 func load(source SuiteIterator, channel chan<- TestSuite) {
-	content := source.Next()
 
-	for content != nil {
-		channel <- *content
-		content = source.Next()
+	for source.HasNext() {
+		suite := source.Next()
+		if suite == nil {
+			continue
+		}
+		channel <- *suite
 	}
 
 	close(channel)
