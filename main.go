@@ -90,19 +90,10 @@ func main() {
 		suiteDir = src
 		ch = NewDirLoader(suiteDir)
 	} else {
-		// fmt.Println(filepath.Dir(src))
-		// return
 		debugMsg("Loading from file...")
 		suiteDir = filepath.Dir(src)
 		ch = NewFileLoader(src)
 	}
-
-	// loader := NewJSONTestCaseLoader(suiteDir)
-	// suits, err := loader.Load()
-	// if err != nil {
-	// 	fmt.Printf("Error: %v\n", err)
-	// 	os.Exit(1)
-	// }
 
 	reporters := []Reporter{NewConsoleReporter()}
 	if junitFlag {

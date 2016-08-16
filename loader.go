@@ -12,72 +12,31 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-type SuiteSource interface {
-	Next() *TestSuite
+type SuiteFile struct {
+	Path    string
+	BaseDir string
 }
 
-type DirSuiteSource struct {
-	RootDir string
-
-	files []FileSuiteSource
-	pos   int
+func (sf SuiteFile) PackageName() string {
+	dir, _ := filepath.Rel(sf.BaseDir, filepath.Dir(sf.Path))
+	return dir
 }
 
-func (ds *DirSuiteSource) init() {
-	filepath.Walk(ds.RootDir, ds.addFileSource)
-}
-
-func (ds *DirSuiteSource) addFileSource(path string, info os.FileInfo, err error) error {
-	if err != nil {
+func (sf SuiteFile) ToSuite() *TestSuite {
+	if sf.Path == "" {
 		return nil
 	}
 
-	if info.IsDir() {
-		return nil
-	}
-
-	ds.files = append(ds.files, FileSuiteSource{Path: path})
-	return nil
-}
-
-func (ds *DirSuiteSource) Next() *TestSuite {
-	if len(ds.files) <= ds.pos {
-		return nil
-	}
-
-	file := ds.files[ds.pos]
-	ds.pos = ds.pos + 1
-	su := file.Next()
-
-	if su == nil {
-		return nil
-	}
-
-	dir, _ := filepath.Rel(ds.RootDir, filepath.Dir(file.Path))
-	su.Dir = dir
-
-	return su
-}
-
-type FileSuiteSource struct {
-	Path string
-}
-
-func (fs *FileSuiteSource) Next() *TestSuite {
-	if fs.Path == "" {
-		return nil
-	}
-
-	path := fs.Path
-	fs.Path = ""
+	path := sf.Path
 	info, _ := os.Lstat(path)
 
 	if info.IsDir() {
-		fmt.Println("DIR")
+		debugMsg("Ignore dir: " + sf.Path)
 		return nil
 	}
 
 	if !strings.HasSuffix(info.Name(), ".json") {
+		debugMsg("Ignore non json: " + sf.Path)
 		return nil
 	}
 
@@ -106,17 +65,74 @@ func (fs *FileSuiteSource) Next() *TestSuite {
 		return nil
 	}
 
-	dir, _ := filepath.Rel(filepath.Dir(path), filepath.Dir(path))
 	su := TestSuite{
 		Name:  strings.TrimSuffix(info.Name(), filepath.Ext(info.Name())),
-		Dir:   dir,
+		Dir:   sf.PackageName(),
 		Cases: testCases,
 	}
 
 	return &su
 }
 
-func load(source SuiteSource, channel chan<- TestSuite) {
+type SuiteIterator interface {
+	Next() *TestSuite
+}
+
+type DirSuiteIterator struct {
+	RootDir string
+
+	files []SuiteFile
+	pos   int
+}
+
+func (ds *DirSuiteIterator) init() {
+	filepath.Walk(ds.RootDir, ds.addSuiteFile)
+}
+
+func (ds *DirSuiteIterator) addSuiteFile(path string, info os.FileInfo, err error) error {
+	if err != nil {
+		return nil
+	}
+
+	if info.IsDir() {
+		return nil
+	}
+
+	ds.files = append(ds.files, SuiteFile{
+		Path:    path,
+		BaseDir: ds.RootDir,
+	})
+	return nil
+}
+
+func (ds *DirSuiteIterator) Next() *TestSuite {
+	if len(ds.files) <= ds.pos {
+		return nil
+	}
+
+	file := ds.files[ds.pos]
+	ds.pos = ds.pos + 1
+	su := file.ToSuite()
+
+	return su
+}
+
+type FileSuiteIterator struct {
+	Path string
+}
+
+func (fs *FileSuiteIterator) Next() *TestSuite {
+	if fs.Path == "" {
+		return nil
+	}
+
+	sf := SuiteFile{Path: fs.Path, BaseDir: filepath.Dir(fs.Path)}
+
+	fs.Path = ""
+	return sf.ToSuite()
+}
+
+func load(source SuiteIterator, channel chan<- TestSuite) {
 	content := source.Next()
 
 	for content != nil {
@@ -130,7 +146,7 @@ func load(source SuiteSource, channel chan<- TestSuite) {
 func NewDirLoader(rootDir string) <-chan TestSuite {
 	channel := make(chan TestSuite)
 
-	source := &DirSuiteSource{RootDir: rootDir}
+	source := &DirSuiteIterator{RootDir: rootDir}
 	source.init()
 
 	go load(source, channel)
@@ -141,7 +157,7 @@ func NewDirLoader(rootDir string) <-chan TestSuite {
 func NewFileLoader(path string) <-chan TestSuite {
 	channel := make(chan TestSuite)
 
-	go load(&FileSuiteSource{Path: path}, channel)
+	go load(&FileSuiteIterator{Path: path}, channel)
 
 	return channel
 }
