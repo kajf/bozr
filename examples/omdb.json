@@ -13,7 +13,7 @@
       "expect": {
         "statusCode": 200,
         "contentType": "text/xml",
-        "headers1": {
+        "headers": {
           "CF-Cache-Status":"HIT"
         },
         "body" : {

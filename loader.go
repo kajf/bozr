@@ -12,42 +12,31 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// JSONTestCaseLoader loads test cases stored as a JSON files.
-// It travers all directories under the RootDir and tries to
-// parse files that has a test suite shape.
-type JSONTestCaseLoader struct {
-	// starting point
-	RootDir string
-
-	suits []TestSuite
+type SuiteFile struct {
+	Path    string
+	BaseDir string
 }
 
-// NewJSONTestCaseLoader creates new json test case loader
-// for a given directory.
-func NewJSONTestCaseLoader(dir string) *JSONTestCaseLoader {
-	return &JSONTestCaseLoader{RootDir: dir}
+func (sf SuiteFile) PackageName() string {
+	dir, _ := filepath.Rel(sf.BaseDir, filepath.Dir(sf.Path))
+	return dir
 }
 
-// Load all test cases.
-func (s *JSONTestCaseLoader) Load() ([]TestSuite, error) {
-	err := filepath.Walk(s.RootDir, s.loadFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.suits, nil
-}
-
-func (s *JSONTestCaseLoader) loadFile(path string, info os.FileInfo, err error) error {
-	if err != nil {
+func (sf SuiteFile) ToSuite() *TestSuite {
+	if sf.Path == "" {
 		return nil
 	}
 
+	path := sf.Path
+	info, _ := os.Lstat(path)
+
 	if info.IsDir() {
+		debugMsg("Ignore dir: " + sf.Path)
 		return nil
 	}
 
 	if !strings.HasSuffix(info.Name(), ".json") {
+		debugMsg("Ignore non json: " + sf.Path)
 		return nil
 	}
 
@@ -56,35 +45,121 @@ func (s *JSONTestCaseLoader) loadFile(path string, info os.FileInfo, err error) 
 		return nil
 	}
 
-	err = validateSuite(path)
+	err := validateSuite(path)
 	if err != nil {
 		fmt.Printf("Invalid suite file: %s\n%s\n", path, err.Error())
 		return nil
 	}
 
-	debugMsgF("Process file: %s\n", info.Name())
 	content, e := ioutil.ReadFile(path)
 
 	if e != nil {
-		debugMsgF("File error: %v\n", e)
-		return filepath.SkipDir
+		fmt.Println("Cannot read file: " + e.Error())
+		return nil
 	}
 
 	var testCases []TestCase
 	err = json.Unmarshal(content, &testCases)
 	if err != nil {
-		debugMsgF("Parse error: %v\n", err)
+		fmt.Println("Cannot parse file: " + err.Error())
 		return nil
 	}
 
-	dir, _ := filepath.Rel(s.RootDir, filepath.Dir(path))
 	su := TestSuite{
 		Name:  strings.TrimSuffix(info.Name(), filepath.Ext(info.Name())),
-		Dir:   dir,
+		Dir:   sf.PackageName(),
 		Cases: testCases,
 	}
-	s.suits = append(s.suits, su)
+
+	return &su
+}
+
+type SuiteIterator interface {
+	Next() *TestSuite
+}
+
+type DirSuiteIterator struct {
+	RootDir string
+
+	files []SuiteFile
+	pos   int
+}
+
+func (ds *DirSuiteIterator) init() {
+	filepath.Walk(ds.RootDir, ds.addSuiteFile)
+}
+
+func (ds *DirSuiteIterator) addSuiteFile(path string, info os.FileInfo, err error) error {
+	if err != nil {
+		return nil
+	}
+
+	if info.IsDir() {
+		return nil
+	}
+
+	ds.files = append(ds.files, SuiteFile{
+		Path:    path,
+		BaseDir: ds.RootDir,
+	})
 	return nil
+}
+
+func (ds *DirSuiteIterator) Next() *TestSuite {
+	if len(ds.files) <= ds.pos {
+		return nil
+	}
+
+	file := ds.files[ds.pos]
+	ds.pos = ds.pos + 1
+	su := file.ToSuite()
+
+	return su
+}
+
+type FileSuiteIterator struct {
+	Path string
+}
+
+func (fs *FileSuiteIterator) Next() *TestSuite {
+	if fs.Path == "" {
+		return nil
+	}
+
+	sf := SuiteFile{Path: fs.Path, BaseDir: filepath.Dir(fs.Path)}
+
+	fs.Path = ""
+	return sf.ToSuite()
+}
+
+func load(source SuiteIterator, channel chan<- TestSuite) {
+	content := source.Next()
+
+	for content != nil {
+		channel <- *content
+		content = source.Next()
+	}
+
+	close(channel)
+}
+
+func NewDirLoader(rootDir string) <-chan TestSuite {
+	channel := make(chan TestSuite)
+
+	source := &DirSuiteIterator{RootDir: rootDir}
+	source.init()
+
+	go load(source, channel)
+
+	return channel
+}
+
+func NewFileLoader(path string) <-chan TestSuite {
+	channel := make(chan TestSuite)
+
+	go load(&FileSuiteIterator{Path: path}, channel)
+
+	return channel
 }
 
 func isSuite(path string) bool {

@@ -6,7 +6,7 @@ Minimalistic tool to perform REST API tests based on JSON description
 ## Usage
 
 ```bash
-t-rest [OPTIONS] DIR
+t-rest [OPTIONS] (DIR|FILE)
 
 Options:
   -d, --debug		Enable debug mode
@@ -16,7 +16,7 @@ Options:
   -v, --version		Print version information and quit
 
 Examples:
-  t-rest ./examples
+  t-rest ./examples/suite-file.json
   t-rest -H http://example.com ./examples
 ```
 ## Test Suite Format
@@ -37,7 +37,7 @@ Test suite (suite_name.json)
     └ Test B
         ├ Name
         └ Call one
-            ├ args        
+            ├ args
             ├ on
             ├ expect
             └ remember

@@ -76,19 +76,23 @@ func main() {
 		return
 	}
 
-	suiteDir = flag.Arg(0)
+	src := flag.Arg(0)
 
-	if suiteDir == "" {
-		fmt.Print("You must specify a directory with tests.\n\n")
+	if src == "" {
+		fmt.Print("You must specify a directory or file with tests.\n\n")
 		flag.Usage()
 		return
 	}
 
-	loader := NewJSONTestCaseLoader(suiteDir)
-	suits, err := loader.Load()
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
+	var ch <-chan TestSuite
+	if filepath.Ext(src) == "" {
+		debugMsg("Loading from directory...")
+		suiteDir = src
+		ch = NewDirLoader(suiteDir)
+	} else {
+		debugMsg("Loading from file...")
+		suiteDir = filepath.Dir(src)
+		ch = NewFileLoader(src)
 	}
 
 	reporters := []Reporter{NewConsoleReporter()}
@@ -99,7 +103,7 @@ func main() {
 	reporter := NewMultiReporter(reporters...)
 
 	// test case runner?
-	for _, suite := range suits {
+	for suite := range ch {
 		for _, testCase := range suite.Cases {
 
 			rememberedMap := make(map[string]interface{})
