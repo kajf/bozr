@@ -167,12 +167,13 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		return
 	}
 
-	debugMsg("Resp: ", string(body))
 	end := time.Now()
 
 	testResp := Response{http: *resp, body: body}
 	result.Resp = testResp
 	result.Duration = end.Sub(start)
+
+	debugMsg(testResp.ToString())
 
 	exps, err := expectations(call, testSuite.Dir)
 	if err != nil {
@@ -350,7 +351,6 @@ func debugMsg(a ...interface{}) {
 	if !debugFlag {
 		return
 	}
-	fmt.Print("\t")
 	fmt.Println(a...)
 }
 

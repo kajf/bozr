@@ -128,7 +128,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 	testCase := tc{Name: result.Case.Name, ClassName: r.suite.PackageName + "." + result.Suite.Name, Time: result.Duration.Seconds()}
 	if result.Cause != nil {
 		testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Cause.Error()}
-		testCase.Failure.Details = formatResponse(result.Resp)
+		testCase.Failure.Details = result.Resp.ToString()
 		r.suite.Failures = r.suite.Failures + 1
 	}
 	r.suite.Tests = r.suite.Tests + 1
@@ -168,19 +168,6 @@ func newSuite(result TestResult) *suite {
 		TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05"),
 		HostName:    "localhost",
 	}
-}
-
-func formatResponse(resp Response) string {
-	http := resp.http
-
-	var headers string
-	for k, v := range http.Header {
-		headers = fmt.Sprintf("%s%s: %s\n", headers, k, strings.Join(v, " "))
-	}
-
-	body := fmt.Sprintf("%s", string(resp.body))
-	details := fmt.Sprintf("%s \n %s \n %s", http.Status, headers, body)
-	return details
 }
 
 func (r JUnitXMLReporter) Flush() {

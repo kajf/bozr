@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -63,4 +65,19 @@ type TestResult struct {
 type Response struct {
 	http http.Response
 	body []byte
+}
+
+// ToString return string representation of response data
+// including status code, headers and body.
+func (resp Response) ToString() string {
+	http := resp.http
+
+	headers := "\n"
+	for k, v := range http.Header {
+		headers = fmt.Sprintf("%s%s: %s\n", headers, k, strings.Join(v, " "))
+	}
+
+	body := fmt.Sprintf("%s", string(resp.body))
+	details := fmt.Sprintf("%s \n %s \n %s", http.Status, headers, body)
+	return details
 }
