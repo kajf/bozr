@@ -12,16 +12,21 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+// SuiteFile describes location of the suite file.
 type SuiteFile struct {
-	Path    string
+	// Path to the file.
+	Path string
+	// Base directory from file is loaded.
 	BaseDir string
 }
 
+// PackageName returns difference between Path and BaseDir.
 func (sf SuiteFile) PackageName() string {
 	dir, _ := filepath.Rel(sf.BaseDir, filepath.Dir(sf.Path))
 	return dir
 }
 
+// ToSuite method deserializes suite representation to the object model.
 func (sf SuiteFile) ToSuite() *TestSuite {
 	if sf.Path == "" {
 		return nil
@@ -74,11 +79,14 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 	return &su
 }
 
+// SuiteIterator is an interface to iterate over a set of suites
+// independatly on where they are located.
 type SuiteIterator interface {
 	HasNext() bool
 	Next() *TestSuite
 }
 
+// DirSuiteIterator iterates over all suite files inside of specified root folder.
 type DirSuiteIterator struct {
 	RootDir string
 
@@ -107,10 +115,12 @@ func (ds *DirSuiteIterator) addSuiteFile(path string, info os.FileInfo, err erro
 	return nil
 }
 
+// HasNext returns true in case there is at least one more suite.
 func (ds *DirSuiteIterator) HasNext() bool {
 	return len(ds.files) > ds.pos
 }
 
+// Next returns next deserialized suite.
 func (ds *DirSuiteIterator) Next() *TestSuite {
 	if len(ds.files) <= ds.pos {
 		return nil
@@ -121,14 +131,17 @@ func (ds *DirSuiteIterator) Next() *TestSuite {
 	return file.ToSuite()
 }
 
+// FileSuiteIterator iterates over single suite file.
 type FileSuiteIterator struct {
 	Path string
 }
 
+// HasNext returns true only for first check.
 func (fs *FileSuiteIterator) HasNext() bool {
 	return fs.Path != ""
 }
 
+// Next return suite for first call and nil for all further calls.
 func (fs *FileSuiteIterator) Next() *TestSuite {
 	if fs.Path == "" {
 		return nil
@@ -153,6 +166,7 @@ func load(source SuiteIterator, channel chan<- TestSuite) {
 	close(channel)
 }
 
+// NewDirLoader returns channel of suites that are read from specified folder.
 func NewDirLoader(rootDir string) <-chan TestSuite {
 	channel := make(chan TestSuite)
 
@@ -164,6 +178,7 @@ func NewDirLoader(rootDir string) <-chan TestSuite {
 	return channel
 }
 
+// NewFileLoader returns channel of single suite read from specified file.
 func NewFileLoader(path string) <-chan TestSuite {
 	channel := make(chan TestSuite)
 
