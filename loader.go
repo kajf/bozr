@@ -262,6 +262,9 @@ const suiteDetailedSchema = `
 				"items": {
 					"type": "object",
 					"properties": {
+						"args": {
+							"type": "object"
+						},
 						"on": {
 							"type": "object",
 							"properties": {
