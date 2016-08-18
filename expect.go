@@ -44,8 +44,20 @@ func (e BodySchemaExpectation) check(resp Response) error {
 	return fmt.Errorf("Unsupported content type: %s", contentType)
 }
 
+var jsonSchemaCache = map[string]interface{}{}
+
 func (e BodySchemaExpectation) checkJSON(resp Response) error {
-	schemaLoader := gojsonschema.NewReferenceLoader(e.schemaURI)
+	if jsonSchemaCache[e.schemaURI] == nil {
+		debugMsgF("Loading schema %s", e.schemaURI)
+		schemaLoader := gojsonschema.NewReferenceLoader(e.schemaURI)
+		schema, err := schemaLoader.LoadJSON()
+		if err != nil {
+			return fmt.Errorf("failed to load schema: %s", err)
+		}
+		jsonSchemaCache[e.schemaURI] = schema
+	}
+
+	schemaLoader := gojsonschema.NewGoLoader(jsonSchemaCache[e.schemaURI])
 	documentLoader := gojsonschema.NewStringLoader(string(resp.body))
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
@@ -60,7 +72,6 @@ func (e BodySchemaExpectation) checkJSON(resp Response) error {
 		}
 		return errors.New(msg)
 	}
-	debugMsg("checked by schema")
 
 	return nil
 }
