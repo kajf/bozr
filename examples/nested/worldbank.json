@@ -4,7 +4,7 @@
   "calls": [
     {
       "on" : {
-        "url" : "http://api.worldbank.org/countries/all/indicators/SP.POP.TOTL?date=2000:2001",
+        "url" : "http://api.worldbank.org/countries/all/indicators/SP.POP.TOTL",
         "method":"GET",
         "params": {
           "date": "2000:2001"
