@@ -44,6 +44,7 @@ Test suite (suite_name.json)
 
 ## Section 'On'
 Represents http request parameters
+
 ```json
 "on": {
     "method": "POST",
@@ -58,6 +59,7 @@ Represents http request parameters
     "bodyFile" : "admins.json"
 }
 ```
+
 Field | Description
 ------------ | -------------
 method | http method
@@ -70,6 +72,7 @@ body | string to send as a request payload
 ## Section 'Expect'
 Represents assertions for http response of the call
 JSON example
+
 ```json
 "expect": {
     "statusCode": 200,
@@ -79,6 +82,7 @@ JSON example
     }
 }
 ```
+
 Assertion | Description | Example
 ------------ | ------------- | --------------
 statusCode | expected http response header 'Status Code' | 200
@@ -88,6 +92,7 @@ bodySchemaURI | URI to json schema to validate response body against (absolute o
 body | body matchers: equals, search, size |
 
 ### 'Expect' body matchers
+
 ```json
 "expect": {
     "body": {
@@ -97,6 +102,7 @@ body | body matchers: equals, search, size |
     }
 }
 ```
+
 Type | Assertion | Example
 ------ | ------------- | --------------
 equals | Root 'users' array zero element has value of 'id' equal to '123'  | "users.0.id" : "123"
@@ -110,6 +116,7 @@ XML:
  
 ## Section 'Args'
 Specifies plaseholder values for future reference (within test scope) 
+
 ```json
 "args": {
   "currencyCode" : "USD",
@@ -141,6 +148,23 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
   }
 }
 ```
+## Section 'Remember'
+Similar to 'Args' section, specifies plaseholder values for future reference (within test scope) 
+
+The difference is that values for placeholders are taken from response (syntax is similar to 'Expect' 'equal' matchers)
+
+```json
+"remember": {
+  "currencyCode" : "currencies.0.code",
+  "createdId" : "result.newId"
+}  
+```
+
+This section allowes more complex test scenarios like 
+
+'request login token, remember, then use remembered {token} to request some data and verify' 
+
+'create resource, remember resource id from response, then use remembered {id} to delete resource'
 
 ## Dependency management
 To build project you need a dependency management tool - https://glide.sh/
