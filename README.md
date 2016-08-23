@@ -41,21 +41,22 @@ Test suite (suite_name.json)
             ├ on
             ├ expect
             └ remember
+
 ## Section 'On'
 Represents http request parameters
 ```json
-    "on": {
-        "method": "POST",
-        "url": "/api/company/users",
-        "headers": {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        },
-        "params": {
-            "role": "admin"
-        },
-        "bodyFile" : "admins.json"
-    }
+"on": {
+    "method": "POST",
+    "url": "/api/company/users",
+    "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    },
+    "params": {
+        "role": "admin"
+    },
+    "bodyFile" : "admins.json"
+}
 ```
 Field | Description
 ------------ | -------------
@@ -70,13 +71,13 @@ body | string to send as a request payload
 Represents assertions for http response of the call
 JSON example
 ```json
-    "expect": {
-        "statusCode": 200,
-        "contentType": "application/json",
-        "body": {
-            "errors.size()": 0
-        }
+"expect": {
+    "statusCode": 200,
+    "contentType": "application/json",
+    "body": {
+        "errors.size()": 0
     }
+}
 ```
 Assertion | Description | Example
 ------------ | ------------- | --------------
@@ -88,13 +89,13 @@ body | body matchers: equals, search, size |
 
 ### 'Expect' body matchers
 ```json
-    "expect": {
-        "body": {
-            "users.1.surname" : "Doe",
-            "~users.name":"Joe",
-            "errors.size()": 0
-        }
+"expect": {
+    "body": {
+        "users.1.surname" : "Doe",
+        "~users.name":"Joe",
+        "errors.size()": 0
     }
+}
 ```
 Type | Assertion | Example
 ------ | ------------- | --------------
@@ -106,6 +107,40 @@ XML:
 - To match attribute use `-` symbol before attribute name. E.g. `users.0.-id`
 - Namespaces are ignored
 - Only string matcher values are supported (since xml has no real data types, so everything is a string)
+ 
+## Section 'Args'
+Specifies plaseholder values for future reference (within test scope) 
+```json
+"args": {
+  "currencyCode" : "USD",
+  "magicNumber" : "12f"
+}  
+```
+Given 'args' are defined like above, placeholders {currencyCode} and {magicNumber} may be used in params, body or bodyFile.
+
+example_bodyfile.json
+
+```json
+{
+  "bankAccount" : {
+    "currency": "{currencyCode}",
+    "amount" : 1000,
+    "secret" : "{magicNumber}"
+  }
+}
+```
+
+Resulting data will contain "USD" and "12f" values instead of placeholders.
+
+```json 
+{
+  "bankAccount" : {
+    "currency": "USD",
+    "amount" : 1000,
+    "secret" : "12f"
+  }
+}
+```
 
 ## Dependency management
 To build project you need a dependency management tool - https://glide.sh/
