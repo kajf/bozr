@@ -49,11 +49,14 @@ var jsonSchemaCache = map[string]interface{}{}
 func (e BodySchemaExpectation) checkJSON(resp Response) error {
 	if jsonSchemaCache[e.schemaURI] == nil {
 		debugMsgF("Loading schema %s", e.schemaURI)
+
 		schemaLoader := gojsonschema.NewReferenceLoader(e.schemaURI)
 		schema, err := schemaLoader.LoadJSON()
+
 		if err != nil {
 			return fmt.Errorf("failed to load schema: %s", err)
 		}
+
 		jsonSchemaCache[e.schemaURI] = schema
 	}
 
