@@ -8,11 +8,11 @@ import (
 
 func TestPopulateRequestBody(t *testing.T) {
 	//given
-	on := On{}
+	on := On{URL: "http://example.com"}
 	value := "abc"
 
 	// when
-	req := populateRequest(on, "pre {var} post", map[string]interface{}{"var": value})
+	req, _ := populateRequest(on, "pre {var} post", map[string]interface{}{"var": value})
 
 	//then
 	buf := new(bytes.Buffer)

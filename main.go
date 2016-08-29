@@ -9,7 +9,9 @@ import (
 	"io/ioutil"
 	"mime"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -149,7 +151,11 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		}
 	}
 
-	req := populateRequest(on, string(dat), rememberMap)
+	req, err := populateRequest(on, string(dat), rememberMap)
+	if err != nil {
+		result.Cause = err
+		return
+	}
 	debugMsg("Request: ", req)
 
 	client := &http.Client{}
@@ -211,9 +217,12 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	return result
 }
 
-func populateRequest(on On, body string, rememberMap map[string]interface{}) *http.Request {
+func populateRequest(on On, body string, rememberMap map[string]interface{}) (*http.Request, error) {
 
-	url := urlPrefix(on.URL)
+	url, err := urlPrefix(on.URL)
+	if err != nil {
+		return nil, errors.New("Cannot create request. Invalid url: " + on.URL)
+	}
 
 	body = populateRememberedVars(body, rememberMap)
 	dat := []byte(body)
@@ -230,15 +239,23 @@ func populateRequest(on On, body string, rememberMap map[string]interface{}) *ht
 	}
 	req.URL.RawQuery = q.Encode()
 
-	return req
+	return req, nil
 }
 
-func urlPrefix(url string) string {
-	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
-		return url
+func urlPrefix(p string) (string, error) {
+	if strings.HasPrefix(p, "http://") || strings.HasPrefix(p, "https://") {
+		return p, nil
 	}
 
-	return hostFlag + url
+	return concatURL(hostFlag, p)
+}
+
+func concatURL(base string, p string) (string, error) {
+	baseURL, err := url.Parse(base)
+	if err != nil {
+		return "", err
+	}
+	return baseURL.Scheme + "://" + baseURL.Host + path.Join(baseURL.Path, p), nil
 }
 
 func populateRememberedVars(str string, rememberMap map[string]interface{}) string {
