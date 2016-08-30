@@ -1,12 +1,12 @@
-# t-rest
+# Bozr
 Minimalistic tool to perform REST API tests based on JSON description
 
-[![Build Status](https://travis-ci.org/kajf/t-rest.svg?branch=master)](https://travis-ci.org/kajf/t-rest?branch=master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/kajf/t-rest)](https://goreportcard.com/report/github.com/kajf/t-rest)
+[![Build Status](https://travis-ci.org/kajf/bozr.svg?branch=master)](https://travis-ci.org/kajf/bozr?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kajf/bozr)](https://goreportcard.com/report/github.com/kajf/bozr)
 ## Usage
 
 ```bash
-t-rest [OPTIONS] (DIR|FILE)
+bozr [OPTIONS] (DIR|FILE)
 
 Options:
   -d, --debug		Enable debug mode
@@ -16,8 +16,8 @@ Options:
   -v, --version		Print version information and quit
 
 Examples:
-  t-rest ./examples/suite-file.json
-  t-rest -H http://example.com ./examples
+  bozr ./examples/suite-file.json
+  bozr -H http://example.com ./examples
 ```
 ## Test Suite Format
 Test suite (suite_name.json)
@@ -113,15 +113,15 @@ XML:
 - To match attribute use `-` symbol before attribute name. E.g. `users.0.-id`
 - Namespaces are ignored
 - Only string matcher values are supported (since xml has no real data types, so everything is a string)
- 
+
 ## Section 'Args'
-Specifies plaseholder values for future reference (within test scope) 
+Specifies plaseholder values for future reference (within test scope)
 
 ```json
 "args": {
   "currencyCode" : "USD",
   "magicNumber" : "12f"
-}  
+}
 ```
 Given 'args' are defined like above, placeholders {currencyCode} and {magicNumber} may be used in params, body or bodyFile.
 
@@ -139,7 +139,7 @@ example_bodyfile.json
 
 Resulting data will contain "USD" and "12f" values instead of placeholders.
 
-```json 
+```json
 {
   "bankAccount" : {
     "currency": "USD",
@@ -149,7 +149,7 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
 }
 ```
 ## Section 'Remember'
-Similar to 'Args' section, specifies plaseholder values for future reference (within test scope) 
+Similar to 'Args' section, specifies plaseholder values for future reference (within test scope)
 
 The difference is that values for placeholders are taken from response (syntax is similar to 'Expect' 'equal' matchers)
 
@@ -157,12 +157,12 @@ The difference is that values for placeholders are taken from response (syntax i
 "remember": {
   "currencyCode" : "currencies.0.code",
   "createdId" : "result.newId"
-}  
+}
 ```
 
-This section allowes more complex test scenarios like 
+This section allowes more complex test scenarios like
 
-'request login token, remember, then use remembered {token} to request some data and verify' 
+'request login token, remember, then use remembered {token} to request some data and verify'
 
 'create resource, remember resource id from response, then use remembered {id} to delete resource'
 
@@ -171,7 +171,7 @@ To build project you need a dependency management tool - https://glide.sh/
 After you installed it, you can run the following command to download all dependencies:
 
 ```bash
-cd t-rest
+cd bozr
 glide install
 ```
 

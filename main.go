@@ -26,7 +26,7 @@ const (
 func init() {
 	flag.Usage = func() {
 		h := "Usage:\n"
-		h += "  t-rest [OPTIONS] DIR\n\n"
+		h += "  bozr [OPTIONS] DIR\n\n"
 
 		h += "Options:\n"
 		h += "  -d, --debug		Enable debug mode\n"
@@ -36,8 +36,8 @@ func init() {
 		h += "  -v, --version		Print version information and quit\n\n"
 
 		h += "Examples:\n"
-		h += "  t-rest ./examples\n"
-		h += "  t-rest -H http://example.com ./examples \n"
+		h += "  bozr ./examples\n"
+		h += "  bozr -H http://example.com ./examples \n"
 
 		fmt.Fprintf(os.Stderr, h)
 	}
@@ -69,7 +69,7 @@ func main() {
 	flag.Parse()
 
 	if versionFlag {
-		fmt.Println("t-rest version " + version)
+		fmt.Println("bozr version " + version)
 		return
 	}
 
