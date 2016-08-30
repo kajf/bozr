@@ -1,4 +1,4 @@
-package: github.com/pavel-letsiaha/t-rest
+package: github.com/kajf/bozr
 import:
 - package: github.com/xeipuuv/gojsonschema
 - package: github.com/fatih/color
