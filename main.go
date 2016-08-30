@@ -262,7 +262,7 @@ func populateRememberedVars(str string, rememberMap map[string]interface{}) stri
 	res := str
 	for varName, val := range rememberMap {
 		placeholder := "{" + varName + "}"
-		res = strings.Replace(res, placeholder, val.(string), -1)
+		res = strings.Replace(res, placeholder, fmt.Sprintf("%v", val), -1)
 	}
 	return res
 }

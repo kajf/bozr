@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -54,4 +55,26 @@ func TestPopulateRememberedVarsMultiple(t *testing.T) {
 			"got[", got,
 		)
 	}
+}
+
+func TestPopulateRememberedVarsTypes(t *testing.T) {
+	makeTest := func(val interface{}) func(t *testing.T) {
+		return func(t *testing.T) {
+			rememberMap := map[string]interface{}{"exp": val}
+			got := populateRememberedVars("lorem {exp} ipsum", rememberMap)
+
+			expected := fmt.Sprintf("lorem %v ipsum", val)
+			if got != expected {
+				t.Error(
+					"expected[", expected,
+					"got[", got,
+				)
+			}
+		}
+	}
+
+	t.Run("int", makeTest(1))
+	t.Run("float", makeTest(1.00001))
+	t.Run("boolean", makeTest(false))
+	t.Run("string", makeTest("example"))
 }
