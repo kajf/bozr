@@ -8,8 +8,8 @@ zip -r bozr-$1.win64.zip bozr.exe
 
 GOOS=darwin
 go build -o bozr
-zip -r bozr-$1.darwin.zip bozr
+tar -czvf bozr-$1.darwin.tar.gz bozr
 
 GOOS=linux
 go build -o bozr
-zip -r bozr-$1.linux.zip bozr
+tar -czvf bozr-$1.linux.tar.gz bozr
