@@ -1,4 +1,4 @@
-![Bozr](https://github.com/kajf/bozr/assets/bozr.png)
+![Bozr](https://raw.githubusercontent.com/kajf/bozr/master/assets/bozr.png)
 
 Minimalistic tool to perform REST API tests based on JSON description
 
