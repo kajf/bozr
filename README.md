@@ -1,4 +1,5 @@
-# Bozr
+![Bozr](https://github.com/kajf/bozr/assets/bozr.png)
+
 Minimalistic tool to perform REST API tests based on JSON description
 
 [![Build Status](https://travis-ci.org/kajf/bozr.svg?branch=master)](https://travis-ci.org/kajf/bozr?branch=master)
