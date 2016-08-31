@@ -26,7 +26,7 @@ const (
 func init() {
 	flag.Usage = func() {
 		h := "Usage:\n"
-		h += "  bozr [OPTIONS] DIR\n\n"
+		h += "  bozr [OPTIONS] (DIR|FILE)\n\n"
 
 		h += "Options:\n"
 		h += "  -d, --debug		Enable debug mode\n"
