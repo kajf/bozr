@@ -71,7 +71,6 @@ body | string to send as a request payload
 
 ## Section 'Expect'
 Represents assertions for http response of the call
-JSON example
 
 ```json
 "expect": {
