@@ -273,7 +273,8 @@ func populateRememberedVars(str string, rememberMap map[string]interface{}) stri
 func toString(rw interface{}) string {
 	var sv interface{} = rw
 	if fv, ok := rw.(float64); ok {
-		if int(math.Floor(fv)) == int(fv) {
+		_, frac := math.Modf(fv)
+		if frac == 0 {
 			sv = int(fv)
 		}
 	}
