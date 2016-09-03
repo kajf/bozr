@@ -1,0 +1,40 @@
+[
+  {
+    "name": "GitHubHATEOSTest",
+    "calls": [
+      {
+        "on": {
+          "method": "GET",
+          "url": "https://api.github.com/users/kajf",
+          "headers": {
+            "Accept": "application/json"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "body": {
+            "login": "kajf"
+          }
+        },
+        "remember": {
+          "repos_url": "repos_url"
+        }
+      },
+      {
+        "on": {
+          "method": "GET",
+          "url": "{repos_url}",
+          "headers": {
+            "Accept": "application/json"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "body": {
+            "~name": "bozr"
+          }
+        }
+      }
+    ]
+  }
+]

@@ -1,10 +1,15 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"mime"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/clbanning/mxj"
 )
 
 // TestSuite represents file with test cases.
@@ -65,6 +70,38 @@ type TestResult struct {
 type Response struct {
 	http http.Response
 	body []byte
+}
+
+func (e Response) parseBody() (interface{}, error) {
+	contentType, _, _ := mime.ParseMediaType(e.http.Header.Get("content-type"))
+	if contentType == "application/xml" || contentType == "text/xml" {
+		m, err := mxj.NewMapXml(e.body)
+		if err == nil {
+			return m.Old(), nil
+		}
+		return nil, err
+	}
+
+	if contentType == "application/json" {
+		var (
+			body interface{}
+			err  error
+		)
+		if string(e.body[0]) == "[" {
+			body = make([]interface{}, 0)
+			err = json.Unmarshal(e.body, &body)
+		} else {
+			body = make(map[string]interface{})
+			err = json.Unmarshal(e.body, &body)
+		}
+
+		if err == nil {
+			return body, nil
+		}
+		return err, nil
+	}
+
+	return nil, errors.New("Cannot parse body. Unsupported content type")
 }
 
 // ToString return string representation of response data

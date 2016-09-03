@@ -2,13 +2,11 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"math"
-	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,8 +14,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/clbanning/mxj"
 )
 
 const (
@@ -200,7 +196,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		}
 	}
 
-	m, err := testResp.bodyAsMap()
+	m, err := testResp.parseBody()
 	if err != nil {
 		debugMsg("Can't parse response body to Map for [remember]")
 		result.Cause = err
@@ -346,13 +342,13 @@ func toAbsPath(srcDir string, assetPath string) (string, error) {
 	return filepath.ToSlash(uri), nil
 }
 
-func remember(bodyMap map[string]interface{}, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
+func remember(body interface{}, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
 
 	for varName, path := range remember {
 
 		splitPath := strings.Split(path, ".")
 
-		if rememberVar, err := getByPath(bodyMap, splitPath...); err == nil {
+		if rememberVar, err := getByPath(body, splitPath...); err == nil {
 			rememberedMap[varName] = rememberVar
 		} else {
 			strErr := fmt.Sprintf("Remembered value not found, path: %v", path)
@@ -362,25 +358,6 @@ func remember(bodyMap map[string]interface{}, remember map[string]string, rememb
 	}
 
 	return err
-}
-
-func (e Response) bodyAsMap() (map[string]interface{}, error) {
-	var bodyMap map[string]interface{}
-	var err error
-
-	contentType, _, _ := mime.ParseMediaType(e.http.Header.Get("content-type"))
-	if contentType == "application/xml" || contentType == "text/xml" {
-		m, err := mxj.NewMapXml(e.body)
-		if err == nil {
-			bodyMap = m.Old() // cast to map
-		}
-	}
-
-	if contentType == "application/json" {
-		err = json.Unmarshal(e.body, &bodyMap)
-	}
-
-	return bodyMap, err
 }
 
 func debugMsg(a ...interface{}) {

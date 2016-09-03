@@ -96,7 +96,7 @@ func (e BodyExpectation) check(resp Response) error {
 		splitPath := strings.Split(path, ".")
 
 		// TODO need rememberedMap here:  expectedValue = putRememberedVars(expectedValue, rememberedMap)
-		m, err := resp.bodyAsMap()
+		m, err := resp.parseBody()
 		if err != nil {
 			str := "Can't parse response body to Map." // TODO specific message for functions
 			str += " " + err.Error()
