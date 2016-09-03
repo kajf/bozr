@@ -1,0 +1,33 @@
+<svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">
+
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="102" width="302" y="-1" x="-1"/>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <polyline id="svg_1" fill="none" stroke="#556080" stroke-width="2" stroke-linecap="round" stroke-miterlimit="10" points="43.71430146694183,18.14286518096924 26.714303374290466,18.14286518096924 26.714303374290466,35.142868995666504 "/>
+  <polyline id="svg_2" fill="none" stroke="#556080" stroke-width="2" stroke-linecap="round" stroke-miterlimit="10" points="68.71430146694183,76.1428689956665 84.71430146694183,76.1428689956665 84.71430146694183,60.142868995666504 "/>
+  <polyline id="svg_3" fill="none" stroke="#556080" stroke-width="2" stroke-linecap="round" stroke-miterlimit="10" points="84.71430146694183,35.142868995666504 84.71430146694183,18.14286518096924 68.71430146694183,18.14286518096924 "/>
+  <polyline id="svg_4" fill="none" stroke="#556080" stroke-width="2" stroke-linecap="round" stroke-miterlimit="10" points="26.714303374290466,60.142868995666504 26.714303374290466,76.1428689956665 43.71430146694183,76.1428689956665 "/>
+  <line id="svg_5" fill="none" stroke="#88C057" stroke-width="2" stroke-linecap="round" stroke-miterlimit="10" y2="61.142867" x2="55.714303" y1="33.142867" x1="55.714303"/>
+  <line id="svg_6" fill="none" stroke="#88C057" stroke-width="2" stroke-linecap="round" stroke-miterlimit="10" y2="47.142867" x2="41.714303" y1="47.142867" x1="69.714303"/>
+  <g id="svg_7"/>
+  <g id="svg_8"/>
+  <g id="svg_9"/>
+  <g id="svg_10"/>
+  <g id="svg_11"/>
+  <g id="svg_12"/>
+  <g id="svg_13"/>
+  <g id="svg_14"/>
+  <g id="svg_15"/>
+  <g id="svg_16"/>
+  <g id="svg_17"/>
+  <g id="svg_18"/>
+  <g id="svg_19"/>
+  <g id="svg_20"/>
+  <g id="svg_21"/>
+  <text style="cursor: move;" stroke="null" transform="matrix(3.190590130602345,0,0,3.0857481586951963,-222.5384123399219,-133.34400137618618) " xml:space="preserve" text-anchor="start" font-family="'Courier New', Courier, monospace" font-size="24" id="svg_22" y="65.27544" x="100.184543" stroke-width="2" fill="#556080">Bozr</text>
+  <text stroke-linecap="round" transform="matrix(3.0721697734257023,0,0,2.997979313962967,-474.1521283632848,-131.95633456631447) " xml:space="preserve" text-anchor="start" font-family="'Courier New', Courier, monospace" font-size="24" id="svg_23" y="66.348224" x="229.824977" stroke-width="2" fill="none">r</text>
+ </g>
+</svg>
