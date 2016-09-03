@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"mime"
 	"net/http"
 	"net/url"
@@ -219,7 +220,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 
 func populateRequest(on On, body string, rememberMap map[string]interface{}) (*http.Request, error) {
 
-	url, err := urlPrefix(on.URL)
+	url, err := urlPrefix(populateRememberedVars(on.URL, rememberMap))
 	if err != nil {
 		return nil, errors.New("Cannot create request. Invalid url: " + on.URL)
 	}
@@ -262,9 +263,22 @@ func populateRememberedVars(str string, rememberMap map[string]interface{}) stri
 	res := str
 	for varName, val := range rememberMap {
 		placeholder := "{" + varName + "}"
-		res = strings.Replace(res, placeholder, fmt.Sprintf("%v", val), -1)
+		res = strings.Replace(res, placeholder, toString(val), -1)
 	}
 	return res
+}
+
+// toString returns value suitable to insert as an argument
+// if value if a float where decimal part is zero - convert to int
+func toString(rw interface{}) string {
+	var sv interface{} = rw
+	if fv, ok := rw.(float64); ok {
+		if int(math.Floor(fv)) == int(fv) {
+			sv = int(fv)
+		}
+	}
+
+	return fmt.Sprintf("%v", sv)
 }
 
 func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
