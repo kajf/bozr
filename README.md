@@ -68,7 +68,7 @@ url | http request URL
 headers | http request headers
 params | http query params
 bodyFile | file to send as a request payload (path relative to test suite json)
-body | string to send as a request payload
+body | string or JSON object to send as a request payload
 
 ## Section 'Expect'
 Represents assertions for http response of the call

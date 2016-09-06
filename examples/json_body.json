@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Example of 'body' as a JSON",
+    "calls": [
+      {
+        "on": {
+          "method": "POST",
+          "url": "http://reqres.in/api/users",
+          "body": {
+            "userId": 1,
+            "title": "Lerkem ipsum",
+            "body": {
+              "name": "morpheus",
+              "job": "leader"
+            }
+          }
+        },
+        "expect": {
+          "statusCode": 201
+        },
+        "remember": {
+          "user_id": "id"
+        }
+      }
+    ]
+  }
+]
