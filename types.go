@@ -40,7 +40,7 @@ type On struct {
 	URL      string            `json:"url"`
 	Headers  map[string]string `json:"headers"`
 	Params   map[string]string `json:"params"`
-	Body     string            `json:"body"`
+	Body     json.RawMessage   `json:"body"`
 	BodyFile string            `json:"bodyFile"`
 }
 
