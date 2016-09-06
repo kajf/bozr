@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "Short name of the test that will be used in reports."
+      },
+      "description": {
+        "type": "string",
+        "description": "Long description of the test."
+      },
+      "calls": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "args": {
+              "type": "object"
+            },
+            "on": {
+              "type": "object",
+              "properties": {
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "DELETE",
+                    "HEAD",
+                    "OPTIONS",
+                    "PATCH"
+                  ]
+                },
+                "url": {
+                  "type": "string"
+                },
+                "headers": {
+                  "type": "object",
+                  "properties": {
+                    "Accept": {
+                      "type": "string",
+                      "enum": [
+                        "application/json",
+                        "application/xml",
+                        "text/xml",
+                        "text/csv"
+                      ]
+                    },
+                    "Content-Type": {
+                      "type": "string",
+                      "enum": [
+                        "application/json",
+                        "application/xml",
+                        "text/xml",
+                        "text/csv"
+                      ]
+                    },
+                    "Authorization": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "params": {
+                  "type": "object"
+                },
+                "body": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ]
+                },
+                "bodyFile": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "method",
+                "url"
+              ]
+            },
+            "expect": {
+              "type": "object",
+              "properties": {
+                "statusCode": {
+                  "type": "integer",
+                  "enum": [
+                    200,
+                    201,
+                    202,
+                    301,
+                    304,
+                    400,
+                    401,
+                    403,
+                    404,
+                    405,
+                    406,
+                    415,
+                    500,
+                    501,
+                    503
+                  ]
+                },
+                "contentType": {
+                  "type": "string"
+                },
+                "headers": {
+                  "type": "object"
+                },
+                "body": {
+                  "type": "object"
+                },
+                "bodySchemaFile": {
+                  "type": "string"
+                },
+                "bodySchemaURI": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "remember": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "on",
+            "expect"
+          ]
+        }
+      }
+    },
+    "required": [
+      "calls"
+    ]
+  }
+}
