@@ -33,7 +33,11 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 	}
 
 	path := sf.Path
-	info, _ := os.Lstat(path)
+	info, err := os.Lstat(path)
+
+	if err != nil {
+		return nil
+	}
 
 	if info.IsDir() {
 		debugMsg("Ignore dir: " + sf.Path)
@@ -50,7 +54,7 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 		return nil
 	}
 
-	err := validateSuite(path)
+	err = validateSuite(path)
 	if err != nil {
 		fmt.Printf("Invalid suite file: %s\n%s\n", path, err.Error())
 		return nil

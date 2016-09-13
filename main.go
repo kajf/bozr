@@ -83,6 +83,13 @@ func main() {
 		return
 	}
 
+	// check specified source dir/file exists
+	_, err := os.Lstat(src)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	var ch <-chan TestSuite
 	if filepath.Ext(src) == "" {
 		debugMsg("Loading from directory...")
@@ -373,11 +380,3 @@ func debugMsgF(tpl string, a ...interface{}) {
 	}
 	fmt.Printf(tpl, a...)
 }
-
-// TODO finilize suite schema
-
-// optional/under discussion
-// TODO matchers: not() ?
-// TODO rename remember > keep or memo ?
-// TODO full body expectation from file (security testing)
-// TODO concurrent tests run
