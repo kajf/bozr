@@ -114,7 +114,24 @@ func (resp Response) ToString() string {
 		headers = fmt.Sprintf("%s%s: %s\n", headers, k, strings.Join(v, " "))
 	}
 
-	body := fmt.Sprintf("%s", string(resp.body))
+	var body interface{}
+	contentType, _, _ := mime.ParseMediaType(resp.http.Header.Get("content-type"))
+	if contentType == "application/json" {
+		data, _ := resp.parseBody()
+		body, _ = json.MarshalIndent(data, "", "  ")
+	}
+
+	if contentType == "application/xml" || contentType == "text/xml" {
+		resp.parseBody()
+		mp, _ := mxj.NewMapXml(resp.body, false)
+		root, _ := mp.Root()
+		body, _ = mp.XmlIndent("", "  ", root)
+	}
+
+	if body == nil {
+		body = resp.body
+	}
+
 	details := fmt.Sprintf("%s \n %s \n %s", http.Status, headers, body)
 	return details
 }
