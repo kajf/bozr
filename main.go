@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -41,17 +42,36 @@ func init() {
 }
 
 var (
-	suiteDir    string
-	hostFlag    string
-	debugFlag   bool
-	helpFlag    bool
-	versionFlag bool
-	junitFlag   bool
+	suiteDir     string
+	hostFlag     string
+	logLevelFlag string
+	helpFlag     bool
+	versionFlag  bool
+	junitFlag    bool
+
+	Info  *log.Logger
+	Debug *log.Logger
 )
 
+func initLogger(logLevel string) {
+	infoHandler := ioutil.Discard
+	debugHandler := ioutil.Discard
+
+	if strings.EqualFold(logLevel, "info") {
+		infoHandler = os.Stdout
+	}
+
+	if strings.EqualFold(logLevel, "debug") {
+		debugHandler = os.Stdout
+		infoHandler = os.Stdout
+	}
+
+	Info = log.New(infoHandler, "", 0)
+	Debug = log.New(debugHandler, "DEBUG: ", log.Ltime|log.Lshortfile)
+}
+
 func main() {
-	flag.BoolVar(&debugFlag, "d", false, "Enable debug mode")
-	flag.BoolVar(&debugFlag, "debug", false, "Enable debug mode")
+	flag.StringVar(&logLevelFlag, "log.level", "", "Only log messages with the given severity or above. Valid levels: [debug, info].")
 
 	flag.StringVar(&hostFlag, "H", "http://localhost:8080", "Test server address")
 
@@ -74,6 +94,8 @@ func main() {
 		flag.Usage()
 		return
 	}
+
+	initLogger(logLevelFlag)
 
 	src := flag.Arg(0)
 
@@ -160,7 +182,11 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		result.Cause = err
 		return
 	}
-	debugMsg("Request: ", req)
+
+	Info.Println("")
+	buf := bytes.NewBufferString("")
+	req.WriteProxy(buf)
+	Info.Print(buf.String())
 
 	client := &http.Client{}
 
@@ -187,7 +213,9 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	result.Resp = testResp
 	result.Duration = end.Sub(start)
 
-	debugMsg(testResp.ToString())
+	Info.Printf("------------------------\n")
+	Info.Println(testResp.ToString())
+	Info.Println("")
 
 	exps, err := expectations(call, testSuite.Dir)
 	if err != nil {
@@ -368,15 +396,9 @@ func remember(body interface{}, remember map[string]string, rememberedMap map[st
 }
 
 func debugMsg(a ...interface{}) {
-	if !debugFlag {
-		return
-	}
-	fmt.Println(a...)
+	Debug.Print(a)
 }
 
 func debugMsgF(tpl string, a ...interface{}) {
-	if !debugFlag {
-		return
-	}
-	fmt.Printf(tpl, a...)
+	Debug.Printf(tpl, a)
 }
