@@ -124,14 +124,13 @@ func (resp Response) ToString() string {
 	if contentType == "application/xml" || contentType == "text/xml" {
 		resp.parseBody()
 		mp, _ := mxj.NewMapXml(resp.body, false)
-		root, _ := mp.Root()
-		body, _ = mp.XmlIndent("", "  ", root)
+		body, _ = mp.XmlIndent("", "  ")
 	}
 
 	if body == nil {
 		body = resp.body
 	}
 
-	details := fmt.Sprintf("%s \n %s \n %s", http.Status, headers, body)
+	details := fmt.Sprintf("%s \n %s \n%s", http.Status, headers, body)
 	return details
 }
