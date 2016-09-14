@@ -28,6 +28,7 @@ func init() {
 
 		h += "Options:\n"
 		h += "  -d, --debug		Enable debug mode\n"
+		h += "  -i, --info		Enable info mode. Print request and response details.\n"
 		h += "  -H, --host		Server to test\n"
 		h += "  -h, --help		Print usage\n"
 		h += "      --junit		Enable junit xml reporter\n"
@@ -42,26 +43,27 @@ func init() {
 }
 
 var (
-	suiteDir     string
-	hostFlag     string
-	logLevelFlag string
-	helpFlag     bool
-	versionFlag  bool
-	junitFlag    bool
+	suiteDir    string
+	hostFlag    string
+	infoFlag    bool
+	debugFlag   bool
+	helpFlag    bool
+	versionFlag bool
+	junitFlag   bool
 
 	Info  *log.Logger
 	Debug *log.Logger
 )
 
-func initLogger(logLevel string) {
+func initLogger() {
 	infoHandler := ioutil.Discard
 	debugHandler := ioutil.Discard
 
-	if strings.EqualFold(logLevel, "info") {
+	if infoFlag {
 		infoHandler = os.Stdout
 	}
 
-	if strings.EqualFold(logLevel, "debug") {
+	if debugFlag {
 		debugHandler = os.Stdout
 		infoHandler = os.Stdout
 	}
@@ -71,7 +73,11 @@ func initLogger(logLevel string) {
 }
 
 func main() {
-	flag.StringVar(&logLevelFlag, "log.level", "", "Only log messages with the given severity or above. Valid levels: [debug, info].")
+	flag.BoolVar(&debugFlag, "d", false, "Enable debug mode.")
+	flag.BoolVar(&debugFlag, "debug", false, "Enable debug mode")
+
+	flag.BoolVar(&infoFlag, "i", false, "Enable info mode. Print request and response details.")
+	flag.BoolVar(&infoFlag, "info", false, "Enable info mode. Print request and response details.")
 
 	flag.StringVar(&hostFlag, "H", "http://localhost:8080", "Test server address")
 
@@ -95,7 +101,7 @@ func main() {
 		return
 	}
 
-	initLogger(logLevelFlag)
+	initLogger()
 
 	src := flag.Arg(0)
 
@@ -183,10 +189,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		return
 	}
 
-	Info.Println("")
-	buf := bytes.NewBufferString("")
-	req.WriteProxy(buf)
-	Info.Print(buf.String())
+	printRequestInfo(req, dat)
 
 	client := &http.Client{}
 
@@ -213,7 +216,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	result.Resp = testResp
 	result.Duration = end.Sub(start)
 
-	Info.Printf("------------------------\n")
+	Info.Println(strings.Repeat("-", 50))
 	Info.Println(testResp.ToString())
 	Info.Println("")
 
@@ -393,6 +396,24 @@ func remember(body interface{}, remember map[string]string, rememberedMap map[st
 	}
 
 	return err
+}
+
+func printRequestInfo(req *http.Request, body []byte) {
+	Info.Println()
+	Info.Printf("%s %s %s\n", req.Method, req.URL.String(), req.Proto)
+
+	if len(req.Header) > 0 {
+		Info.Println()
+	}
+
+	for k, v := range req.Header {
+		Info.Printf("%s: %s", k, strings.Join(v, " "))
+	}
+	Info.Println()
+
+	if len(body) > 0 {
+		Info.Printf(string(body))
+	}
 }
 
 func debugMsg(a ...interface{}) {
