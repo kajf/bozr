@@ -47,7 +47,7 @@ Test suite (suite_name.json)
             ├ expect
             └ remember
 
-## Section 'On'
+### Section 'On'
 Represents http request parameters
 
 ```json
@@ -74,7 +74,7 @@ params | http query params
 bodyFile | file to send as a request payload (path relative to test suite json)
 body | string or JSON object to send as a request payload
 
-## Section 'Expect'
+### Section 'Expect'
 Represents assertions for http response of the call
 
 ```json
@@ -118,7 +118,7 @@ XML:
 - Namespaces are ignored
 - Only string matcher values are supported (since xml has no real data types, so everything is a string)
 
-## Section 'Args'
+### Section 'Args'
 Specifies plaseholder values for future reference (within test scope)
 
 ```json
@@ -152,7 +152,7 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
   }
 }
 ```
-## Section 'Remember'
+### Section 'Remember'
 Similar to 'Args' section, specifies plaseholder values for future reference (within test scope)
 
 The difference is that values for placeholders are taken from response (syntax is similar to 'Expect' 'equal' matchers)
@@ -169,6 +169,15 @@ This section allowes more complex test scenarios like
 'request login token, remember, then use remembered {token} to request some data and verify'
 
 'create resource, remember resource id from response, then use remembered {id} to delete resource'
+
+## Editor integration
+To make work with test files convenient, we suggest to configure you text editors to use [this](./assets/test.schema.json) json schema. In this case editor will suggest what fields are available and highlight misspells.
+
+Editor | JSON Autocomplete 
+-------|------------------
+JetBrains Tools| [native support](https://www.jetbrains.com/help/webstorm/2016.1/json-schema.html?page=1)
+Visual Studio Code| [native support](https://code.visualstudio.com/docs/languages/json#_json-schemas-settings)
+Vim| [plugin](https://github.com/Quramy/vison)
 
 ## Dependency management
 To build project you need a dependency management tool - https://glide.sh/
