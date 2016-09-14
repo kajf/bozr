@@ -13,6 +13,7 @@ Options:
   -d, --debug		Enable debug mode
   -H, --host		Server to test
   -h, --help		Print usage
+  -i, --info		Enable info mode. Print request and response details.
       --junit		Enable junit xml reporter
   -v, --version		Print version information and quit
 

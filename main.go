@@ -28,9 +28,9 @@ func init() {
 
 		h += "Options:\n"
 		h += "  -d, --debug		Enable debug mode\n"
-		h += "  -i, --info		Enable info mode. Print request and response details.\n"
 		h += "  -H, --host		Server to test\n"
 		h += "  -h, --help		Print usage\n"
+		h += "  -i, --info		Enable info mode. Print request and response details.\n"
 		h += "      --junit		Enable junit xml reporter\n"
 		h += "  -v, --version		Print version information and quit\n\n"
 
