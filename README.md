@@ -21,6 +21,9 @@ Examples:
   bozr ./examples/suite-file.json
   bozr -H http://example.com ./examples
 ```
+
+Usage [demo](https://asciinema.org/a/85699)
+
 ## Test Suite Format
 Test suite (suite_name.json)
 
