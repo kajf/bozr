@@ -65,7 +65,6 @@ func initLogger() {
 
 	if debugFlag {
 		debugHandler = os.Stdout
-		infoHandler = os.Stdout
 	}
 
 	Info = log.New(infoHandler, "", 0)
@@ -128,6 +127,7 @@ func main() {
 		suiteDir = filepath.Dir(src)
 		ch = NewFileLoader(src)
 	}
+	time.Sleep(time.Second * 2)
 
 	reporters := []Reporter{NewConsoleReporter()}
 	if junitFlag {
