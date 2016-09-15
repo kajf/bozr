@@ -119,15 +119,14 @@ func main() {
 
 	var ch <-chan TestSuite
 	if filepath.Ext(src) == "" {
-		debugMsg("Loading from directory...")
+		debugMsg("Loading from directory")
 		suiteDir = src
 		ch = NewDirLoader(suiteDir)
 	} else {
-		debugMsg("Loading from file...")
+		debugMsg("Loading from file")
 		suiteDir = filepath.Dir(src)
 		ch = NewFileLoader(src)
 	}
-	time.Sleep(time.Second * 2)
 
 	reporters := []Reporter{NewConsoleReporter()}
 	if junitFlag {
@@ -161,7 +160,7 @@ func addAll(src, target map[string]interface{}) {
 }
 
 func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[string]interface{}) (result *TestResult) {
-	debugMsg("--- Starting call ...") // TODO add call description
+	debugMsgF("Starting call: %s - %s", testSuite.Name, testCase.Name)
 	start := time.Now()
 	result = &TestResult{Case: testCase}
 
@@ -417,9 +416,9 @@ func printRequestInfo(req *http.Request, body []byte) {
 }
 
 func debugMsg(a ...interface{}) {
-	Debug.Print(a)
+	Debug.Print(a...)
 }
 
 func debugMsgF(tpl string, a ...interface{}) {
-	Debug.Printf(tpl, a)
+	Debug.Printf(tpl, a...)
 }
