@@ -61,10 +61,14 @@ func (e Expect) hasSchema() bool {
 type TestResult struct {
 	Suite TestSuite
 	Case  TestCase
-	Resp  Response
 	// in case test failed, cause must be specified
-	Cause    error
+	Error    *TError
 	Duration time.Duration
+}
+
+type TError struct {
+	Resp  Response
+	Cause error
 }
 
 type Response struct {

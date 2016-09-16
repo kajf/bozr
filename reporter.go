@@ -25,7 +25,7 @@ type ConsoleReporter struct {
 
 func (r *ConsoleReporter) Report(result TestResult) {
 	r.total = r.total + 1
-	if result.Cause != nil {
+	if result.Error != nil {
 		r.failed = r.failed + 1
 		r.reportError(result)
 	} else {
@@ -45,7 +45,7 @@ func (r ConsoleReporter) reportError(result TestResult) {
 	fmt.Printf("[")
 	c.Print("FAILED")
 	fmt.Printf("] %s - %s \n", result.Suite.Name, result.Case.Name)
-	lines := strings.Split(result.Cause.Error(), "\n")
+	lines := strings.Split(result.Error.Cause.Error(), "\n")
 
 	for _, line := range lines {
 		fmt.Printf("\t\t%s \n", line)
@@ -126,9 +126,9 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 	}
 
 	testCase := tc{Name: result.Case.Name, ClassName: r.suite.PackageName + "." + result.Suite.Name, Time: result.Duration.Seconds()}
-	if result.Cause != nil {
-		testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Cause.Error()}
-		testCase.Failure.Details = result.Resp.ToString()
+	if result.Error != nil {
+		testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Error.Cause.Error()}
+		testCase.Failure.Details = result.Error.Resp.ToString()
 		r.suite.Failures = r.suite.Failures + 1
 	}
 	r.suite.Tests = r.suite.Tests + 1

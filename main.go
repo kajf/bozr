@@ -139,14 +139,24 @@ func main() {
 	for suite := range ch {
 		for _, testCase := range suite.Cases {
 
-			rememberedMap := make(map[string]interface{})
+			result := TestResult{
+				Suite: suite,
+				Case:  testCase,
+			}
 
+			rememberedMap := make(map[string]interface{})
+			start := time.Now()
 			for _, c := range testCase.Calls {
 				addAll(c.Args, rememberedMap)
-				tr := call(suite, testCase, c, rememberedMap)
-				tr.Suite = suite
-				reporter.Report(*tr)
+				terr := call(suite, testCase, c, rememberedMap)
+				if terr != nil {
+					result.Error = terr
+				}
 			}
+
+			result.Duration = time.Now().Sub(start)
+
+			reporter.Report(result)
 		}
 	}
 
@@ -159,10 +169,9 @@ func addAll(src, target map[string]interface{}) {
 	}
 }
 
-func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[string]interface{}) (result *TestResult) {
+func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[string]interface{}) *TError {
 	debugMsgF("Starting call: %s - %s", testSuite.Name, testCase.Name)
-	start := time.Now()
-	result = &TestResult{Case: testCase}
+	terr := &TError{}
 
 	on := call.On
 
@@ -170,22 +179,22 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	if on.BodyFile != "" {
 		uri, err := toAbsPath(testSuite.Dir, on.BodyFile)
 		if err != nil {
-			result.Cause = err
-			return
+			terr.Cause = err
+			return terr
 		}
 
 		if d, err := ioutil.ReadFile(uri); err == nil {
 			dat = d
 		} else {
-			result.Cause = fmt.Errorf("Can't read body file: %s", err.Error())
-			return
+			terr.Cause = fmt.Errorf("Can't read body file: %s", err.Error())
+			return terr
 		}
 	}
 
 	req, err := populateRequest(on, string(dat), rememberMap)
 	if err != nil {
-		result.Cause = err
-		return
+		terr.Cause = err
+		return terr
 	}
 
 	printRequestInfo(req, dat)
@@ -196,8 +205,8 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 
 	if err != nil {
 		debugMsg("Error when sending request", err)
-		result.Cause = err
-		return
+		terr.Cause = err
+		return terr
 	}
 
 	defer resp.Body.Close()
@@ -205,15 +214,12 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		debugMsg("Error reading response")
-		result.Cause = err
-		return
+		terr.Cause = err
+		return terr
 	}
 
-	end := time.Now()
-
 	testResp := Response{http: *resp, body: body}
-	result.Resp = testResp
-	result.Duration = end.Sub(start)
+	terr.Resp = testResp
 
 	Info.Println(strings.Repeat("-", 50))
 	Info.Println(testResp.ToString())
@@ -221,34 +227,34 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 
 	exps, err := expectations(call, testSuite.Dir)
 	if err != nil {
-		result.Cause = err
-		return
+		terr.Cause = err
+		return terr
 	}
 
 	for _, exp := range exps {
 		checkErr := exp.check(testResp)
 		if checkErr != nil {
-			result.Cause = checkErr
-			return
+			terr.Cause = checkErr
+			return terr
 		}
 	}
 
 	m, err := testResp.parseBody()
 	if err != nil {
 		debugMsg("Can't parse response body to Map for [remember]")
-		result.Cause = err
-		return
+		terr.Cause = err
+		return terr
 	}
 
 	err = remember(m, call.Remember, rememberMap)
 	debugMsg("Remember: ", rememberMap)
 	if err != nil {
 		debugMsg("Error remember")
-		result.Cause = err
-		return
+		terr.Cause = err
+		return terr
 	}
 
-	return result
+	return nil
 }
 
 func populateRequest(on On, body string, rememberMap map[string]interface{}) (*http.Request, error) {
