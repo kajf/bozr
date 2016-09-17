@@ -1,15 +1,20 @@
 #!/bin/bash
 
-GOARCH=amd64
+if [ $# -eq 0 ]
+  then
+    echo "Version argument is required."
+fi
 
-GOOS=windows
-go build -o bozr.exe
-zip -r bozr-$1.win64.zip bozr.exe
+RELEASE_DIR=./release
+mkdir $RELEASE_DIR
 
-GOOS=darwin
-go build -o bozr
-tar -czvf bozr-$1.darwin.tar.gz bozr
+GOOS=windows GOARCH=amd64 go build go build -o bozr.exe
+zip -r $RELEASE_DIR/bozr-$1.win-x64.zip bozr.exe
+rm bozr.exe
 
-GOOS=linux
-go build -o bozr
-tar -czvf bozr-$1.linux.tar.gz bozr
+GOOS=darwin GOARCH=amd64 go build -o bozr
+tar -czvf $RELEASE_DIR/bozr-$1.darwin-$GOARCH.tar.gz bozr
+
+GOOS=linux GOARCH=amd64 go build -o bozr
+tar -czvf $RELEASE_DIR/bozr-$1.linux-$GOARCH.tar.gz bozr
+rm ./bozr
