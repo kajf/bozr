@@ -6,9 +6,9 @@ if [ $# -eq 0 ]
 fi
 
 RELEASE_DIR=./release
-mkdir $RELEASE_DIR
+mkdir -p $RELEASE_DIR
 
-GOOS=windows GOARCH=amd64 go build go build -o bozr.exe
+GOOS=windows GOARCH=amd64 go build -o bozr.exe
 zip -r $RELEASE_DIR/bozr-$1.win-x64.zip bozr.exe
 rm bozr.exe
 
