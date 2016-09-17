@@ -27,7 +27,7 @@ Usage [demo](https://asciinema.org/a/85699)
 ## Test Suite Format
 Test suite (suite_name.json)
 
-    ├ Test A [single test]
+    ├ Test A [test case]
     |   ├ Name
     │   ├ Call one
     |   |   ├ args [value(s) for placeholders to use in request params, headers or body]
