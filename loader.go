@@ -63,14 +63,14 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 	content, e := ioutil.ReadFile(path)
 
 	if e != nil {
-		fmt.Println("Cannot read file: " + e.Error())
+		fmt.Println("Cannot read file:", path, "Error: ", e.Error())
 		return nil
 	}
 
 	var testCases []TestCase
 	err = json.Unmarshal(content, &testCases)
 	if err != nil {
-		fmt.Println("Cannot parse file: " + err.Error())
+		fmt.Println("Cannot parse file:" , path, "Error: ", err.Error())
 		return nil
 	}
 
