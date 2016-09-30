@@ -76,10 +76,14 @@ type Response struct {
 	body []byte
 }
 
-func (e Response) parseBody() (interface{}, error) {
-	contentType, _, _ := mime.ParseMediaType(e.http.Header.Get("content-type"))
+func (resp Response) parseBody() (interface{}, error) {
+	if len(resp.body) == 0 {
+		return nil, nil
+	}
+
+	contentType, _, _ := mime.ParseMediaType(resp.http.Header.Get("content-type"))
 	if contentType == "application/xml" || contentType == "text/xml" {
-		m, err := mxj.NewMapXml(e.body)
+		m, err := mxj.NewMapXml(resp.body)
 		if err == nil {
 			return m.Old(), nil
 		}
@@ -91,12 +95,12 @@ func (e Response) parseBody() (interface{}, error) {
 			body interface{}
 			err  error
 		)
-		if string(e.body[0]) == "[" {
+		if string(resp.body[0]) == "[" {
 			body = make([]interface{}, 0)
-			err = json.Unmarshal(e.body, &body)
+			err = json.Unmarshal(resp.body, &body)
 		} else {
 			body = make(map[string]interface{})
-			err = json.Unmarshal(e.body, &body)
+			err = json.Unmarshal(resp.body, &body)
 		}
 
 		if err == nil {
