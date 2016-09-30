@@ -24,6 +24,9 @@ Examples:
 
 Usage [demo](https://asciinema.org/a/85699)
 
+## Installation
+Download the [latest binary release](https://github.com/kajf/bozr/releases) and unpack it.
+
 ## Test Suite Format
 Test suite (suite_name.json)
 
@@ -67,12 +70,12 @@ Represents http request parameters
 
 Field | Description
 ------------ | -------------
-method | http method
-url | http request URL
-headers | http request headers
-params | http query params
-bodyFile | file to send as a request payload (path relative to test suite json)
-body | string or JSON object to send as a request payload
+method | HTTP method
+url | HTTP request URL
+headers | HTTP request headers
+params | HTTP query params
+bodyFile | File to send as a request payload (path relative to test suite json)
+body | String or JSON object to send as a request payload
 
 ### Section 'Expect'
 Represents assertions for http response of the call
@@ -89,11 +92,12 @@ Represents assertions for http response of the call
 
 Assertion | Description | Example
 ------------ | ------------- | --------------
-statusCode | expected http response header 'Status Code' | 200
-contentType | expected http response 'Content-Type' | application/json
-bodySchemaFile | path to json schema to validate response body against (path relative to test suite file) | login-schema.json
+statusCode | Expected http response header 'Status Code' | 200
+contentType | Expected http response 'Content-Type' | application/json
+bodySchemaFile | Path to json schema to validate response body against (path relative to test suite file) | login-schema.json
 bodySchemaURI | URI to json schema to validate response body against (absolute or relative to the host) | http://example.com/api/scheme/login-schema.json
-body | body matchers: equals, search, size |
+body | Body matchers: equals, search, size |
+headers | Expected http headers, specified as a key-value pairs. |
 
 ### 'Expect' body matchers
 
@@ -173,7 +177,7 @@ This section allowes more complex test scenarios like
 ## Editor integration
 To make work with test files convenient, we suggest to configure you text editors to use [this](./assets/test.schema.json) json schema. In this case editor will suggest what fields are available and highlight misspells.
 
-Editor | JSON Autocomplete 
+Editor | JSON Autocomplete
 -------|------------------
 JetBrains Tools| [native support](https://www.jetbrains.com/help/webstorm/2016.1/json-schema.html?page=1)
 Visual Studio Code| [native support](https://code.visualstudio.com/docs/languages/json#_json-schemas-settings)
