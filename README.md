@@ -156,6 +156,21 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
   }
 }
 ```
+
+You can use placeholders inside of the `url` and `headers` fields.
+
+```json
+{
+    "on": {
+        "method": "GET",
+        "url": "{hateoas_reference}",
+        "headers": {
+            "X-Secret-Key": "{secret_key}"
+        }
+    }
+}
+```
+
 ### Section 'Remember'
 Similar to 'Args' section, specifies plaseholder values for future reference (within test scope)
 
