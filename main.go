@@ -154,7 +154,7 @@ func main() {
 				}
 			}
 
-			result.Duration = time.Now().Sub(start)
+			result.Duration = time.Since(start)
 
 			reporter.Report(result)
 		}
