@@ -51,8 +51,8 @@ var (
 	versionFlag bool
 	junitFlag   bool
 
-	Info  *log.Logger
-	Debug *log.Logger
+	info  *log.Logger
+	debug *log.Logger
 )
 
 func initLogger() {
@@ -67,8 +67,8 @@ func initLogger() {
 		debugHandler = os.Stdout
 	}
 
-	Info = log.New(infoHandler, "", 0)
-	Debug = log.New(debugHandler, "DEBUG: ", log.Ltime|log.Lshortfile)
+	info = log.New(infoHandler, "", 0)
+	debug = log.New(debugHandler, "DEBUG: ", log.Ltime|log.Lshortfile)
 }
 
 func main() {
@@ -130,11 +130,11 @@ func main() {
 
 	var ch <-chan TestSuite
 	if filepath.Ext(src) == "" {
-		debugMsg("Loading from directory")
+		debug.Print("Loading from directory")
 		suiteDir = src
 		ch = NewDirLoader(suiteDir)
 	} else {
-		debugMsg("Loading from file")
+		debug.Print("Loading from file")
 		suiteDir = filepath.Dir(src)
 		ch = NewFileLoader(src)
 	}
@@ -181,7 +181,7 @@ func addAll(src, target map[string]interface{}) {
 }
 
 func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[string]interface{}) *TError {
-	debugMsgF("Starting call: %s - %s", testSuite.Name, testCase.Name)
+	debug.Printf("Starting call: %s - %s", testSuite.Name, testCase.Name)
 	terr := &TError{}
 
 	on := call.On
@@ -215,7 +215,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	resp, err := client.Do(req)
 
 	if err != nil {
-		debugMsg("Error when sending request", err)
+		debug.Print("Error when sending request", err)
 		terr.Cause = err
 		return terr
 	}
@@ -224,7 +224,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		debugMsg("Error reading response")
+		debug.Print("Error reading response")
 		terr.Cause = err
 		return terr
 	}
@@ -232,9 +232,9 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	testResp := Response{http: *resp, body: body}
 	terr.Resp = testResp
 
-	Info.Println(strings.Repeat("-", 50))
-	Info.Println(testResp.ToString())
-	Info.Println("")
+	info.Println(strings.Repeat("-", 50))
+	info.Println(testResp.ToString())
+	info.Println("")
 
 	exps, err := expectations(call, testSuite.Dir)
 	if err != nil {
@@ -252,15 +252,15 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 
 	m, err := testResp.parseBody()
 	if err != nil {
-		debugMsg("Can't parse response body to Map for [remember]")
+		debug.Print("Can't parse response body to Map for [remember]")
 		terr.Cause = err
 		return terr
 	}
 
 	err = remember(m, call.Remember, rememberMap)
-	debugMsg("Remember: ", rememberMap)
+	debug.Print("Remember: ", rememberMap)
 	if err != nil {
-		debugMsg("Error remember")
+		debug.Print("Error remember")
 		terr.Cause = err
 		return terr
 	}
@@ -418,27 +418,19 @@ func remember(body interface{}, remember map[string]string, rememberedMap map[st
 }
 
 func printRequestInfo(req *http.Request, body []byte) {
-	Info.Println()
-	Info.Printf("%s %s %s\n", req.Method, req.URL.String(), req.Proto)
+	info.Println()
+	info.Printf("%s %s %s\n", req.Method, req.URL.String(), req.Proto)
 
 	if len(req.Header) > 0 {
-		Info.Println()
+		info.Println()
 	}
 
 	for k, v := range req.Header {
-		Info.Printf("%s: %s", k, strings.Join(v, " "))
+		info.Printf("%s: %s", k, strings.Join(v, " "))
 	}
-	Info.Println()
+	info.Println()
 
 	if len(body) > 0 {
-		Info.Printf(string(body))
+		info.Printf(string(body))
 	}
-}
-
-func debugMsg(a ...interface{}) {
-	Debug.Print(a...)
-}
-
-func debugMsgF(tpl string, a ...interface{}) {
-	Debug.Printf(tpl, a...)
 }

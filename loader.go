@@ -40,12 +40,12 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 	}
 
 	if info.IsDir() {
-		debugMsg("Ignore dir: " + sf.Path)
+		debug.Print("Ignore dir: " + sf.Path)
 		return nil
 	}
 
 	if !strings.HasSuffix(info.Name(), ".json") {
-		debugMsg("Ignore non json: " + sf.Path)
+		debug.Print("Ignore non json: " + sf.Path)
 		return nil
 	}
 
@@ -70,7 +70,7 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 	var testCases []TestCase
 	err = json.Unmarshal(content, &testCases)
 	if err != nil {
-		fmt.Println("Cannot parse file:" , path, "Error: ", err.Error())
+		fmt.Println("Cannot parse file:", path, "Error: ", err.Error())
 		return nil
 	}
 
@@ -100,7 +100,7 @@ type DirSuiteIterator struct {
 
 func (ds *DirSuiteIterator) init() {
 	filepath.Walk(ds.RootDir, ds.addSuiteFile)
-	debugMsg("Collected: ", len(ds.files))
+	debug.Print("Collected: ", len(ds.files))
 }
 
 func (ds *DirSuiteIterator) addSuiteFile(path string, info os.FileInfo, err error) error {
