@@ -78,7 +78,7 @@ func main() {
 	flag.BoolVar(&infoFlag, "i", false, "Enable info mode. Print request and response details.")
 	flag.BoolVar(&infoFlag, "info", false, "Enable info mode. Print request and response details.")
 
-	flag.StringVar(&hostFlag, "H", "http://localhost:8080", "Test server address")
+	flag.StringVar(&hostFlag, "H", "", "Test server address. Example: http://example.com/api.")
 
 	flag.BoolVar(&helpFlag, "h", false, "Print usage")
 	flag.BoolVar(&helpFlag, "help", false, "Print usage")
@@ -90,6 +90,8 @@ func main() {
 
 	flag.Parse()
 
+	initLogger()
+
 	if versionFlag {
 		fmt.Println("bozr version " + version)
 		return
@@ -100,13 +102,21 @@ func main() {
 		return
 	}
 
-	initLogger()
+	if len(hostFlag) > 0 {
+		_, err := url.ParseRequestURI(hostFlag)
+		if err != nil {
+			fmt.Println("Invalid host is specified.")
+			os.Exit(1)
+			return
+		}
+	}
 
 	src := flag.Arg(0)
 
 	if src == "" {
 		fmt.Print("You must specify a directory or file with tests.\n\n")
 		flag.Usage()
+		os.Exit(1)
 		return
 	}
 
@@ -114,6 +124,7 @@ func main() {
 	_, err := os.Lstat(src)
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 		return
 	}
 
@@ -267,7 +278,10 @@ func populateRequest(on On, body string, rememberMap map[string]interface{}) (*h
 	body = populateRememberedVars(body, rememberMap)
 	dat := []byte(body)
 
-	req, _ := http.NewRequest(on.Method, url, bytes.NewBuffer(dat))
+	req, err := http.NewRequest(on.Method, url, bytes.NewBuffer(dat))
+	if err != nil {
+		return nil, err
+	}
 
 	for key, value := range on.Headers {
 		req.Header.Add(key, populateRememberedVars(value, rememberMap))
@@ -291,7 +305,7 @@ func urlPrefix(p string) (string, error) {
 }
 
 func concatURL(base string, p string) (string, error) {
-	baseURL, err := url.Parse(base)
+	baseURL, err := url.ParseRequestURI(base)
 	if err != nil {
 		return "", err
 	}
