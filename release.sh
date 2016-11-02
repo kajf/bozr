@@ -6,15 +6,20 @@ if [ $# -eq 0 ]
 fi
 
 RELEASE_DIR=./release
+GOARCH=amd64
+
 mkdir -p $RELEASE_DIR
 
-GOOS=windows GOARCH=amd64 go build -o bozr.exe
-zip -r $RELEASE_DIR/bozr-$1.win-x64.zip bozr.exe
+GOOS=windows
+go build -o bozr.exe
+zip -r $RELEASE_DIR/bozr-$1.$GOOS-$GOARCH.zip bozr.exe
 rm bozr.exe
 
-GOOS=darwin GOARCH=amd64 go build -o bozr
-tar -czvf $RELEASE_DIR/bozr-$1.darwin-$GOARCH.tar.gz bozr
+GOOS=darwin
+go build -o bozr
+tar -czvf $RELEASE_DIR/bozr-$1.$GOOS-$GOARCH.tar.gz bozr
 
-GOOS=linux GOARCH=amd64 go build -o bozr
-tar -czvf $RELEASE_DIR/bozr-$1.linux-$GOARCH.tar.gz bozr
+GOOS=linux
+go build -o bozr
+tar -czvf $RELEASE_DIR/bozr-$1.$GOOS-$GOARCH.tar.gz bozr
 rm ./bozr
