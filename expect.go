@@ -105,7 +105,7 @@ func (e BodyExpectation) check(resp Response) error {
 
 		ok, err := matcherFunc(m, expectedValue, splitPath...)
 		if !ok {
-			str := fmt.Sprintf("Expected value [%s] on path [%s] does not match.", expectedValue, path)
+			str := fmt.Sprintf("Expected value [%v] on path [%s] does not match.", expectedValue, path)
 			errs = append(errs, str)
 		}
 		if err != nil {

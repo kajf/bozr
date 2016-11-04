@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -238,5 +239,31 @@ func TestBodyExpectationSearchArray(t *testing.T) {
 
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func TestBodyExpectationBoolFMT(t *testing.T) {
+	m, err := jsonAsMap(`{
+		"flag": false
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	exp := BodyExpectation{pathExpectations: m}
+
+	err = exp.check(Response{
+		http: http.Response{
+			Header: map[string][]string{"Content-Type": {"application/json"}},
+		},
+		body: []byte("{\"flag\":true}"),
+	})
+
+	if err == nil {
+		t.Error(err)
+	}
+
+	if strings.Compare("Expected value [false] on path [flag] does not match.", err.Error()) == 0 {
+		t.Error("Incorrect format of expected value.")
 	}
 }
