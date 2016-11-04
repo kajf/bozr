@@ -192,6 +192,19 @@ func TestSearchByPathHasOneElementArray(t *testing.T) {
 	}
 }
 
+func TestSearchByPathArrayOfPrimitives(t *testing.T) {
+	m, err := jsonAsMap(`{"items":["ONE", "TWO"]}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	arr := []interface{}{"ONE", "TWO"}
+	ok, err := searchByPath(m, arr, "items")
+	if !ok || err != nil {
+		t.Error(err)
+	}
+}
+
 func TestSearchByPathHasIntArr(t *testing.T) {
 	m, err := jsonAsMap(`{
 		"items":[

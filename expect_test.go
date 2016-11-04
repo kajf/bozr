@@ -218,3 +218,25 @@ func TestBodyExpectationSearchInt(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestBodyExpectationSearchArray(t *testing.T) {
+	m, err := jsonAsMap(`{
+		"~items": "ONE"
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	exp := BodyExpectation{pathExpectations: m}
+
+	err = exp.check(Response{
+		http: http.Response{
+			Header: map[string][]string{"Content-Type": {"application/json"}},
+		},
+		body: []byte("{\"items\":[\"ONE\", \"TWO\"]}"),
+	})
+
+	if err != nil {
+		t.Error(err)
+	}
+}

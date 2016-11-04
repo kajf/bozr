@@ -87,6 +87,15 @@ func searchByPath(m interface{}, expectedValue interface{}, path ...string) (boo
 				m = typedM[p]
 				//fmt.Println("mapped", m, reflect.TypeOf(m))
 
+				switch typedM := m.(type) {
+				case []interface{}:
+					for _, v := range typedM {
+						if v == typedExpectedValue {
+							return true, nil
+						}
+					}
+				}
+
 				if m == typedExpectedValue {
 					return true, nil
 				}
