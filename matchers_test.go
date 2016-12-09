@@ -374,6 +374,28 @@ func TestGetByPathEmpty(t *testing.T) {
 	}
 }
 
+func TestGetByPathWithPartialMatch(t *testing.T) {
+	m, err := jsonAsMap(`{
+				"rates":{
+					"AUD":1.4406,
+					"BGN":1.9558
+				}
+			}`)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = getByPath(m, "rates", "z")
+	if err == nil {
+		t.Error(
+			"For", "rates.z",
+			"expected", "error",
+			"got", err,
+		)
+	}
+}
+
 func jsonAsMap(s string) (map[string]interface{}, error) {
 	var m map[string]interface{}
 	err := json.Unmarshal([]byte(s), &m)

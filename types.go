@@ -50,6 +50,7 @@ type Expect struct {
 	ContentType    string                 `json:"contentType"`
 	Headers        map[string]string      `json:"headers"`
 	Body           map[string]interface{} `json:"body"`
+	Absent 	       []string               `json:"absent"`
 	BodySchemaFile string                 `json:"bodySchemaFile"`
 	BodySchemaURI  string                 `json:"bodySchemaURI"`
 }

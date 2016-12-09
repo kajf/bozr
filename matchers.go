@@ -44,7 +44,12 @@ func getByPath(m interface{}, path ...string) (interface{}, error) {
 				str := fmt.Sprintf("Can't cast to Map and get key [%v] in path %v", p, path)
 				return nil, errors.New(str)
 			}
-			m = mp[p]
+			if val, ok := mp[p]; ok {
+				m = val
+			} else {
+				str := fmt.Sprintf("Map key [%v] does not exist in path %v", p, path)
+				return nil, errors.New(str)
+			}
 		} else {
 			arr, ok := m.([]interface{})
 			if !ok {

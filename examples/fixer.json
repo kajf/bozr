@@ -1,5 +1,5 @@
 [{
-  "name": "Example of a test that passes.",
+  "name": "Example of the successful test.",
   "calls": [
     {
       "args": {
@@ -20,13 +20,14 @@
         "contentType": "application/json",
         "body" : {
           "base": "USD"
-        }
+        },
+        "absent": ["rates.ZZZ"]
       }
     }
   ]
 },
 {
-  "name": "Example of a test that does not pass.",
+  "name": "Example of the failed test.",
   "calls": [
     {
       "on" : {

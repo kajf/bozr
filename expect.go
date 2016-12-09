@@ -88,20 +88,21 @@ type BodyExpectation struct {
 func (e BodyExpectation) check(resp Response) error {
 
 	errs := []string{}
+
+	// TODO need rememberedMap here:  expectedValue = putRememberedVars(expectedValue, rememberedMap)
+	m, err := resp.parseBody()
+	if err != nil {
+		str := "Can't parse response body to Map." // TODO specific message for functions
+		str += " " + err.Error()
+		errs = append(errs, str)
+	}
+
 	for path, expectedValue := range e.pathExpectations {
 
 		matcherFunc := ChooseMatcher(path)
 		path := strings.Replace(path, "~", "", -1)
 
 		splitPath := strings.Split(path, ".")
-
-		// TODO need rememberedMap here:  expectedValue = putRememberedVars(expectedValue, rememberedMap)
-		m, err := resp.parseBody()
-		if err != nil {
-			str := "Can't parse response body to Map." // TODO specific message for functions
-			str += " " + err.Error()
-			errs = append(errs, str)
-		}
 
 		ok, err := matcherFunc(m, expectedValue, splitPath...)
 		if !ok {
@@ -162,4 +163,45 @@ func (e ContentTypeExpectation) check(resp Response) error {
 
 	headerCheck := HeaderExpectation{"content-type", e.Value, parser}
 	return headerCheck.check(resp)
+}
+
+type AbsentExpectation struct {
+	paths []string
+}
+
+func (e AbsentExpectation) check(resp Response) error {
+
+	errs := []string{}
+
+	// TODO need rememberedMap here:  expectedValue = putRememberedVars(expectedValue, rememberedMap)
+	m, err := resp.parseBody()
+	if err != nil {
+		str := "Can't parse response body to Map." // TODO specific message for functions
+		str += " " + err.Error()
+		errs = append(errs, str)
+	}
+
+	for _, path := range e.paths {
+
+		path := strings.Replace(path, "~", "", -1)
+		splitPath := strings.Split(path, ".")
+
+		// todo check what if function like .size() passed
+
+		if val, err := getByPath(m, splitPath...); err == nil {
+
+			str := fmt.Sprintf("Value expected to be absent was found: %v, path: %v", val, path)
+			errs = append(errs, str)
+		}
+	}
+
+	if len(errs) > 0 {
+		var msg string
+		for _, err := range errs {
+			msg += err + "\n"
+		}
+		return errors.New(msg)
+	}
+
+	return nil
 }

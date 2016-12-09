@@ -371,6 +371,10 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 		exps = append(exps, BodyExpectation{pathExpectations: call.Expect.Body})
 	}
 
+	if len(call.Expect.Absent) > 0 {
+		exps = append(exps, AbsentExpectation{paths: call.Expect.Absent})
+	}
+
 	if len(call.Expect.Headers) > 0 {
 		for k, v := range call.Expect.Headers {
 			exps = append(exps, HeaderExpectation{Name: k, Value: v})
