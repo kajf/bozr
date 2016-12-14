@@ -124,9 +124,9 @@ XML:
 - Only string matcher values are supported (since xml has no real data types, so everything is a string)
 
 ### 'Expect absent' body matchers
-Represents paths not expected to be response body.
-Mostly used for security checks (e.g. returned user object should not contain password or credit card numeber fields)
-Paths fromat is the same as in 'Expect' body section
+Represents paths not expected to be in response body.
+Mostly used for security checks (e.g. returned user object should not contain password or credit card number fields)
+Path fromat is the same as in 'Expect' body section
 ```json
 "expect": {
     "absent": ['user.cardNumber', 'user.password']
