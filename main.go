@@ -405,14 +405,12 @@ func toAbsPath(srcDir string, assetPath string) (string, error) {
 
 func remember(body interface{}, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
 
-	for varName, path := range remember {
+	for varName, pathLine := range remember {
 
-		splitPath := strings.Split(path, ".")
-
-		if rememberVar, err := getByPath(body, splitPath...); err == nil {
+		if rememberVar, err := getByPath(body, pathLine); err == nil {
 			rememberedMap[varName] = rememberVar
 		} else {
-			strErr := fmt.Sprintf("Remembered value not found, path: %v", path)
+			strErr := fmt.Sprintf("Remembered value not found, path: %v", pathLine)
 			err = errors.New(strErr)
 		}
 		//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))

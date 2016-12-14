@@ -17,7 +17,7 @@ func TestSearchByPathId(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := searchByPath(m, 417601.0, "rate_tables", "id")
+	found, _ := searchByPath(m, 417601.0, "rate_tables.id")
 
 	if !found {
 		t.Error()
@@ -37,7 +37,7 @@ func TestSearchByPathKey(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := searchByPath(m, "-1", "root", "key")
+	found, _ := searchByPath(m, "-1", "root.key")
 
 	if !found {
 		t.Error()
@@ -54,7 +54,7 @@ func TestSearchByPathInArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := searchByPath(m, "test 2", "root", "name")
+	found, _ := searchByPath(m, "test 2", "root.name")
 
 	if !found {
 		t.Error()
@@ -70,7 +70,7 @@ func TestSearchByPathArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := searchByPath(m, 2.0, "root", "size()")
+	found, _ := searchByPath(m, 2.0, "root.size()")
 
 	if !found {
 		t.Error()
@@ -93,7 +93,7 @@ func TestSearchByPathSingleObject(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := searchByPath(m, "-2", "second", "key")
+	found, _ := searchByPath(m, "-2", "second.key")
 
 	if !found {
 		t.Error()
@@ -112,7 +112,7 @@ func TestSearchByPathNotFound(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := searchByPath(m, "-2", "single", "key")
+	found, _ := searchByPath(m, "-2", "single.key")
 
 	if found {
 		t.Error()
@@ -131,7 +131,7 @@ func TestSearchByPathExactHasArray(t *testing.T) {
 	}
 
 	arr := []interface{}{"a", "b"}
-	ok, err := searchByPath(m, arr, "items", "id")
+	ok, err := searchByPath(m, arr, "items.id")
 	if !ok || err != nil {
 		t.Error(err)
 	}
@@ -149,7 +149,7 @@ func TestSearchByPathHasNotAllArrayItems(t *testing.T) {
 	}
 
 	arr := []string{"a", "b", "c"}
-	ok, err := searchByPath(m, arr, "items", "id")
+	ok, err := searchByPath(m, arr, "items.id")
 	if ok {
 		t.Error("Should have failed because of 'c'")
 	}
@@ -168,7 +168,7 @@ func TestSearchByPathInLargerSet(t *testing.T) {
 	}
 
 	arr := []interface{}{"a", "b"}
-	ok, err := searchByPath(m, arr, "items", "id")
+	ok, err := searchByPath(m, arr, "items.id")
 	if !ok || err != nil {
 		t.Error(err)
 	}
@@ -186,7 +186,7 @@ func TestSearchByPathHasOneElementArray(t *testing.T) {
 	}
 
 	arr := []interface{}{"a"}
-	ok, err := searchByPath(m, arr, "items", "id")
+	ok, err := searchByPath(m, arr, "items.id")
 	if !ok || err != nil {
 		t.Error(err)
 	}
@@ -217,7 +217,7 @@ func TestSearchByPathHasIntArr(t *testing.T) {
 	}
 
 	arr := []interface{}{1.0, 2.0}
-	ok, err := searchByPath(m, arr, "items", "id")
+	ok, err := searchByPath(m, arr, "items.id")
 	if !ok || err != nil {
 		t.Error(err)
 	}
@@ -247,7 +247,7 @@ func TestGetByPath2ndLevel(t *testing.T) {
 	token := map[string]interface{}{"name": name}
 	m := map[string]interface{}{"token": token, "bar": 2}
 
-	got, _ := getByPath(m, "token", "name")
+	got, _ := getByPath(m, "token.name")
 
 	if got != name {
 		t.Error(
@@ -269,7 +269,7 @@ func TestGetByPathWithIndex(t *testing.T) {
 		t.Error(err)
 	}
 
-	got, _ := getByPath(m, "items", "0", "id")
+	got, _ := getByPath(m, "items.0.id")
 	if got != "417857" {
 		t.Error(
 			"expected", "417857",
@@ -289,7 +289,7 @@ func TestGetByPathArraySize(t *testing.T) {
 		t.Error(err)
 	}
 
-	got, err := getByPath(m, "items", "size()")
+	got, err := getByPath(m, "items.size()")
 	if got != 2.0 || err != nil {
 		t.Error(
 			"expected 2",
@@ -310,7 +310,7 @@ func TestGetByPathArrayOutOfBounds(t *testing.T) {
 		t.Error(err)
 	}
 
-	got, err := getByPath(m, "items", "2", "id")
+	got, err := getByPath(m, "items.2.id")
 	if got != nil || err == nil {
 		t.Error(
 			"expected nil",
@@ -329,7 +329,7 @@ func TestGetByPathNotArrayWithIndex(t *testing.T) {
 		t.Error(err)
 	}
 
-	got, err := getByPath(m, "items", "1", "id")
+	got, err := getByPath(m, "items.1.id")
 	if got != nil || err == nil {
 		t.Error(
 			"expected nil",
@@ -350,7 +350,7 @@ func TestGetByPathNotIndexWithArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	got, err := getByPath(m, "items", "id")
+	got, err := getByPath(m, "items.id")
 	if got != nil || err == nil {
 		t.Error(
 			"expected nil",
@@ -386,7 +386,7 @@ func TestGetByPathWithPartialMatch(t *testing.T) {
 		t.Error(err)
 	}
 
-	_, err = getByPath(m, "rates", "z")
+	_, err = getByPath(m, "rates.z")
 	if err == nil {
 		t.Error(
 			"For", "rates.z",

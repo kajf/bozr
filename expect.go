@@ -107,10 +107,7 @@ func checkExpectedPath(m interface{}, pathItem interface{}) string {
 
 		matcherFunc := ChooseMatcher(bodyExpectationItem.Path)
 
-		pathArr := strings.Replace(bodyExpectationItem.Path, "~", "", -1)
-		splitPath := strings.Split(pathArr, ".")
-
-		ok, err := matcherFunc(m, bodyExpectationItem.ExpectedValue, splitPath...)
+		ok, err := matcherFunc(m, bodyExpectationItem.ExpectedValue, bodyExpectationItem.Path)
 		if !ok {
 			return fmt.Sprintf("Expected value [%v] on path [%s] does not match.", bodyExpectationItem.ExpectedValue, bodyExpectationItem.Path)
 		}
@@ -214,10 +211,8 @@ func responseBodyPathCheck(resp Response, pathItems []interface{}, checkPath Pat
 func checkAbsentPath(m interface{}, pathItem interface{}) string {
 
 	if pathStr, ok := pathItem.(string); ok {
-		pathStr = strings.Replace(pathStr, "~", "", -1)
-		splitPath := strings.Split(pathStr, ".")
 
-		if val, err := getByPath(m, splitPath...); err == nil {
+		if val, err := getByPath(m, pathStr); err == nil {
 
 			return fmt.Sprintf("Value expected to be absent was found: %v, path: %v", val, pathStr)
 		}
