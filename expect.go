@@ -87,41 +87,41 @@ type BodyExpectation struct {
 
 func (e BodyExpectation) check(resp Response) error {
 
-	errs := []string{}
+	expectationItems := []interface{}{}
 
-	// TODO need rememberedMap here:  expectedValue = putRememberedVars(expectedValue, rememberedMap)
-	m, err := resp.parseBody()
-	if err != nil {
-		str := "Can't parse response body to Map." // TODO specific message for functions
-		str += " " + err.Error()
-		errs = append(errs, str)
+	for pathStr, expectedValue := range e.pathExpectations {
+		expectationItems = append(expectationItems, BodyExpectationItem{Path: pathStr, ExpectedValue: expectedValue})
 	}
 
-	for path, expectedValue := range e.pathExpectations {
+	return responseBodyPathCheck(resp, expectationItems, checkExpectedPath)
+}
 
-		matcherFunc := ChooseMatcher(path)
-		path := strings.Replace(path, "~", "", -1)
+type BodyExpectationItem struct {
+	Path          string
+	ExpectedValue interface{}
+}
 
-		splitPath := strings.Split(path, ".")
+func checkExpectedPath(m interface{}, pathItem interface{}) string {
 
-		ok, err := matcherFunc(m, expectedValue, splitPath...)
+	if bodyExpectationItem, ok := pathItem.(BodyExpectationItem); ok {
+
+		matcherFunc := ChooseMatcher(bodyExpectationItem.Path)
+
+		pathArr := strings.Replace(bodyExpectationItem.Path, "~", "", -1)
+		splitPath := strings.Split(pathArr, ".")
+
+		ok, err := matcherFunc(m, bodyExpectationItem.ExpectedValue, splitPath...)
 		if !ok {
-			str := fmt.Sprintf("Expected value [%v] on path [%s] does not match.", expectedValue, path)
-			errs = append(errs, str)
+			return fmt.Sprintf("Expected value [%v] on path [%s] does not match.", bodyExpectationItem.ExpectedValue, bodyExpectationItem.Path)
 		}
 		if err != nil {
-			errs = append(errs, err.Error())
+			return err.Error()
 		}
-	}
-	if len(errs) > 0 {
-		var msg string
-		for _, err := range errs {
-			msg += err + "\n"
-		}
-		return errors.New(msg)
+
+		return ""
 	}
 
-	return nil
+	return fmt.Sprintf("Path Item: %v is invalid for expectation check", pathItem)
 }
 
 // HeaderExpectation validates one header in a response.
@@ -171,26 +171,31 @@ type AbsentExpectation struct {
 
 func (e AbsentExpectation) check(resp Response) error {
 
+	expectationItems := []interface{}{}
+
+	for _, pathStr := range e.paths {
+		expectationItems = append(expectationItems, pathStr)
+	}
+
+	return responseBodyPathCheck(resp, expectationItems, checkAbsentPath)
+}
+
+type PathCheckFunc func(m interface{}, pathItem interface{}) string
+
+func responseBodyPathCheck(resp Response, pathItems []interface{}, checkPath PathCheckFunc) error {
 	errs := []string{}
 
-	// TODO need rememberedMap here:  expectedValue = putRememberedVars(expectedValue, rememberedMap)
 	m, err := resp.parseBody()
 	if err != nil {
 		str := "Can't parse response body to Map." // TODO specific message for functions
 		str += " " + err.Error()
-		errs = append(errs, str)
+
+		return errors.New(str)
 	}
 
-	for _, path := range e.paths {
-
-		path := strings.Replace(path, "~", "", -1)
-		splitPath := strings.Split(path, ".")
-
-		// todo check what if function like .size() passed
-
-		if val, err := getByPath(m, splitPath...); err == nil {
-
-			str := fmt.Sprintf("Value expected to be absent was found: %v, path: %v", val, path)
+	for _, pathItem := range pathItems {
+		str := checkPath(m, pathItem)
+		if str != "" {
 			errs = append(errs, str)
 		}
 	}
@@ -204,4 +209,21 @@ func (e AbsentExpectation) check(resp Response) error {
 	}
 
 	return nil
+}
+
+func checkAbsentPath(m interface{}, pathItem interface{}) string {
+
+	if pathStr, ok := pathItem.(string); ok {
+		pathStr = strings.Replace(pathStr, "~", "", -1)
+		splitPath := strings.Split(pathStr, ".")
+
+		if val, err := getByPath(m, splitPath...); err == nil {
+
+			return fmt.Sprintf("Value expected to be absent was found: %v, path: %v", val, pathStr)
+		}
+
+		return ""
+	}
+
+	return fmt.Sprintf("Path Item: %v is invalid for absence check", pathItem)
 }
