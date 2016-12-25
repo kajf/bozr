@@ -15,9 +15,9 @@ func ChooseMatcher(path string) MatcherFunc {
 
 	if exactMatch {
 		return equalsByPath
-	} else {
-		return searchByPath
 	}
+
+	return searchByPath
 }
 
 func equalsByPath(m interface{}, expectedValue interface{}, path ...string) (bool, error) {

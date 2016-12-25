@@ -149,7 +149,7 @@ func (e HeaderExpectation) check(resp Response) error {
 
 // ContentTypeExpectation validates media type returned in the Content-Type header.
 // Encoding information is excluded from matching value.
-// E.g. "application/json;charset=utf-8" header transofrmed to "applicaton/json" media type.
+// E.g. "application/json;charset=utf-8" header transformed to "application/json" media type.
 type ContentTypeExpectation struct {
 	Value string
 }
