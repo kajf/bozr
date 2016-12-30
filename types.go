@@ -50,7 +50,7 @@ type Expect struct {
 	ContentType    string                 `json:"contentType"`
 	Headers        map[string]string      `json:"headers"`
 	Body           map[string]interface{} `json:"body"`
-	Absent 	       []string               `json:"absent"`
+	Absent         []string               `json:"absent"`
 	BodySchemaFile string                 `json:"bodySchemaFile"`
 	BodySchemaURI  string                 `json:"bodySchemaURI"`
 }
@@ -107,7 +107,7 @@ func (resp Response) parseBody() (interface{}, error) {
 		if err == nil {
 			return body, nil
 		}
-		return err, nil
+		return nil, err
 	}
 
 	return nil, errors.New("Cannot parse body. Unsupported content type")
