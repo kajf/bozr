@@ -162,6 +162,7 @@ func main() {
 				terr := call(suite, testCase, c, rememberedMap)
 				if terr != nil {
 					result.Error = terr
+					break
 				}
 			}
 
@@ -270,7 +271,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 
 func populateRequest(on On, body string, rememberMap map[string]interface{}) (*http.Request, error) {
 
-	url, err := urlPrefix(populateRememberedVars(on.URL, rememberMap))
+	urlStr, err := urlPrefix(populateRememberedVars(on.URL, rememberMap))
 	if err != nil {
 		return nil, errors.New("Cannot create request. Invalid url: " + on.URL)
 	}
@@ -278,7 +279,7 @@ func populateRequest(on On, body string, rememberMap map[string]interface{}) (*h
 	body = populateRememberedVars(body, rememberMap)
 	dat := []byte(body)
 
-	req, err := http.NewRequest(on.Method, url, bytes.NewBuffer(dat))
+	req, err := http.NewRequest(on.Method, urlStr, bytes.NewBuffer(dat))
 	if err != nil {
 		return nil, err
 	}
