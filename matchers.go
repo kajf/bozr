@@ -126,7 +126,8 @@ func searchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 			}
 		}
 	}
-	return false, nil
+	str := fmt.Sprintf("Path [%v] does not exist", pathLine)
+	return false, errors.New(str)
 }
 
 func pathFunction(m interface{}, pathPart string) (float64, bool) {

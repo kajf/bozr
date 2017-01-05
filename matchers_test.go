@@ -62,10 +62,9 @@ func TestSearchByPathInArray(t *testing.T) {
 }
 
 func TestSearchByPathArray(t *testing.T) {
-	m, err := jsonAsMap(`{"root":[
-		{"key":"-1", "name":"Test 1"},
-		{"key":"-2", "name":"test 2"}
-	      ]}`)
+	m, err := jsonAsMap(`{
+		"root":[{},{}]
+	      }`)
 	if err != nil {
 		t.Error(err)
 	}
@@ -74,6 +73,25 @@ func TestSearchByPathArray(t *testing.T) {
 
 	if !found {
 		t.Error()
+	}
+}
+
+func TestSearchByInvalidPathWithPathFunction(t *testing.T) {
+	m, err := jsonAsMap(`{
+		"root":[{},{}]
+	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	found, err := searchByPath(m, nil, "notExist.size()")
+
+	if found || err == nil {
+		t.Error(
+			"expected found=false + path error",
+			"got", found,
+			"err", err,
+		)
 	}
 }
 
@@ -293,6 +311,24 @@ func TestGetByPathArraySize(t *testing.T) {
 	if got != 2.0 || err != nil {
 		t.Error(
 			"expected 2",
+			"got", got,
+			"err", err,
+		)
+	}
+}
+
+func TestGetByInvalidPathFunction(t *testing.T) {
+	m, err := jsonAsMap(`{
+		"items":[{},{}]
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	got, err := getByPath(m, "notExist.size()")
+	if got != nil || err == nil {
+		t.Error(
+			"expected nil",
 			"got", got,
 			"err", err,
 		)
