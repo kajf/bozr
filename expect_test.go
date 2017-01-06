@@ -267,3 +267,24 @@ func TestBodyExpectationBoolFMT(t *testing.T) {
 		t.Error("Incorrect format of expected value.")
 	}
 }
+
+func TestCheckAbsentPath(t *testing.T) {
+	m, err := jsonAsMap(`{
+			"items": {
+				"test": 1
+			}
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	errorMsg := checkAbsentPath(m, "items.test")
+
+	if errorMsg == "" {
+		t.Error(
+			"For", "items.test",
+			"expected", "error",
+			"got", "empty message",
+		)
+	}
+}

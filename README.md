@@ -97,6 +97,7 @@ contentType | Expected http response 'Content-Type' | application/json
 bodySchemaFile | Path to json schema to validate response body against (path relative to test suite file) | login-schema.json
 bodySchemaURI | URI to json schema to validate response body against (absolute or relative to the host) | http://example.com/api/scheme/login-schema.json
 body | Body matchers: equals, search, size |
+absent | Paths that are NOT expected to in response | ['user.cardNumber', 'user.password']
 headers | Expected http headers, specified as a key-value pairs. |
 
 ### 'Expect' body matchers
@@ -121,6 +122,16 @@ XML:
 - To match attribute use `-` symbol before attribute name. E.g. `users.0.-id`
 - Namespaces are ignored
 - Only string matcher values are supported (since xml has no real data types, so everything is a string)
+
+### 'Expect absent' body matchers
+Represents paths not expected to be in response body.
+Mostly used for security checks (e.g. returned user object should not contain password or credit card number fields)
+Path fromat is the same as in 'Expect' body section
+```json
+"expect": {
+    "absent": ['user.cardNumber', 'user.password']
+}
+```
 
 ### Section 'Args'
 Specifies plaseholder values for future reference (within test scope)

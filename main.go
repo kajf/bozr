@@ -162,6 +162,7 @@ func main() {
 				terr := call(suite, testCase, c, rememberedMap)
 				if terr != nil {
 					result.Error = terr
+					break
 				}
 			}
 
@@ -270,7 +271,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 
 func populateRequest(on On, body string, rememberMap map[string]interface{}) (*http.Request, error) {
 
-	url, err := urlPrefix(populateRememberedVars(on.URL, rememberMap))
+	urlStr, err := urlPrefix(populateRememberedVars(on.URL, rememberMap))
 	if err != nil {
 		return nil, errors.New("Cannot create request. Invalid url: " + on.URL)
 	}
@@ -278,7 +279,7 @@ func populateRequest(on On, body string, rememberMap map[string]interface{}) (*h
 	body = populateRememberedVars(body, rememberMap)
 	dat := []byte(body)
 
-	req, err := http.NewRequest(on.Method, url, bytes.NewBuffer(dat))
+	req, err := http.NewRequest(on.Method, urlStr, bytes.NewBuffer(dat))
 	if err != nil {
 		return nil, err
 	}
@@ -371,6 +372,10 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 		exps = append(exps, BodyExpectation{pathExpectations: call.Expect.Body})
 	}
 
+	if len(call.Expect.Absent) > 0 {
+		exps = append(exps, AbsentExpectation{paths: call.Expect.Absent})
+	}
+
 	if len(call.Expect.Headers) > 0 {
 		for k, v := range call.Expect.Headers {
 			exps = append(exps, HeaderExpectation{Name: k, Value: v})
@@ -401,14 +406,12 @@ func toAbsPath(srcDir string, assetPath string) (string, error) {
 
 func remember(body interface{}, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
 
-	for varName, path := range remember {
+	for varName, pathLine := range remember {
 
-		splitPath := strings.Split(path, ".")
-
-		if rememberVar, err := getByPath(body, splitPath...); err == nil {
+		if rememberVar, err := getByPath(body, pathLine); err == nil {
 			rememberedMap[varName] = rememberVar
 		} else {
-			strErr := fmt.Sprintf("Remembered value not found, path: %v", path)
+			strErr := fmt.Sprintf("Remembered value not found, path: %v", pathLine)
 			err = errors.New(strErr)
 		}
 		//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))

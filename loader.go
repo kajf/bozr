@@ -310,6 +310,9 @@ const suiteDetailedSchema = `
 								},
 								"bodySchemaURI": {
 									"type": "string"
+								},
+								"absent": {
+								  "type" : "array"
 								}
 							},
 							"additionalProperties": false
