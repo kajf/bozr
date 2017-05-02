@@ -125,12 +125,15 @@
                   "type": "string"
                 },
                 "absent": {
-                  "type" : "array"
+                  "type": "array"
                 }
               },
               "additionalProperties": false
             },
             "remember": {
+              "type": "object"
+            },
+            "rememberHeader": {
               "type": "object"
             }
           },

@@ -36,7 +36,8 @@ Test suite (suite_name.json)
     |   |   ├ args [value(s) for placeholders to use in request params, headers or body]
     │   │   ├ on [single http request]
     │   │   ├ expect [http response asserts: code, headers, body, schema, etc.]
-    │   │   └ remember [optionally remember variable(s) for the next call to use in request params, headers or body]
+    │   │   ├ remember [optionally remember variable(s) for the next call to use in request params, headers or body]
+    |   |   └ rememberHeader [optionally remember header(s) for the next call to use in request params, headers or body]
     │   └ Call two
     |       ├ args
     │       ├ on
@@ -199,6 +200,26 @@ This section allowes more complex test scenarios like
 'request login token, remember, then use remembered {token} to request some data and verify'
 
 'create resource, remember resource id from response, then use remembered {id} to delete resource'
+
+### Section 'RememberHeader'
+
+As regular 'remember' section, specifies plaseholder values for future reference (within test scope).
+The source of values is the response headers.
+
+This section is quite useful in such cases as following 'Location' header or validation http cache.
+
+```json
+// posing new object and getting location back
+// ...
+"remember": {
+  "objectLocation": "Location"
+}
+// getting newly created object
+"on": {
+  "method": "GET",
+  "url": "{objectLocation}"
+}
+```
 
 ## Editor integration
 To make work with test files convenient, we suggest to configure you text editors to use [this](./assets/test.schema.json) json schema. In this case editor will suggest what fields are available and highlight misspells.
