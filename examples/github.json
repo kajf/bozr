@@ -36,5 +36,41 @@
         }
       }
     ]
+  },
+  {
+    "name": "Http Cache Test (using remembered header)",
+    "calls": [
+      {
+        "on": {
+          "method": "GET",
+          "url": "https://api.github.com/users/kajf",
+          "headers": {
+            "Accept": "application/json"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "body": {
+            "login": "kajf"
+          }
+        },
+        "rememberHeader": {
+          "modifiedSince": "Last-Modified"
+        }
+      },
+      {
+        "on": {
+          "method": "GET",
+          "url": "https://api.github.com/users/kajf",
+          "headers": {
+            "Accept": "application/json",
+            "If-Modified-Since": "{modifiedSince}"
+          }
+        },
+        "expect": {
+          "statusCode": 304
+        }
+      }
+    ]
   }
 ]

@@ -29,10 +29,11 @@ type TestCase struct {
 }
 
 type Call struct {
-	Args     map[string]interface{} `json:"args"`
-	On       On                     `json:"on"`
-	Expect   Expect                 `json:"expect"`
-	Remember map[string]string      `json:"remember"`
+	Args           map[string]interface{} `json:"args"`
+	On             On                     `json:"on"`
+	Expect         Expect                 `json:"expect"`
+	Remember       map[string]string      `json:"remember"`
+	RememberHeader map[string]string      `json:"rememberHeader"`
 }
 
 type On struct {

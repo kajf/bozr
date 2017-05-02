@@ -75,3 +75,20 @@ func TestConvertTypesToString(t *testing.T) {
 	t.Run("boolean", makeTest(false, "false"))
 	t.Run("string", makeTest("example", "example"))
 }
+
+func TestRememberHeader(t *testing.T) {
+	responseHeaders := map[string][]string{"X-Test": {"PASS"}}
+	remember := map[string]string{"valueKey": "X-Test"}
+	remembered := map[string]interface{}{}
+
+	rememberHeaders(responseHeaders, remember, remembered)
+
+	if len(remembered) != 1 {
+		t.Errorf("Unexpected map length: %d", len(remember))
+		return
+	}
+
+	if remembered["valueKey"] != "PASS" {
+		t.Errorf("Unexpected remembered value: %s", remember["valueKey"])
+	}
+}

@@ -258,13 +258,15 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		return terr
 	}
 
-	err = remember(m, call.Remember, rememberMap)
+	err = rememberBody(m, call.Remember, rememberMap)
 	debug.Print("Remember: ", rememberMap)
 	if err != nil {
 		debug.Print("Error remember")
 		terr.Cause = err
 		return terr
 	}
+
+	rememberHeaders(testResp.http.Header, call.RememberHeader, rememberMap)
 
 	return nil
 }
@@ -404,7 +406,7 @@ func toAbsPath(srcDir string, assetPath string) (string, error) {
 	return filepath.ToSlash(uri), nil
 }
 
-func remember(body interface{}, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
+func rememberBody(body interface{}, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
 
 	for varName, pathLine := range remember {
 
@@ -418,6 +420,17 @@ func remember(body interface{}, remember map[string]string, rememberedMap map[st
 	}
 
 	return err
+}
+
+func rememberHeaders(header http.Header, remember map[string]string, rememberedMap map[string]interface{}) {
+	for valueName, headerName := range remember {
+		value := header.Get(headerName)
+		if value == "" {
+			continue
+		}
+
+		rememberedMap[valueName] = value
+	}
 }
 
 func printRequestInfo(req *http.Request, body []byte) {
