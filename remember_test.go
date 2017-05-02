@@ -89,6 +89,6 @@ func TestRememberHeader(t *testing.T) {
 	}
 
 	if remembered["valueKey"] != "PASS" {
-		t.Errorf("Unexpected remembered value: %s", remember["valueKey"])
+		t.Errorf("Unexpected remembered value: %s", remembered["valueKey"])
 	}
 }
