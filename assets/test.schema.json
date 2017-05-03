@@ -131,10 +131,28 @@
               "additionalProperties": false
             },
             "remember": {
-              "type": "object"
-            },
-            "rememberHeader": {
-              "type": "object"
+              "type": "object",
+              "patternProperties": {
+                ".+": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "body": {
+                          "type": "string"
+                        },
+                        "header": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
             }
           },
           "required": [
