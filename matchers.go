@@ -8,10 +8,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+// MatcherFunc describes unified function reference that matches expected value by provided path and root
 type MatcherFunc func(root interface{}, expectedValue interface{}, path string) (bool, error)
 
+// ChooseMatcher returns function pased on provided path format
+// '~' prefix means inexact matcher, exact matcher returned otherwise
 func ChooseMatcher(path string) MatcherFunc {
-	exactMatch := !strings.HasPrefix(path, ExpectationSearchSign)
+	exactMatch := !strings.HasPrefix(path, expectationSearchSign)
 
 	if exactMatch {
 		return equalsByPath
@@ -27,15 +30,14 @@ func equalsByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 }
 
 const (
-	ExpectationPathSeparator = "."
-	ExpectationSearchSign = "~"
+	expectationPathSeparator = "."
+	expectationSearchSign    = "~"
 )
 
 // exact value by exact path
 func getByPath(m interface{}, pathLine string) (interface{}, error) {
 
-	pathArr := strings.Replace(pathLine, ExpectationSearchSign, "", -1)
-	path := strings.Split(pathArr, ExpectationPathSeparator)
+	path := cleanPath(pathLine)
 
 	for _, p := range path {
 		//fmt.Println(p)
@@ -87,8 +89,7 @@ func searchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 		}
 		return true, nil
 	case interface{}:
-		pathArr := strings.Replace(pathLine, ExpectationSearchSign, "", -1)
-		splitPath := strings.Split(pathArr, ExpectationPathSeparator)
+		splitPath := cleanPath(pathLine)
 
 		for idx, p := range splitPath {
 			//fmt.Println("iter ", idx, p)
@@ -103,6 +104,7 @@ func searchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 				m = typedM[p]
 				//fmt.Println("mapped", m, reflect.TypeOf(m))
 
+				// check array items for expectation
 				switch typedM := m.(type) {
 				case []interface{}:
 					for _, v := range typedM {
@@ -111,6 +113,7 @@ func searchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 						}
 					}
 				}
+				// --------
 
 				if m == typedExpectedValue {
 					return true, nil
@@ -118,7 +121,7 @@ func searchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 			case []interface{}:
 				//fmt.Println("arr ", path[idx:])
 				for _, obj := range typedM {
-					found, err := searchByPath(obj, typedExpectedValue, strings.Join(splitPath[idx:], ExpectationPathSeparator))
+					found, err := searchByPath(obj, typedExpectedValue, strings.Join(splitPath[idx:], expectationPathSeparator))
 					if found {
 						return true, err
 					}
@@ -128,6 +131,45 @@ func searchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 	}
 	str := fmt.Sprintf("Path [%v] does not exist", pathLine)
 	return false, errors.New(str)
+}
+
+func hasPath(m interface{}, pathLine string) bool {
+	//fmt.Println("hasPath", m, pathLine)
+
+	splitPath := cleanPath(pathLine)
+
+	for idx, p := range splitPath {
+		//fmt.Println("iter ", idx, p)
+		switch typedM := m.(type) {
+		case map[string]interface{}:
+
+			if val, ok := typedM[p]; ok {
+				m = val
+
+				isLast := (idx == len(splitPath)-1)
+				if isLast {
+					return true
+				}
+			}
+		case []interface{}:
+			//fmt.Println("arr ", splitPath[idx:])
+			for _, obj := range typedM {
+				found := hasPath(obj, strings.Join(splitPath[idx:], expectationPathSeparator))
+				if found {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+func cleanPath(pathLine string) []string {
+	pathArr := strings.Replace(pathLine, expectationSearchSign, "", -1)
+	path := strings.Split(pathArr, expectationPathSeparator)
+
+	return path
 }
 
 func pathFunction(m interface{}, pathPart string) (float64, bool) {

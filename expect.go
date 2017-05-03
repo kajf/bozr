@@ -177,9 +177,9 @@ func (e AbsentExpectation) check(resp Response) error {
 	return responseBodyPathCheck(resp, expectationItems, checkAbsentPath)
 }
 
-type PathCheckFunc func(m interface{}, pathItem interface{}) string
+type pathCheckFunc func(m interface{}, pathItem interface{}) string
 
-func responseBodyPathCheck(resp Response, pathItems []interface{}, checkPath PathCheckFunc) error {
+func responseBodyPathCheck(resp Response, pathItems []interface{}, checkPath pathCheckFunc) error {
 	errs := []string{}
 
 	m, err := resp.parseBody()

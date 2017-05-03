@@ -467,6 +467,103 @@ func TestGetByPathWithPartialMatch(t *testing.T) {
 	}
 }
 
+func TestHasPath(t *testing.T) {
+	m, err := jsonAsMap(`{
+				"rates":{
+					"AUD":1.4406,
+					"BGN":1.9558
+				}
+			}`)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	exists := hasPath(m, "rates.BGN")
+	if !exists {
+		t.Error(
+			"For", "rates.BGN",
+			"expected exists true",
+			"got", exists,
+		)
+	}
+}
+
+func TestHasNoPath(t *testing.T) {
+	m, err := jsonAsMap(`{
+				"rates":{
+					"AUD":1.4,
+					"BGN":1.9
+				}
+			}`)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	exists := hasPath(m, "rates.USD")
+	if exists {
+		t.Error(
+			"For", "rates.USD",
+			"expected not exists",
+			"got", exists,
+		)
+	}
+}
+
+func TestHasPathArrayItem(t *testing.T) {
+	m, err := jsonAsMap(`{
+				"items":["A", "B"]				
+			}`)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	exists := hasPath(m, "items.A")
+	if exists {
+		t.Error(
+			"For items.A",
+			"expected not exists (A is element, not path!)",
+			"got", exists,
+		)
+	}
+}
+
+func TestHasPathWithArrayRoot(t *testing.T) {
+	m, err := jsonAsArray(`[
+			{"user" : {"name": "John"}}, 
+			{"user" : {"name": "Ivan"}}
+		]`)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	exists := hasPath(m, "user.name")
+	if !exists {
+		t.Error(
+			"For user.name",
+			"expected exists",
+			"got", exists,
+		)
+	}
+}
+
+func TestHasPathEmpty(t *testing.T) {
+	emptyMap := make(map[string]interface{})
+
+	exists := hasPath(emptyMap, "smth")
+
+	if exists {
+		t.Error(
+			"For smth",
+			"expected false",
+			"got", exists,
+		)
+	}
+}
+
 func jsonAsArray(s string) ([]interface{}, error) {
 	arr := make([]interface{}, 0)
 	err := json.Unmarshal([]byte(s), &arr)
