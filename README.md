@@ -129,7 +129,7 @@ Mostly used for security checks (e.g. returned user object should not contain pa
 Path fromat is the same as in 'Expect' body section
 ```json
 "expect": {
-    "absent": ['user.cardNumber', 'user.password']
+    "absent": ["user.cardNumber", "user.password"]
 }
 ```
 
@@ -196,8 +196,15 @@ There are two types of sources for values to remember: response body and headers
   },
   "requestId": {
     "header": "X-RequestID"
-  },
-  "currencyCode" : "currencies.0.code", // shorten notation of the body source
+  }
+}
+```
+
+Shorten notation of the body source is a plain string in place of nested object:
+
+```json
+"remember": {
+  "currencyCode" : "currencies.0.code"
 }
 ```
 
