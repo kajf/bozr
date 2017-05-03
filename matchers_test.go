@@ -241,6 +241,22 @@ func TestSearchByPathHasIntArr(t *testing.T) {
 	}
 }
 
+func TestSearchByPathWithRootArray(t *testing.T) {
+	arr, err := jsonAsArray(`[
+			{"id":1,"status":"OK"},
+			{"id":2,"status":"OK"}
+		]`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected := []interface{}{2.0}
+	ok, err := searchByPath(arr, expected, "id")
+	if !ok || err != nil {
+		t.Error(err)
+	}
+}
+
 func TestGetByPathSimple(t *testing.T) {
 	token := "abc"
 
@@ -396,6 +412,25 @@ func TestGetByPathNotIndexWithArray(t *testing.T) {
 	}
 }
 
+func TestGetByPathWithArray(t *testing.T) {
+	arr, err := jsonAsArray(`[
+			{"id":"abc","status":"OK"},
+			{"id":"zz","status":"OK"}
+		]`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	got, err := getByPath(arr, "1.id")
+	if got != "zz" || err != nil {
+		t.Error(
+			"expected nil",
+			"got", got,
+			"err", err,
+		)
+	}
+}
+
 func TestGetByPathEmpty(t *testing.T) {
 	emptyMap := make(map[string]interface{})
 
@@ -432,8 +467,15 @@ func TestGetByPathWithPartialMatch(t *testing.T) {
 	}
 }
 
+func jsonAsArray(s string) ([]interface{}, error) {
+	arr := make([]interface{}, 0)
+	err := json.Unmarshal([]byte(s), &arr)
+
+	return arr, err
+}
+
 func jsonAsMap(s string) (map[string]interface{}, error) {
-	var m map[string]interface{}
+	m := make(map[string]interface{})
 	err := json.Unmarshal([]byte(s), &m)
 
 	return m, err
