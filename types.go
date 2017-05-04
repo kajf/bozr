@@ -29,11 +29,37 @@ type TestCase struct {
 }
 
 type Call struct {
-	Args           map[string]interface{} `json:"args"`
-	On             On                     `json:"on"`
-	Expect         Expect                 `json:"expect"`
-	Remember       map[string]string      `json:"remember"`
-	RememberHeader map[string]string      `json:"rememberHeader"`
+	Args        map[string]interface{} `json:"args,omitempty"`
+	On          On                     `json:"on,omitempty"`
+	Expect      Expect                 `json:"expect,omitempty"`
+	RawRemember map[string]interface{} `json:"remember,omitempty"`
+}
+
+const (
+	// RememberSourceBody is type of the value to remember refered using body path
+	RememberSourceBody = "body"
+	// RememberSourceHeader is type of the value to remember refered using through the header
+	RememberSourceHeader = "header"
+)
+
+// Remember function return a map of values to remember in the test
+// with certein type of the source.
+func (c Call) Remember(rt string) map[string]string {
+	remember := make(map[string]string, 0)
+	for k, v := range c.RawRemember {
+		if str, ok := v.(string); ok && rt == RememberSourceBody {
+			// string value - remember body path
+			remember[k] = str
+		}
+
+		if obj, ok := v.(map[string]interface{}); ok {
+			if obj[rt] != nil {
+				remember[k] = obj[rt].(string)
+			}
+		}
+	}
+
+	return remember
 }
 
 type On struct {

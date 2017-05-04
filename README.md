@@ -36,8 +36,7 @@ Test suite (suite_name.json)
     |   |   ├ args [value(s) for placeholders to use in request params, headers or body]
     │   │   ├ on [single http request]
     │   │   ├ expect [http response asserts: code, headers, body, schema, etc.]
-    │   │   ├ remember [optionally remember variable(s) for the next call to use in request params, headers or body]
-    |   |   └ rememberHeader [optionally remember header(s) for the next call to use in request params, headers or body]
+    │   │   └ remember [optionally remember variable(s) for the next call to use in request params, headers or body]
     │   └ Call two
     |       ├ args
     │       ├ on
@@ -130,7 +129,7 @@ Mostly used for security checks (e.g. returned user object should not contain pa
 Path fromat is the same as in 'Expect' body section
 ```json
 "expect": {
-    "absent": ['user.cardNumber', 'user.password']
+    "absent": ["user.cardNumber", "user.password"]
 }
 ```
 
@@ -184,42 +183,35 @@ You can use placeholders inside of the `url` and `headers` fields.
 ```
 
 ### Section 'Remember'
-Similar to 'Args' section, specifies plaseholder values for future reference (within test scope)
+Similar to 'Args' section, specifies plaseholder values for future reference (within test scope).
 
-The difference is that values for placeholders are taken from response (syntax is similar to 'Expect' 'equal' matchers)
+The difference is that values for placeholders are taken from response (syntax is similar to 'Expect' 'equal' matchers).
+
+There are two types of sources for values to remember: response body and headers.
 
 ```json
 "remember": {
-  "currencyCode" : "currencies.0.code",
-  "createdId" : "result.newId"
+  "createdId" : {
+    "body": "path.to.id"
+  },
+  "requestId": {
+    "header": "X-RequestID"
+  }
 }
 ```
 
-This section allowes more complex test scenarios like
-
-'request login token, remember, then use remembered {token} to request some data and verify'
-
-'create resource, remember resource id from response, then use remembered {id} to delete resource'
-
-### Section 'RememberHeader'
-
-As regular 'remember' section, specifies plaseholder values for future reference (within test scope).
-The source of values is the response headers.
-
-This section is quite useful in such cases as following 'Location' header or validation http cache.
+Shorten notation of the body source is a plain string in place of nested object:
 
 ```json
-// posing new object and getting location back
-// ...
 "remember": {
-  "objectLocation": "Location"
-}
-// getting newly created object
-"on": {
-  "method": "GET",
-  "url": "{objectLocation}"
+  "currencyCode" : "currencies.0.code"
 }
 ```
+
+This section allowes more complex test scenarios like:
+
+- 'request login token, remember, then use remembered {token} to request some data and verify'
+- 'create resource, remember resource id from response, then use remembered {id} to delete resource'
 
 ## Editor integration
 To make work with test files convenient, we suggest to configure you text editors to use [this](./assets/test.schema.json) json schema. In this case editor will suggest what fields are available and highlight misspells.

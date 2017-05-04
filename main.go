@@ -258,7 +258,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		return terr
 	}
 
-	err = rememberBody(m, call.Remember, rememberMap)
+	err = rememberBody(m, call.Remember(RememberSourceBody), rememberMap)
 	debug.Print("Remember: ", rememberMap)
 	if err != nil {
 		debug.Print("Error remember")
@@ -266,7 +266,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		return terr
 	}
 
-	rememberHeaders(testResp.http.Header, call.RememberHeader, rememberMap)
+	rememberHeaders(testResp.http.Header, call.Remember(RememberSourceHeader), rememberMap)
 
 	return nil
 }
