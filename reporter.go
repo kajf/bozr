@@ -25,6 +25,12 @@ type ConsoleReporter struct {
 
 func (r *ConsoleReporter) Report(result TestResult) {
 	r.total = r.total + 1
+
+	if result.Skipped {
+		r.reportSkipped(result)
+		return
+	}
+
 	if result.Error != nil {
 		r.failed = r.failed + 1
 		r.reportError(result)
@@ -37,14 +43,27 @@ func (r ConsoleReporter) reportSuccess(result TestResult) {
 	c := color.New(color.FgGreen).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("PASSED")
-	fmt.Printf("] %s - %s \t%s\n", result.Suite.Name, result.Case.Name, result.Duration)
+	fmt.Printf("]  %s - %s \t%s\n", result.Suite.Name, result.Case.Name, result.Duration)
+}
+
+func (r ConsoleReporter) reportSkipped(result TestResult) {
+	c := color.New(color.FgYellow).Add(color.Bold)
+	fmt.Printf("[")
+	c.Print("SKIPPED")
+	fmt.Printf("] %s - %s", result.Suite.Name, result.Case.Name)
+	if result.SkippedMsg != "" {
+		reasonColor := color.New(color.FgMagenta)
+		reasonColor.Printf("\t (%s)", result.SkippedMsg)
+	}
+
+	fmt.Printf("\n")
 }
 
 func (r ConsoleReporter) reportError(result TestResult) {
 	c := color.New(color.FgRed).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("FAILED")
-	fmt.Printf("] %s - %s \n", result.Suite.Name, result.Case.Name)
+	fmt.Printf("]  %s - %s \n", result.Suite.Name, result.Case.Name)
 	lines := strings.Split(result.Error.Cause.Error(), "\n")
 
 	for _, line := range lines {
@@ -106,6 +125,7 @@ type tc struct {
 	ClassName string   `xml:"classname,attr"`
 	Time      float64  `xml:"time,attr"`
 	Failure   *failure `xml:"failure,omitempty"`
+	Skipped   *skipped `xml:"skipped,omitempty"`
 }
 
 type failure struct {
@@ -113,6 +133,10 @@ type failure struct {
 	Type    string `xml:"type,attr"`
 	Message string `xml:"message,attr"`
 	Details string `xml:",chardata"`
+}
+
+type skipped struct {
+	Message string `xml:"message,attr"`
 }
 
 func (r *JUnitXMLReporter) Report(result TestResult) {
@@ -131,6 +155,14 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 		testCase.Failure.Details = result.Error.Resp.ToString()
 		r.suite.Failures = r.suite.Failures + 1
 	}
+
+	if result.Skipped {
+		testCase.Skipped = &skipped{}
+		if result.SkippedMsg != "" {
+			testCase.Skipped.Message = result.SkippedMsg
+		}
+	}
+
 	r.suite.Tests = r.suite.Tests + 1
 	r.suite.ID = r.suite.ID + 1
 	r.suite.Time = r.suite.Time + result.Duration.Seconds()

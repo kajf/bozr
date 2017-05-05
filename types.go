@@ -24,8 +24,9 @@ type TestSuite struct {
 }
 
 type TestCase struct {
-	Name  string `json:"name"`
-	Calls []Call `json:"calls"`
+	Name   string      `json:"name,omitempty"`
+	Ignore interface{} `json:"ignore,omitempty"`
+	Calls  []Call      `json:"calls,omitempty"`
 }
 
 type Call struct {
@@ -87,8 +88,10 @@ func (e Expect) hasSchema() bool {
 }
 
 type TestResult struct {
-	Suite TestSuite
-	Case  TestCase
+	Suite      TestSuite
+	Case       TestCase
+	Skipped    bool
+	SkippedMsg string
 	// in case test failed, cause must be specified
 	Error    *TError
 	Duration time.Duration
