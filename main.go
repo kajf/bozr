@@ -155,6 +155,15 @@ func main() {
 				Case:  testCase,
 			}
 
+			if testCase.Ignore != nil {
+				result.Skipped = true
+				if msg, ok := testCase.Ignore.(string); ok {
+					result.SkippedMsg = msg
+				}
+				reporter.Report(result)
+				continue
+			}
+
 			rememberedMap := make(map[string]interface{})
 			start := time.Now()
 			for _, c := range testCase.Calls {
