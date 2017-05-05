@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/tabwriter"
 	"time"
 
 	"github.com/fatih/color"
@@ -19,15 +20,23 @@ type Reporter interface {
 type ConsoleReporter struct {
 	ExitCode int
 
-	total  int
-	failed int
+	start time.Time
+
+	total   int
+	failed  int
+	skipped int
 }
 
 func (r *ConsoleReporter) Report(result TestResult) {
+	if r.start.IsZero() {
+		r.start = time.Now()
+	}
+
 	r.total = r.total + 1
 
 	if result.Skipped {
 		r.reportSkipped(result)
+		r.skipped = r.skipped + 1
 		return
 	}
 
@@ -72,14 +81,33 @@ func (r ConsoleReporter) reportError(result TestResult) {
 }
 
 func (r ConsoleReporter) Flush() {
-	fmt.Println("\nFinished")
-	fmt.Println("--------------------")
+	end := time.Now()
 
-	coler := color.New(color.FgGreen).Add(color.Bold)
+	overall := "PASSED"
 	if r.failed != 0 {
-		coler = color.New(color.FgRed).Add(color.Bold)
+		overall = "FAILED"
 	}
-	coler.Printf("%v tests, %v failures\n", r.total, r.failed)
+
+	fmt.Println()
+	fmt.Println("Test Run Summary")
+	fmt.Println("-------------------------------")
+
+	w := tabwriter.NewWriter(os.Stdout, 4, 2, 1, ' ', tabwriter.AlignRight)
+
+	fmt.Fprintf(w, "Overall result:\t %s\n", overall)
+
+	fmt.Fprintf(w, "Test count:\t %d\n", r.total)
+
+	fmt.Fprintf(w, "Passed:\t %d \n", r.total-r.failed-r.skipped)
+	fmt.Fprintf(w, "Failed:\t %d \n", r.failed)
+	fmt.Fprintf(w, "Skipped:\t %d \n", r.skipped)
+
+	fmt.Fprintf(w, "Start time:\t %s\n", r.start.String())
+	fmt.Fprintf(w, "End time:\t %s\n", end.String())
+	fmt.Fprintf(w, "Duration:\t %s\n", end.Sub(r.start).String())
+
+	w.Flush()
+	fmt.Println()
 }
 
 // NewConsoleReporter returns new instance of console reporter
