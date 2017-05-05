@@ -10,54 +10,61 @@ import (
 // remember		+		-		+
 // absent		+		+		-
 
-func TestPathMapWithIndexes(t *testing.T) {
+func TestSearch(t *testing.T) {
 	m, err := jsonAsMap(
-		`{"boo": {
-		  "name":"ga-ga"},
+		`{
+			"boo": {"name":"ga-ga"}
+		 }`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	res := make([]interface{}, 0)
+	search(m, []string{"boo", "name"}, &res)
+
+	if len(res) != 1 || res[0] != "ga-ga" {
+		t.Error("unexpected ", res)
+	}
+}
+
+func TestSearchMultiResult(t *testing.T) {
+	m, err := jsonAsMap(
+		`{"boo": { "name":"ga-ga"},
 		  "items":[
-			{
-			"id":123,
-			"name":"abc"
-			}
-	      ],
-		  "values" : [1,4]
+			{"id":123, "name":"abc"},
+			{"id":45, "name":"de"}
+	      ]
 		}`)
 	if err != nil {
 		t.Error(err)
 	}
 
-	res := make(map[string]interface{})
-	pathMap("", m, res)
+	res := make([]interface{}, 0)
+	search(m, []string{"items", "id"}, &res)
 
-	if res["boo.name"] != "ga-ga" {
-		t.Error()
-	}
-
-	if res["items.0.id"] != 123.0 {
-		t.Error()
-	}
-
-	if res["values.1"] != 4.0 {
-		t.Error()
+	if len(res) != 2 || res[0] != 123.0 {
+		t.Error("unexpected ", res)
 	}
 }
 
-func TestPathMapWithRootArrayAndIndexes(t *testing.T) {
-	arr, err := jsonAsArray(
-		`[{"id":123, "name":"abc"},
-		  {"id":456, "name":"z"}
-	      ]`)
+func TestSearchWithIndex(t *testing.T) {
+	m, err := jsonAsMap(
+		`{
+		  "items":[
+			{"id":123, "name":"abc"},
+			{"id":45, "name":"de"}
+	      ]
+		}`)
 	if err != nil {
 		t.Error(err)
 	}
 
-	res := make(map[string]interface{})
-	pathMap("", arr, res)
+	res := make([]interface{}, 0)
+	search(m, []string{"items", "1", "id"}, &res)
 
-	if res["0.name"] != "abc" {
-		t.Error()
+	if len(res) != 1 || res[0] != 45.0 {
+		t.Error("unexpected ", res)
 	}
-
 }
 
 func TestSearchByPathId(t *testing.T) {
@@ -124,10 +131,10 @@ func TestSearchByPathArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := searchByPath(m, 2.0, "root.size()")
+	found, err := searchByPath(m, 2.0, "root.size()")
 
-	if !found {
-		t.Error()
+	if !found || err != nil {
+		t.Error("unexpected", found, "err", err)
 	}
 }
 
@@ -265,6 +272,27 @@ func TestSearchByPathHasOneElementArray(t *testing.T) {
 	}
 }
 
+func TestFindDeep(t *testing.T) {
+	sub := []interface{}{"def"}
+	root := []interface{}{sub}
+
+	found := findDeep(root, "def")
+
+	if !found {
+		t.Error()
+	}
+}
+
+func TestFindDeepInFlat(t *testing.T) {
+	root := []interface{}{"def", "ab"}
+
+	found := findDeep(root, "ab")
+
+	if !found {
+		t.Error()
+	}
+}
+
 func TestSearchByPathArrayOfPrimitives(t *testing.T) {
 	m, err := jsonAsMap(`{"items":["ONE", "TWO"]}`)
 	if err != nil {
@@ -272,6 +300,19 @@ func TestSearchByPathArrayOfPrimitives(t *testing.T) {
 	}
 
 	arr := []interface{}{"ONE", "TWO"}
+	ok, err := searchByPath(m, arr, "items")
+	if !ok || err != nil {
+		t.Error(ok, err)
+	}
+}
+
+func TestSearchByPathArrayOfPrimitivesSingle(t *testing.T) {
+	m, err := jsonAsMap(`{"items":["ONE", "TWO"]}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	arr := []interface{}{"ONE"}
 	ok, err := searchByPath(m, arr, "items")
 	if !ok || err != nil {
 		t.Error(err)
@@ -495,6 +536,26 @@ func TestGetByPathEmpty(t *testing.T) {
 		t.Error(
 			"For", "token",
 			"expected", nil,
+			"got", got,
+		)
+	}
+}
+
+func TestGetByPathEmptyRootArraySize(t *testing.T) {
+	m, err := jsonAsMap(`{
+				"items":[]
+			}`)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	got, _ := getByPath(m, "items.size()")
+
+	if got != 0.0 {
+		t.Error(
+			"For items.size",
+			"expected", 0.0,
 			"got", got,
 		)
 	}

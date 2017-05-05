@@ -34,138 +34,157 @@ const (
 	expectationSearchSign    = "~"
 )
 
-func pathMap(prefix string, m interface{}, res map[string]interface{}) {
-
-	switch typedM := m.(type) {
-	case []interface{}:
-		for i, item := range typedM {
-			newPrefix := prefix + expectationPathSeparator + strconv.Itoa(i)
-			pathMap(newPrefix, item, res)
-		}
-	case map[string]interface{}:
-		for k, v := range typedM {
-			newPrefix := prefix + expectationPathSeparator + k
-			pathMap(newPrefix, v, res)
-		}
-	case interface{}:
-		prefix = strings.TrimPrefix(prefix, ".") // replace first char '.'
-		res[prefix] = m
-	}
-}
-
 // exact value by exact path
 func getByPath(m interface{}, pathLine string) (interface{}, error) {
 
 	path := cleanPath(pathLine)
 
-	for _, p := range path {
-		//fmt.Println(p)
-		funcVal, ok := pathFunction(m, p)
-		if ok {
-			return funcVal, nil
-		}
+	res := make([]interface{}, 0)
+	search(m, path, &res)
 
-		idx, err := strconv.Atoi(p)
-		if err != nil {
-			//fmt.Println(err)
-			mp, ok := m.(map[string]interface{})
-			if !ok {
-				str := fmt.Sprintf("Can't cast to Map and get key [%v] in path %v", p, path)
-				return nil, errors.New(str)
-			}
-			if val, ok := mp[p]; ok {
-				m = val
-			} else {
-				str := fmt.Sprintf("Map key [%v] does not exist in path %v", p, path)
-				return nil, errors.New(str)
-			}
-		} else {
-			arr, ok := m.([]interface{})
-			if !ok {
-				str := fmt.Sprintf("Can't cast to Array and get index [%v] in path %v", idx, path)
-				return nil, errors.New(str)
-			}
-			if idx >= len(arr) {
-				str := fmt.Sprintf("Array only has [%v] elements. Can't get element by index [%v] (counts from zero)", len(arr), idx)
-				return nil, errors.New(str)
-			}
-			m = arr[idx]
-		}
+	if len(res) != 1 {
+		str := fmt.Sprintf("Required exactly one value, found [%v] on path [%v]", len(res), path)
+		return nil, errors.New(str)
 	}
 
-	return m, nil
+	if strings.HasSuffix(pathLine, "size()") {
+		currSize, err := calcSize(pathLine, res)
+
+		if err == nil {
+			return currSize, nil
+		}
+
+		return false, err
+	}
+
+	return res[0], nil
 }
 
 // search passing maps and arrays
 func searchByPath(m interface{}, expectedValue interface{}, pathLine string) (bool, error) {
 	//fmt.Println("searchByPath", m, expectedValue, path, reflect.TypeOf(expectedValue))
+
+	path := cleanPath(pathLine)
+
+	res := make([]interface{}, 0)
+	search(m, path, &res)
+
+	if strings.HasSuffix(pathLine, "size()") {
+		currSize, err := calcSize(pathLine, res)
+
+		if err == nil {
+			if currSize == expectedValue {
+				return true, nil
+			}
+
+			str := fmt.Sprintf("expected [%v].size() [%v] does not match actual [%v]", pathLine, expectedValue, currSize)
+			return false, errors.New(str)
+		}
+
+		return false, err
+	}
+
 	switch typedExpectedValue := expectedValue.(type) {
 	case []interface{}:
-		for _, obj := range typedExpectedValue {
-			if ok, err := searchByPath(m, obj, pathLine); !ok {
-				return false, err
+		//found := false
+		for _, expectedItem := range typedExpectedValue {
+
+			found := findDeep(res, expectedItem)
+
+			if !found {
+				str := fmt.Sprintf("Value [%v] not found by path [%v]", expectedItem, pathLine)
+				return false, errors.New(str)
 			}
 		}
+
 		return true, nil
-	case interface{}:
-		splitPath := cleanPath(pathLine)
-
-		for idx, p := range splitPath {
-			//fmt.Println("iter ", idx, p)
-			if funcVal, ok := pathFunction(m, p); ok {
-				if typedExpectedValue == funcVal {
-					return true, nil
-				}
-			}
-
-			switch typedM := m.(type) {
-			case map[string]interface{}:
-				m = typedM[p]
-				//fmt.Println("mapped", m, reflect.TypeOf(m))
-
-				// check array items for expectation
-				switch typedM := m.(type) {
-				case []interface{}:
-					for _, v := range typedM {
-						if v == typedExpectedValue {
-							return true, nil
-						}
-					}
-				}
-				// --------
-
-				if m == typedExpectedValue {
-					return true, nil
-				}
-			case []interface{}:
-				//fmt.Println("arr ", path[idx:])
-				for _, obj := range typedM {
-					found, err := searchByPath(obj, typedExpectedValue, strings.Join(splitPath[idx:], expectationPathSeparator))
-					if found {
-						return true, err
-					}
-				}
-			}
+	default:
+		if findDeep(res, expectedValue) {
+			return true, nil
 		}
 	}
-	str := fmt.Sprintf("Path [%v] does not exist", pathLine)
+
+	str := fmt.Sprintf("Value [%v] not found by path [%v]", expectedValue, pathLine)
 	return false, errors.New(str)
 }
 
-func cleanPath(pathLine string) []string {
-	pathArr := strings.Replace(pathLine, expectationSearchSign, "", -1)
-	path := strings.Split(pathArr, expectationPathSeparator)
+func calcSize(pathLine string, res []interface{}) (float64, error) {
 
-	return path
-}
-
-func pathFunction(m interface{}, pathPart string) (float64, bool) {
-
-	if pathPart == "size()" {
-		if arr, ok := m.([]interface{}); ok {
-			return float64(len(arr)), true
-		}
+	if !strings.HasSuffix(pathLine, ".size()") {
+		str := fmt.Sprintf("Path has no size function [%v] to calculate", pathLine)
+		return -1.0, errors.New(str)
 	}
 
-	return -1, false
+	if len(res) != 1 {
+		str := fmt.Sprintf("Required exactly one value to calculate, found [%v] on path [%v]", len(res), pathLine)
+		return -2.0, errors.New(str)
+	}
+
+	switch arr := res[0].(type) {
+	case []interface{}:
+		return float64(len(arr)), nil
+
+	default:
+		str := fmt.Sprintf(".size() is not applicable to search result [%v] ", res)
+		return -3.0, errors.New(str)
+	}
+}
+
+func search(m interface{}, splitPath []string, res *[]interface{}) {
+	//fmt.Println(m, "~~~", splitPath, "~~~", res)
+
+	if len(splitPath) == 0 {
+		*res = append(*res, m)
+	}
+
+	for _, p := range splitPath {
+
+		switch typedM := m.(type) {
+		case map[string]interface{}:
+			if obj, ok := typedM[p]; ok {
+				search(obj, splitPath[1:], res)
+			}
+
+		case []interface{}:
+			if idx, err := strconv.Atoi(p); err == nil { // index in path
+				if idx < len(typedM) { // index exists in array
+					search(typedM[idx], splitPath[1:], res)
+				}
+			} else { // search all items in array
+				for _, obj := range typedM {
+					search(obj, splitPath, res)
+				}
+			}
+
+		}
+	}
+}
+
+func findDeep(items []interface{}, expected interface{}) bool {
+	for _, item := range items {
+
+		switch typedItem := item.(type) {
+		case []interface{}:
+			found := findDeep(typedItem, expected)
+			if found {
+				return true
+			}
+		default:
+			if expected == item {
+				return true
+			}
+		}
+
+	}
+
+	return false
+}
+
+func cleanPath(pathLine string) []string {
+	pathLine = strings.Replace(pathLine, expectationSearchSign, "", -1)
+	pathLine = strings.TrimSuffix(pathLine, expectationPathSeparator+"size()")
+
+	path := strings.Split(pathLine, expectationPathSeparator)
+
+	return path
 }
