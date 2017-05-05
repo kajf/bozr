@@ -32,7 +32,7 @@ Test suite (suite_name.json)
 
     ├ Test A [test case]
     |   ├ Name
-    |   ├ Ignore [ if set test will be skipped ]
+    |   ├ Ignore [ ignore test due to a specified reason ]
     │   ├ Call one
     |   |   ├ args [value(s) for placeholders to use in request params, headers or body]
     │   │   ├ on [single http request]
