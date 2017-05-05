@@ -177,9 +177,9 @@ func (e AbsentExpectation) check(resp Response) error {
 	return responseBodyPathCheck(resp, expectationItems, checkAbsentPath)
 }
 
-type PathCheckFunc func(m interface{}, pathItem interface{}) string
+type pathCheckFunc func(m interface{}, pathItem interface{}) string
 
-func responseBodyPathCheck(resp Response, pathItems []interface{}, checkPath PathCheckFunc) error {
+func responseBodyPathCheck(resp Response, pathItems []interface{}, checkPath pathCheckFunc) error {
 	errs := []string{}
 
 	m, err := resp.parseBody()
@@ -212,9 +212,9 @@ func checkAbsentPath(m interface{}, pathItem interface{}) string {
 
 	if pathStr, ok := pathItem.(string); ok {
 
-		if val, err := getByPath(m, pathStr); err == nil {
-
-			return fmt.Sprintf("Value expected to be absent was found: %v, path: %v", val, pathStr)
+		searchResult := Search(m, pathStr)
+		if len(searchResult) > 0 {
+			return fmt.Sprintf("Value expected to be absent was found: %v, path: %v", searchResult, pathStr)
 		}
 
 		return ""

@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// TODO .size() only counts last array not all arrays in search
+
 func TestExpectedStatusCode(t *testing.T) {
 	exp := StatusCodeExpectation{statusCode: 200}
 	err := exp.check(Response{
@@ -273,6 +275,28 @@ func TestCheckAbsentPath(t *testing.T) {
 			"items": {
 				"test": 1
 			}
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	errorMsg := checkAbsentPath(m, "items.test")
+
+	if errorMsg == "" {
+		t.Error(
+			"For", "items.test",
+			"expected", "error",
+			"got", "empty message",
+		)
+	}
+}
+
+func TestCheckAbsentNotExactPath(t *testing.T) {
+	m, err := jsonAsMap(`{
+			"items": [
+				{"test": 1},
+				{"test": 2}
+			]
 	 	}`)
 	if err != nil {
 		t.Error(err)
