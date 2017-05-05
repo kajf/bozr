@@ -290,3 +290,25 @@ func TestCheckAbsentPath(t *testing.T) {
 		)
 	}
 }
+
+func TestCheckAbsentNotExactPath(t *testing.T) {
+	m, err := jsonAsMap(`{
+			"items": [
+				{"test": 1},
+				{"test": 2}
+			]
+	 	}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	errorMsg := checkAbsentPath(m, "items.test")
+
+	if errorMsg == "" {
+		t.Error(
+			"For", "items.test",
+			"expected", "error",
+			"got", "empty message",
+		)
+	}
+}

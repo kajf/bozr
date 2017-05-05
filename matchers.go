@@ -37,13 +37,10 @@ const (
 // exact value by exact path
 func getByPath(m interface{}, pathLine string) (interface{}, error) {
 
-	path := cleanPath(pathLine)
-
-	res := make([]interface{}, 0)
-	search(m, path, &res)
+	res := Search(m, pathLine)
 
 	if len(res) != 1 {
-		str := fmt.Sprintf("Required exactly one value, found [%v] on path [%v]", len(res), path)
+		str := fmt.Sprintf("Required exactly one value, found [%v] on path [%v]", len(res), pathLine)
 		return nil, errors.New(str)
 	}
 
@@ -64,10 +61,7 @@ func getByPath(m interface{}, pathLine string) (interface{}, error) {
 func searchByPath(m interface{}, expectedValue interface{}, pathLine string) (bool, error) {
 	//fmt.Println("searchByPath", m, expectedValue, path, reflect.TypeOf(expectedValue))
 
-	path := cleanPath(pathLine)
-
-	res := make([]interface{}, 0)
-	search(m, path, &res)
+	res := Search(m, pathLine)
 
 	if strings.HasSuffix(pathLine, "size()") {
 		currSize, err := calcSize(pathLine, res)
@@ -128,6 +122,16 @@ func calcSize(pathLine string, res []interface{}) (float64, error) {
 		str := fmt.Sprintf(".size() is not applicable to search result [%v] ", res)
 		return -3.0, errors.New(str)
 	}
+}
+
+// Search values represented by (pathLine) recursively at tree object (m)
+func Search(m interface{}, pathLine string) []interface{} {
+	path := cleanPath(pathLine)
+
+	res := make([]interface{}, 0)
+	search(m, path, &res)
+
+	return res
 }
 
 func search(m interface{}, splitPath []string, res *[]interface{}) {

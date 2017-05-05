@@ -19,8 +19,7 @@ func TestSearch(t *testing.T) {
 		t.Error(err)
 	}
 
-	res := make([]interface{}, 0)
-	search(m, []string{"boo", "name"}, &res)
+	res := Search(m, "boo.name")
 
 	if len(res) != 1 || res[0] != "ga-ga" {
 		t.Error("unexpected ", res)
@@ -39,8 +38,7 @@ func TestSearchMultiResult(t *testing.T) {
 		t.Error(err)
 	}
 
-	res := make([]interface{}, 0)
-	search(m, []string{"items", "id"}, &res)
+	res := Search(m, "items.id")
 
 	if len(res) != 2 || res[0] != 123.0 {
 		t.Error("unexpected ", res)
@@ -59,8 +57,7 @@ func TestSearchWithIndex(t *testing.T) {
 		t.Error(err)
 	}
 
-	res := make([]interface{}, 0)
-	search(m, []string{"items", "1", "id"}, &res)
+	res := Search(m, "items.1.id")
 
 	if len(res) != 1 || res[0] != 45.0 {
 		t.Error("unexpected ", res)
