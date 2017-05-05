@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// TODO .size() only counts last array not all arrays in search
+
 func TestExpectedStatusCode(t *testing.T) {
 	exp := StatusCodeExpectation{statusCode: 200}
 	err := exp.check(Response{

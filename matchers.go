@@ -34,6 +34,25 @@ const (
 	expectationSearchSign    = "~"
 )
 
+func pathMap(prefix string, m interface{}, res map[string]interface{}) {
+
+	switch typedM := m.(type) {
+	case []interface{}:
+		for i, item := range typedM {
+			newPrefix := prefix + expectationPathSeparator + strconv.Itoa(i)
+			pathMap(newPrefix, item, res)
+		}
+	case map[string]interface{}:
+		for k, v := range typedM {
+			newPrefix := prefix + expectationPathSeparator + k
+			pathMap(newPrefix, v, res)
+		}
+	case interface{}:
+		prefix = strings.TrimPrefix(prefix, ".") // replace first char '.'
+		res[prefix] = m
+	}
+}
+
 // exact value by exact path
 func getByPath(m interface{}, pathLine string) (interface{}, error) {
 
@@ -131,38 +150,6 @@ func searchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 	}
 	str := fmt.Sprintf("Path [%v] does not exist", pathLine)
 	return false, errors.New(str)
-}
-
-func hasPath(m interface{}, pathLine string) bool {
-	//fmt.Println("hasPath", m, pathLine)
-
-	splitPath := cleanPath(pathLine)
-
-	for idx, p := range splitPath {
-		//fmt.Println("iter ", idx, p)
-		switch typedM := m.(type) {
-		case map[string]interface{}:
-
-			if val, ok := typedM[p]; ok {
-				m = val
-
-				isLast := (idx == len(splitPath)-1)
-				if isLast {
-					return true
-				}
-			}
-		case []interface{}:
-			//fmt.Println("arr ", splitPath[idx:])
-			for _, obj := range typedM {
-				found := hasPath(obj, strings.Join(splitPath[idx:], expectationPathSeparator))
-				if found {
-					return true
-				}
-			}
-		}
-	}
-
-	return false
 }
 
 func cleanPath(pathLine string) []string {

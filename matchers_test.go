@@ -5,6 +5,61 @@ import (
 	"testing"
 )
 
+// --------		path	search	func
+// expect		+		+		+
+// remember		+		-		+
+// absent		+		+		-
+
+func TestPathMapWithIndexes(t *testing.T) {
+	m, err := jsonAsMap(
+		`{"boo": {
+		  "name":"ga-ga"},
+		  "items":[
+			{
+			"id":123,
+			"name":"abc"
+			}
+	      ],
+		  "values" : [1,4]
+		}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	res := make(map[string]interface{})
+	pathMap("", m, res)
+
+	if res["boo.name"] != "ga-ga" {
+		t.Error()
+	}
+
+	if res["items.0.id"] != 123.0 {
+		t.Error()
+	}
+
+	if res["values.1"] != 4.0 {
+		t.Error()
+	}
+}
+
+func TestPathMapWithRootArrayAndIndexes(t *testing.T) {
+	arr, err := jsonAsArray(
+		`[{"id":123, "name":"abc"},
+		  {"id":456, "name":"z"}
+	      ]`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	res := make(map[string]interface{})
+	pathMap("", arr, res)
+
+	if res["0.name"] != "abc" {
+		t.Error()
+	}
+
+}
+
 func TestSearchByPathId(t *testing.T) {
 
 	m, err := jsonAsMap(`{"rate_tables":[
@@ -463,103 +518,6 @@ func TestGetByPathWithPartialMatch(t *testing.T) {
 			"For", "rates.z",
 			"expected", "error",
 			"got", err,
-		)
-	}
-}
-
-func TestHasPath(t *testing.T) {
-	m, err := jsonAsMap(`{
-				"rates":{
-					"AUD":1.4406,
-					"BGN":1.9558
-				}
-			}`)
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	exists := hasPath(m, "rates.BGN")
-	if !exists {
-		t.Error(
-			"For", "rates.BGN",
-			"expected exists true",
-			"got", exists,
-		)
-	}
-}
-
-func TestHasNoPath(t *testing.T) {
-	m, err := jsonAsMap(`{
-				"rates":{
-					"AUD":1.4,
-					"BGN":1.9
-				}
-			}`)
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	exists := hasPath(m, "rates.USD")
-	if exists {
-		t.Error(
-			"For", "rates.USD",
-			"expected not exists",
-			"got", exists,
-		)
-	}
-}
-
-func TestHasPathArrayItem(t *testing.T) {
-	m, err := jsonAsMap(`{
-				"items":["A", "B"]				
-			}`)
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	exists := hasPath(m, "items.A")
-	if exists {
-		t.Error(
-			"For items.A",
-			"expected not exists (A is element, not path!)",
-			"got", exists,
-		)
-	}
-}
-
-func TestHasPathWithArrayRoot(t *testing.T) {
-	m, err := jsonAsArray(`[
-			{"user" : {"name": "John"}}, 
-			{"user" : {"name": "Ivan"}}
-		]`)
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	exists := hasPath(m, "user.name")
-	if !exists {
-		t.Error(
-			"For user.name",
-			"expected exists",
-			"got", exists,
-		)
-	}
-}
-
-func TestHasPathEmpty(t *testing.T) {
-	emptyMap := make(map[string]interface{})
-
-	exists := hasPath(emptyMap, "smth")
-
-	if exists {
-		t.Error(
-			"For smth",
-			"expected false",
-			"got", exists,
 		)
 	}
 }
