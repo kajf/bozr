@@ -12,6 +12,10 @@
         "type": "string",
         "description": "Long description of the test."
       },
+      "ignore": {
+        "type": "string",
+        "description": "Ignore test due to a reason"
+      },
       "calls": {
         "type": "array",
         "items": {

@@ -155,11 +155,9 @@ func main() {
 				Case:  testCase,
 			}
 
-			if testCase.Ignore != nil {
+			if testCase.Ignore != "" {
 				result.Skipped = true
-				if msg, ok := testCase.Ignore.(string); ok {
-					result.SkippedMsg = msg
-				}
+				result.SkippedMsg = testCase.Ignore
 				reporter.Report(result)
 				continue
 			}

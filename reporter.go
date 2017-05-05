@@ -185,10 +185,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 	}
 
 	if result.Skipped {
-		testCase.Skipped = &skipped{}
-		if result.SkippedMsg != "" {
-			testCase.Skipped.Message = result.SkippedMsg
-		}
+		testCase.Skipped = &skipped{Message: result.SkippedMsg}
 	}
 
 	r.suite.Tests = r.suite.Tests + 1

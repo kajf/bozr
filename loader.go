@@ -261,6 +261,9 @@ const suiteDetailedSchema = `
 			"name": {
 				"type": "string"
 			},
+			"ignore": {
+        		"type": "string"
+			},
 			"calls": {
 				"type": "array",
 				"items": {
