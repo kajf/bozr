@@ -5,21 +5,14 @@
       {
         "on": {
           "method": "POST",
-          "url": "http://reqres.in/api/users",
+          "url": "https://reqres.in/api/users",
           "body": {
-            "userId": 1,
-            "title": "Lerkem ipsum",
-            "body": {
-              "name": "morpheus",
-              "job": "leader"
-            }
+            "name": "morpheus",
+            "job": "leader"
           }
         },
         "expect": {
           "statusCode": 201
-        },
-        "remember": {
-          "user_id": "id"
         }
       }
     ]
@@ -31,21 +24,14 @@
       {
         "on": {
           "method": "POST",
-          "url": "http://reqres.in/api/users",
+          "url": "https://reqres.in/api/users",
           "body": {
-            "userId": 1,
-            "title": "Lerkem ipsum",
-            "body": {
-              "name": "morpheus",
-              "job": "leader"
-            }
+            "name": "morpheus",
+            "job": "leader"
           }
         },
         "expect": {
           "statusCode": 201
-        },
-        "remember": {
-          "user_id": "id"
         }
       }
     ]

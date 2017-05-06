@@ -17,7 +17,9 @@
           }
         },
         "remember": {
-          "repos_url": "repos_url"
+          "body": {
+            "repos_url": "repos_url"
+          }
         }
       },
       {
@@ -55,8 +57,8 @@
           }
         },
         "remember": {
-          "modifiedSince": {
-            "header": "Last-Modified"
+          "headers": {
+            "modifiedSince": "Last-Modified"
           }
         }
       },
