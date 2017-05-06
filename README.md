@@ -191,12 +191,14 @@ The difference is that values for placeholders are taken from response (syntax i
 There are two types of sources for values to remember: response body and headers.
 
 ```json
-"remember": {
-  "createdId" : {
-    "body": "path.to.id"
-  },
-  "requestId": {
-    "header": "X-RequestID"
+{
+  "remember": {
+    "body": {
+      "createdId": "path.to.id"
+    },
+    "headers": {
+      "loc": "Location"
+    }
   }
 }
 ```
