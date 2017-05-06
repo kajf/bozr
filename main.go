@@ -417,7 +417,7 @@ func rememberBody(body interface{}, remember map[string]string, rememberedMap ma
 
 	for varName, pathLine := range remember {
 
-		if rememberVar, err := getByPath(body, pathLine); err == nil {
+		if rememberVar, err := GetByPath(body, pathLine); err == nil {
 			rememberedMap[varName] = rememberVar
 		} else {
 			strErr := fmt.Sprintf("Remembered value not found, path: %v", pathLine)

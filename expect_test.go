@@ -180,7 +180,7 @@ func TestBodyExpectationSize(t *testing.T) {
 
 func TestBodyExpectationSearchBool(t *testing.T) {
 	m, err := jsonAsMap(`{
-		"~flag": true
+		"flag": true
 	 	}`)
 	if err != nil {
 		t.Error(err)
@@ -202,7 +202,7 @@ func TestBodyExpectationSearchBool(t *testing.T) {
 
 func TestBodyExpectationSearchInt(t *testing.T) {
 	m, err := jsonAsMap(`{
-		"~len": 2
+		"len": 2
 	 	}`)
 	if err != nil {
 		t.Error(err)
@@ -224,7 +224,7 @@ func TestBodyExpectationSearchInt(t *testing.T) {
 
 func TestBodyExpectationSearchArray(t *testing.T) {
 	m, err := jsonAsMap(`{
-		"~items": "ONE"
+		"items": "ONE"
 	 	}`)
 	if err != nil {
 		t.Error(err)

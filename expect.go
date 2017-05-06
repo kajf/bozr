@@ -105,9 +105,7 @@ func checkExpectedPath(m interface{}, pathItem interface{}) string {
 
 	if bodyExpectationItem, ok := pathItem.(BodyExpectationItem); ok {
 
-		matcherFunc := ChooseMatcher(bodyExpectationItem.Path)
-
-		ok, err := matcherFunc(m, bodyExpectationItem.ExpectedValue, bodyExpectationItem.Path)
+		ok, err := SearchByPath(m, bodyExpectationItem.ExpectedValue, bodyExpectationItem.Path)
 		if !ok {
 			return fmt.Sprintf("Expected value [%v] on path [%s] does not match.", bodyExpectationItem.ExpectedValue, bodyExpectationItem.Path)
 		}

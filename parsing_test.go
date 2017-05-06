@@ -17,7 +17,7 @@ func TestXmlUnmarshalMxj(t *testing.T) {
 		t.Error(err)
 	}
 
-	got, err := getByPath(m.Old(), "pay_period_profiles.pay_period_profile.1")
+	got, err := GetByPath(m.Old(), "pay_period_profiles.pay_period_profile.1")
 	if got != expectedVal || err != nil {
 		t.Error(
 			"expected", expectedVal,

@@ -33,7 +33,7 @@
         "expect": {
           "statusCode": 200,
           "body": {
-            "~name": "bozr"
+            "name": "bozr"
           }
         }
       }

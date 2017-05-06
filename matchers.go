@@ -8,34 +8,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-// MatcherFunc describes unified function reference that matches expected value by provided path and root
-type MatcherFunc func(root interface{}, expectedValue interface{}, path string) (bool, error)
-
-// ChooseMatcher returns function pased on provided path format
-// '~' prefix means inexact matcher, exact matcher returned otherwise
-func ChooseMatcher(path string) MatcherFunc {
-	exactMatch := !strings.HasPrefix(path, expectationSearchSign)
-
-	if exactMatch {
-		return equalsByPath
-	}
-
-	return searchByPath
-}
-
-func equalsByPath(m interface{}, expectedValue interface{}, pathLine string) (bool, error) {
-
-	val, err := getByPath(m, pathLine)
-	return (expectedValue == val), err
-}
-
 const (
 	expectationPathSeparator = "."
 	expectationSearchSign    = "~"
 )
 
-// exact value by exact path
-func getByPath(m interface{}, pathLine string) (interface{}, error) {
+// GetByPath returns value by exact path line
+func GetByPath(m interface{}, pathLine string) (interface{}, error) {
 
 	res := Search(m, pathLine)
 
@@ -51,14 +30,14 @@ func getByPath(m interface{}, pathLine string) (interface{}, error) {
 			return currSize, nil
 		}
 
-		return false, err
+		return nil, err
 	}
 
 	return res[0], nil
 }
 
-// search passing maps and arrays
-func searchByPath(m interface{}, expectedValue interface{}, pathLine string) (bool, error) {
+// SearchByPath search traversing maps and arrays deep
+func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bool, error) {
 	//fmt.Println("searchByPath", m, expectedValue, path, reflect.TypeOf(expectedValue))
 
 	res := Search(m, pathLine)
@@ -125,6 +104,8 @@ func calcSize(pathLine string, res []interface{}) (float64, error) {
 }
 
 // Search values represented by (pathLine) recursively at tree object (m)
+// returns array of found results (array size = number of results)
+// each found result may have be any shape (array, map, value)
 func Search(m interface{}, pathLine string) []interface{} {
 	path := cleanPath(pathLine)
 
