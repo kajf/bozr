@@ -9,7 +9,7 @@ func TestConcatURL(t *testing.T) {
 		path := "/api/v1/example"
 		url, _ := concatURL(base, path)
 		if url != "http://example.com/api/v1/example" {
-			t.Error("Incorrect url. Expected: http://example.com/api/v1/example. Give: " + url)
+			t.Error("Incorrect url. Expected: http://example.com/api/v1/example. Actual: " + url)
 		}
 	})
 
@@ -18,7 +18,7 @@ func TestConcatURL(t *testing.T) {
 		path := "/v1/example"
 		url, _ := concatURL(base, path)
 		if url != "http://example.com/api/v1/example" {
-			t.Error("Incorrect url. Expected: http://example.com/api/v1/example. Give: " + url)
+			t.Error("Incorrect url. Expected: http://example.com/api/v1/example. Actual: " + url)
 		}
 	})
 
@@ -27,7 +27,7 @@ func TestConcatURL(t *testing.T) {
 		path := "v1/example"
 		url, _ := concatURL(base, path)
 		if url != "http://example.com/api/v1/example" {
-			t.Error("Incorrect url. Expected: http://example.com/api/v1/example. Give: " + url)
+			t.Error("Incorrect url. Expected: http://example.com/api/v1/example. Actual: " + url)
 		}
 	})
 
@@ -36,7 +36,7 @@ func TestConcatURL(t *testing.T) {
 		path := "v1/example"
 		url, _ := concatURL(base, path)
 		if url != "http://example.com/api/v1/example" {
-			t.Error("Incorrect url. Expected: http://example.com/api/v1/example. Give: " + url)
+			t.Error("Incorrect url. Expected: http://example.com/api/v1/example. Actual: " + url)
 		}
 	})
 
