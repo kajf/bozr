@@ -135,6 +135,19 @@ func TestSearchByPathArray(t *testing.T) {
 	}
 }
 
+func TestSearchBySizeEmptyRootArray(t *testing.T) {
+	m, err := jsonAsArray(`[{},{}]`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	found, err := SearchByPath(m, 2.0, "size()")
+
+	if !found || err != nil {
+		t.Error("unexpected", found, "err", err)
+	}
+}
+
 func TestSearchByPathDuplicates(t *testing.T) {
 	m, err := jsonAsMap(`{
 					"counters": [

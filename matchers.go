@@ -11,6 +11,7 @@ import (
 const (
 	expectationPathSeparator = "."
 	expectationSearchSign    = "~"
+	pathSizeFunction         = "size()"
 )
 
 // GetByPath returns value by exact path line
@@ -23,7 +24,7 @@ func GetByPath(m interface{}, pathLine string) (interface{}, error) {
 		return nil, errors.New(str)
 	}
 
-	if strings.HasSuffix(pathLine, "size()") {
+	if strings.HasSuffix(pathLine, pathSizeFunction) {
 		currSize, err := calcSize(pathLine, res)
 
 		if err == nil {
@@ -42,7 +43,7 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 
 	res := Search(m, pathLine)
 
-	if strings.HasSuffix(pathLine, "size()") {
+	if strings.HasSuffix(pathLine, pathSizeFunction) {
 		currSize, err := calcSize(pathLine, res)
 
 		if err == nil {
@@ -83,7 +84,7 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 
 func calcSize(pathLine string, res []interface{}) (float64, error) {
 
-	if !strings.HasSuffix(pathLine, ".size()") {
+	if !strings.HasSuffix(pathLine, pathSizeFunction) {
 		str := fmt.Sprintf("Path has no size function [%v] to calculate", pathLine)
 		return -1.0, errors.New(str)
 	}
@@ -121,9 +122,13 @@ func search(m interface{}, splitPath []string, res *[]interface{}) {
 	if len(splitPath) == 0 {
 		*res = append(*res, m)
 		return
-	}
+	} // reached end of path - found
 
 	firstPathPart := splitPath[0]
+	if firstPathPart == "" {
+		search(m, splitPath[1:], res)
+		return
+	} // empty path elements do not lead anywhere
 
 	switch typedM := m.(type) {
 	case map[string]interface{}:
@@ -166,8 +171,8 @@ func findDeep(items []interface{}, expected interface{}) bool {
 }
 
 func cleanPath(pathLine string) []string {
-	pathLine = strings.Replace(pathLine, expectationSearchSign, "", -1)
-	pathLine = strings.TrimSuffix(pathLine, expectationPathSeparator+"size()")
+	pathLine = strings.Replace(pathLine, expectationSearchSign, "", -1) // compliance for redundant '~' opeator
+	pathLine = strings.TrimSuffix(pathLine, pathSizeFunction)           // function
 
 	path := strings.Split(pathLine, expectationPathSeparator)
 
