@@ -98,7 +98,7 @@ contentType | Expected http response 'Content-Type' | application/json
 bodySchemaFile | Path to json schema to validate response body against (path relative to test suite file) | login-schema.json
 bodySchemaURI | URI to json schema to validate response body against (absolute or relative to the host) | http://example.com/api/scheme/login-schema.json
 body | Body matchers: equals, search, size |
-absent | Paths that are NOT expected to in response | ['user.cardNumber', 'user.password']
+absent | Paths that are NOT expected to be in response | ['user.cardNumber', 'user.password']
 headers | Expected http headers, specified as a key-value pairs. |
 
 ### 'Expect' body matchers
