@@ -90,24 +90,24 @@ func (e BodyExpectation) check(resp Response) error {
 	expectationItems := []interface{}{}
 
 	for pathStr, expectedValue := range e.pathExpectations {
-		expectationItems = append(expectationItems, BodyExpectationItem{Path: pathStr, ExpectedValue: expectedValue})
+		expectationItems = append(expectationItems, bodyExpectationItem{Path: pathStr, ExpectedValue: expectedValue})
 	}
 
 	return responseBodyPathCheck(resp, expectationItems, checkExpectedPath)
 }
 
-type BodyExpectationItem struct {
+type bodyExpectationItem struct {
 	Path          string
 	ExpectedValue interface{}
 }
 
 func checkExpectedPath(m interface{}, pathItem interface{}) string {
 
-	if bodyExpectationItem, ok := pathItem.(BodyExpectationItem); ok {
+	if expectationItem, ok := pathItem.(bodyExpectationItem); ok {
 
-		ok, err := SearchByPath(m, bodyExpectationItem.ExpectedValue, bodyExpectationItem.Path)
+		ok, err := SearchByPath(m, expectationItem.ExpectedValue, expectationItem.Path)
 		if !ok {
-			return fmt.Sprintf("Expected value [%v] on path [%s] does not match.", bodyExpectationItem.ExpectedValue, bodyExpectationItem.Path)
+			return fmt.Sprintf("Expected value [%v] on path [%s] does not match.", expectationItem.ExpectedValue, expectationItem.Path)
 		}
 		if err != nil {
 			return err.Error()
