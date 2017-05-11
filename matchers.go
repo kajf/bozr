@@ -116,32 +116,32 @@ func Search(m interface{}, pathLine string) []interface{} {
 }
 
 func search(m interface{}, splitPath []string, res *[]interface{}) {
-	//fmt.Println(m, "~~~", splitPath, "~~~", res)
+	//fmt.Println(m, "~~~", splitPath)
 
 	if len(splitPath) == 0 {
 		*res = append(*res, m)
+		return
 	}
 
-	for _, p := range splitPath {
+	firstPathPart := splitPath[0]
 
-		switch typedM := m.(type) {
-		case map[string]interface{}:
-			if obj, ok := typedM[p]; ok {
-				search(obj, splitPath[1:], res)
-			}
-
-		case []interface{}:
-			if idx, err := strconv.Atoi(p); err == nil { // index in path
-				if idx < len(typedM) { // index exists in array
-					search(typedM[idx], splitPath[1:], res)
-				}
-			} else { // search all items in array
-				for _, obj := range typedM {
-					search(obj, splitPath, res)
-				}
-			}
-
+	switch typedM := m.(type) {
+	case map[string]interface{}:
+		if obj, ok := typedM[firstPathPart]; ok {
+			search(obj, splitPath[1:], res)
 		}
+
+	case []interface{}:
+		if idx, err := strconv.Atoi(firstPathPart); err == nil { // index in path
+			if idx < len(typedM) { // index exists in array
+				search(typedM[idx], splitPath[1:], res)
+			}
+		} else { // search all items in array
+			for _, obj := range typedM {
+				search(obj, splitPath, res)
+			}
+		}
+
 	}
 }
 

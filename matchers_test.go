@@ -135,6 +135,25 @@ func TestSearchByPathArray(t *testing.T) {
 	}
 }
 
+func TestSearchByPathDuplicates(t *testing.T) {
+	m, err := jsonAsMap(`{
+					"counters": [
+						{
+							"counters": [{},{},{}]
+						}
+					]
+			}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	found, err := SearchByPath(m, 3.0, "counters.counters.size()")
+
+	if !found || err != nil {
+		t.Error("unexpected", found, "err", err)
+	}
+}
+
 func TestSearchByInvalidPathWithPathFunction(t *testing.T) {
 	m, err := jsonAsMap(`{
 		"root":[{},{}]
