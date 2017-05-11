@@ -160,6 +160,7 @@ func (e ContentTypeExpectation) check(resp Response) error {
 	return headerCheck.check(resp)
 }
 
+// AbsentExpectation validates paths are absent in response body
 type AbsentExpectation struct {
 	paths []string
 }
