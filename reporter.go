@@ -52,14 +52,14 @@ func (r ConsoleReporter) reportSuccess(result TestResult) {
 	c := color.New(color.FgGreen).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("PASSED")
-	fmt.Printf("]  %s - %s \t%s\n", result.Suite.Name, result.Case.Name, result.Duration)
+	fmt.Printf("]  %s - %s \t%s\n", result.Suite.FullName(), result.Case.Name, result.Duration)
 }
 
 func (r ConsoleReporter) reportSkipped(result TestResult) {
 	c := color.New(color.FgYellow).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("SKIPPED")
-	fmt.Printf("] %s - %s", result.Suite.Name, result.Case.Name)
+	fmt.Printf("] %s - %s", result.Suite.FullName(), result.Case.Name)
 	if result.SkippedMsg != "" {
 		reasonColor := color.New(color.FgMagenta)
 		reasonColor.Printf("\t (%s)", result.SkippedMsg)
@@ -72,7 +72,7 @@ func (r ConsoleReporter) reportError(result TestResult) {
 	c := color.New(color.FgRed).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("FAILED")
-	fmt.Printf("]  %s - %s \n", result.Suite.Name, result.Case.Name)
+	fmt.Printf("]  %s - %s \n", result.Suite.FullName(), result.Case.Name)
 	lines := strings.Split(result.Error.Cause.Error(), "\n")
 
 	for _, line := range lines {
@@ -221,7 +221,7 @@ func newSuite(result TestResult) *suite {
 	return &suite{
 		ID:          0,
 		Name:        result.Suite.Name,
-		PackageName: strings.Replace(filepath.ToSlash(result.Suite.Dir), "/", ".", -1),
+		PackageName: result.Suite.PackageName(),
 		TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05"),
 		HostName:    "localhost",
 	}

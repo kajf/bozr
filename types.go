@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"mime"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -21,6 +22,14 @@ type TestSuite struct {
 	Dir string
 	// test cases listed in a file
 	Cases []TestCase
+}
+
+func (suite TestSuite) PackageName() string {
+	return strings.Replace(filepath.ToSlash(suite.Dir), "/", ".", -1)
+}
+
+func (suite TestSuite) FullName() string {
+	return fmt.Sprintf("%s.%s", suite.PackageName(), suite.Name)
 }
 
 type TestCase struct {
