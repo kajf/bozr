@@ -107,7 +107,7 @@ headers | Expected http headers, specified as a key-value pairs. |
 "expect": {
     "body": {
         "users.1.surname" : "Doe",
-        "~users.name":"Joe",
+        "users.name":"Joe",
         "errors.size()": 0
     }
 }
@@ -116,7 +116,7 @@ headers | Expected http headers, specified as a key-value pairs. |
 Type | Assertion | Example
 ------ | ------------- | --------------
 equals | Root 'users' array zero element has value of 'id' equal to '123'  | "users.0.id" : "123"
-search | Root 'users' array contains element(s) with 'name' equal to 'Jack' or 'Dan' and 'Ron'  | "~users.name" : "Jack" or "~users.name" : ["Dan","Ron"]
+search | Root 'users' array contains element(s) with 'name' equal to 'Jack' or 'Dan' and 'Ron'  | "users.name" : "Jack" or "users.name" : ["Dan","Ron"]
 size | Root 'company' element has 'users' array with '22' elements within 'buildings' array | "company.buildings.users.size()" : 22
 
 XML:
@@ -184,9 +184,9 @@ You can use placeholders inside of the `url` and `headers` fields.
 ```
 
 ### Section 'Remember'
-Similar to 'Args' section, specifies plaseholder values for future reference (within test scope).
+Similar to 'Args' section, specifies plaseholder values for future reference (within test case scope).
 
-The difference is that values for placeholders are taken from response (syntax is similar to 'Expect' 'equal' matchers).
+The difference is that values for placeholders are taken from response (syntax is similar to 'Expect' matchers).
 
 There are two types of sources for values to remember: response body and headers.
 
@@ -200,14 +200,6 @@ There are two types of sources for values to remember: response body and headers
       "loc": "Location"
     }
   }
-}
-```
-
-Shorten notation of the body source is a plain string in place of nested object:
-
-```json
-"remember": {
-  "currencyCode" : "currencies.0.code"
 }
 ```
 
