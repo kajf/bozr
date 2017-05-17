@@ -25,7 +25,7 @@ type TestSuite struct {
 }
 
 func (suite TestSuite) PackageName() string {
-	if suite.Dir == "." {
+	if strings.HasPrefix(suite.Dir, ".") {
 		return ""
 	}
 
