@@ -135,28 +135,6 @@ func (ds *DirSuiteIterator) Next() *TestSuite {
 	return file.ToSuite()
 }
 
-// FileSuiteIterator iterates over single suite file.
-type FileSuiteIterator struct {
-	Path string
-}
-
-// HasNext returns true only for first check.
-func (fs *FileSuiteIterator) HasNext() bool {
-	return fs.Path != ""
-}
-
-// Next return suite for first call and nil for all further calls.
-func (fs *FileSuiteIterator) Next() *TestSuite {
-	if fs.Path == "" {
-		return nil
-	}
-
-	sf := SuiteFile{Path: fs.Path, BaseDir: filepath.Dir(fs.Path)}
-
-	fs.Path = ""
-	return sf.ToSuite()
-}
-
 func load(source SuiteIterator, channel chan<- TestSuite) {
 
 	for source.HasNext() {
@@ -178,15 +156,6 @@ func NewDirLoader(rootDir string) <-chan TestSuite {
 	source.init()
 
 	go load(source, channel)
-
-	return channel
-}
-
-// NewFileLoader returns channel of single suite read from specified file.
-func NewFileLoader(path string) <-chan TestSuite {
-	channel := make(chan TestSuite)
-
-	go load(&FileSuiteIterator{Path: path}, channel)
 
 	return channel
 }

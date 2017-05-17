@@ -128,16 +128,7 @@ func main() {
 		return
 	}
 
-	var ch <-chan TestSuite
-	if filepath.Ext(src) == "" {
-		debug.Print("Loading from directory")
-		suiteDir = src
-		ch = NewDirLoader(suiteDir)
-	} else {
-		debug.Print("Loading from file")
-		suiteDir = filepath.Dir(src)
-		ch = NewFileLoader(src)
-	}
+	loader := NewDirLoader(src)
 
 	reporters := []Reporter{NewConsoleReporter()}
 	if junitFlag {
@@ -147,7 +138,7 @@ func main() {
 	reporter := NewMultiReporter(reporters...)
 
 	// test case runner?
-	for suite := range ch {
+	for suite := range loader {
 		for _, testCase := range suite.Cases {
 
 			result := TestResult{
