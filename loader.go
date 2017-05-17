@@ -20,8 +20,8 @@ type SuiteFile struct {
 	BaseDir string
 }
 
-// PackageName returns difference between Path and BaseDir.
-func (sf SuiteFile) PackageName() string {
+// RelDir returns difference between Path and BaseDir.
+func (sf SuiteFile) RelDir() string {
 	dir, _ := filepath.Rel(sf.BaseDir, filepath.Dir(sf.Path))
 	return dir
 }
@@ -76,7 +76,7 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 
 	su := TestSuite{
 		Name:  strings.TrimSuffix(info.Name(), filepath.Ext(info.Name())),
-		Dir:   sf.PackageName(),
+		Dir:   sf.RelDir(),
 		Cases: testCases,
 	}
 

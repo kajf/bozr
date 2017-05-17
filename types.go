@@ -25,10 +25,19 @@ type TestSuite struct {
 }
 
 func (suite TestSuite) PackageName() string {
+	if suite.Dir == "." {
+		return ""
+	}
+
 	return strings.Replace(filepath.ToSlash(suite.Dir), "/", ".", -1)
 }
 
 func (suite TestSuite) FullName() string {
+	pkg := suite.PackageName()
+	if pkg == "" {
+		return suite.Name
+	}
+
 	return fmt.Sprintf("%s.%s", suite.PackageName(), suite.Name)
 }
 
