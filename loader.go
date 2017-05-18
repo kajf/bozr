@@ -83,27 +83,27 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 	return &su
 }
 
-// SuiteIterator is an interface to iterate over a set of suites
-// independatly on where they are located.
-type SuiteIterator interface {
+// SuiteFileIterator is an interface to iterate over a set of suite files
+// in a given directory
+type SuiteFileIterator interface {
 	HasNext() bool
-	Next() *TestSuite
+	Next() *SuiteFile
 }
 
-// DirSuiteIterator iterates over all suite files inside of specified root folder.
-type DirSuiteIterator struct {
+// DirSuiteFileIterator iterates over all suite files inside of specified root folder.
+type DirSuiteFileIterator struct {
 	RootDir string
 
 	files []SuiteFile
 	pos   int
 }
 
-func (ds *DirSuiteIterator) init() {
+func (ds *DirSuiteFileIterator) init() {
 	filepath.Walk(ds.RootDir, ds.addSuiteFile)
 	debug.Print("Collected: ", len(ds.files))
 }
 
-func (ds *DirSuiteIterator) addSuiteFile(path string, info os.FileInfo, err error) error {
+func (ds *DirSuiteFileIterator) addSuiteFile(path string, info os.FileInfo, err error) error {
 	if err != nil {
 		return nil
 	}
@@ -120,29 +120,29 @@ func (ds *DirSuiteIterator) addSuiteFile(path string, info os.FileInfo, err erro
 }
 
 // HasNext returns true in case there is at least one more suite.
-func (ds *DirSuiteIterator) HasNext() bool {
+func (ds *DirSuiteFileIterator) HasNext() bool {
 	return len(ds.files) > ds.pos
 }
 
 // Next returns next deserialized suite.
-func (ds *DirSuiteIterator) Next() *TestSuite {
+func (ds *DirSuiteFileIterator) Next() *SuiteFile {
 	if len(ds.files) <= ds.pos {
 		return nil
 	}
 
 	file := ds.files[ds.pos]
 	ds.pos = ds.pos + 1
-	return file.ToSuite()
+	return &file
 }
 
-func load(source SuiteIterator, channel chan<- TestSuite) {
+func load(source SuiteFileIterator, channel chan<- TestSuite) {
 
 	for source.HasNext() {
-		suite := source.Next()
-		if suite == nil {
+		sf := source.Next()
+		if sf == nil {
 			continue
 		}
-		channel <- *suite
+		channel <- *sf.ToSuite()
 	}
 
 	close(channel)
@@ -152,7 +152,7 @@ func load(source SuiteIterator, channel chan<- TestSuite) {
 func NewDirLoader(rootDir string) <-chan TestSuite {
 	channel := make(chan TestSuite)
 
-	source := &DirSuiteIterator{RootDir: rootDir}
+	source := &DirSuiteFileIterator{RootDir: rootDir}
 	source.init()
 
 	go load(source, channel)
