@@ -30,8 +30,9 @@ func init() {
 		h += "  -d, --debug		Enable debug mode\n"
 		h += "  -H, --host		Server to test\n"
 		h += "  -h, --help		Print usage\n"
-		h += "  -i, --info		Enable info mode. Print request and response details.\n"
+		h += "  -i, --info		Enable info mode. Print request and response details\n"
 		h += "      --junit		Enable junit xml reporter\n"
+		h += "      --junit-output	Destination for junit report files\n"
 		h += "  -v, --version		Print version information and quit\n\n"
 
 		h += "Examples:\n"
@@ -43,13 +44,14 @@ func init() {
 }
 
 var (
-	suiteDir    string
-	hostFlag    string
-	infoFlag    bool
-	debugFlag   bool
-	helpFlag    bool
-	versionFlag bool
-	junitFlag   bool
+	suiteDir        string
+	hostFlag        string
+	infoFlag        bool
+	debugFlag       bool
+	helpFlag        bool
+	versionFlag     bool
+	junitFlag       bool
+	junitOutputFlag string
 
 	info  *log.Logger
 	debug *log.Logger
@@ -87,6 +89,7 @@ func main() {
 	flag.BoolVar(&versionFlag, "version", false, "Print version information and quit")
 
 	flag.BoolVar(&junitFlag, "junit", false, "Enable junit xml reporter")
+	flag.StringVar(&junitOutputFlag, "junit-output", "./report", "Destination for junit report files. Default ")
 
 	flag.Parse()
 
@@ -132,7 +135,7 @@ func main() {
 
 	reporters := []Reporter{NewConsoleReporter()}
 	if junitFlag {
-		path, _ := filepath.Abs("./report")
+		path, _ := filepath.Abs(junitOutputFlag)
 		reporters = append(reporters, NewJUnitReporter(path))
 	}
 	reporter := NewMultiReporter(reporters...)
