@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -49,8 +50,7 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 		return nil
 	}
 
-	ok := isSuite(path)
-	if !ok {
+	if !isSuite(path) {
 		return nil
 	}
 
@@ -112,6 +112,11 @@ func (ds *DirSuiteFileIterator) addSuiteFile(path string, info os.FileInfo, err 
 		return nil
 	}
 
+	if !isSuite(path) {
+		debug.Printf("Skip non suite file: %s", path)
+		return nil
+	}
+
 	ds.files = append(ds.files, SuiteFile{
 		Path:    path,
 		BaseDir: ds.RootDir,
@@ -135,29 +140,84 @@ func (ds *DirSuiteFileIterator) Next() *SuiteFile {
 	return &file
 }
 
-func load(source SuiteFileIterator, channel chan<- TestSuite) {
-
-	for source.HasNext() {
-		sf := source.Next()
-		if sf == nil {
-			continue
-		}
-		channel <- *sf.ToSuite()
-	}
-
-	close(channel)
-}
-
-// NewDirLoader returns channel of suites that are read from specified folder.
-func NewDirLoader(rootDir string) <-chan TestSuite {
+// NewSuiteLoader returns channel of suites that are read from specified folder.
+func NewSuiteLoader(rootDir string) <-chan TestSuite {
 	channel := make(chan TestSuite)
 
 	source := &DirSuiteFileIterator{RootDir: rootDir}
 	source.init()
 
-	go load(source, channel)
+	go func() {
+		for source.HasNext() {
+			sf := source.Next()
+			if sf == nil {
+				continue
+			}
+			suite := sf.ToSuite()
+			if suite == nil {
+				continue
+			}
+
+			channel <- *suite
+		}
+
+		close(channel)
+	}()
 
 	return channel
+}
+
+func ValidateSuites(rootDir string) error {
+	source := &DirSuiteFileIterator{RootDir: rootDir}
+	source.init()
+
+	errs := make([]*SuiteFileError, 0)
+
+	for source.HasNext() {
+		sf := source.Next()
+
+		if sf == nil {
+			continue
+		}
+
+		err := validateSuite(sf.Path)
+		if err != nil {
+			debug.Printf("suite file err: %s", err)
+			errs = append(errs, &SuiteFileError{SuiteFile: sf, err: err})
+		}
+	}
+
+	if len(errs) == 0 {
+		return nil
+	}
+
+	return SuitesValidationError{errors: errs}
+}
+
+type SuiteFileError struct {
+	SuiteFile *SuiteFile
+	err       error
+}
+
+func (e SuiteFileError) Error() string {
+	if e.err == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%s: %s", e.SuiteFile.Path, e.err.Error())
+}
+
+type SuitesValidationError struct {
+	errors []*SuiteFileError
+}
+
+func (e SuitesValidationError) Error() string {
+	msg := bytes.NewBufferString("")
+	for _, err := range e.errors {
+		fmt.Fprintln(msg, err.Error())
+	}
+
+	return msg.String()
 }
 
 func isSuite(path string) bool {

@@ -108,8 +108,7 @@ func main() {
 	if len(hostFlag) > 0 {
 		_, err := url.ParseRequestURI(hostFlag)
 		if err != nil {
-			fmt.Println("Invalid host is specified.")
-			os.Exit(1)
+			terminate("Invalid host is specified.")
 			return
 		}
 	}
@@ -117,21 +116,25 @@ func main() {
 	src := flag.Arg(0)
 
 	if src == "" {
-		fmt.Print("You must specify a directory or file with tests.\n\n")
+		terminate("You must specify a directory or file with tests.\n\n")
 		flag.Usage()
-		os.Exit(1)
 		return
 	}
 
 	// check specified source dir/file exists
 	_, err := os.Lstat(src)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		terminate(err.Error())
 		return
 	}
 
-	loader := NewDirLoader(src)
+	// err = ValidateSuites(src)
+	// if err != nil {
+	// 	terminate("One or more test suites are invalid.", err.Error())
+	// 	return
+	// }
+
+	loader := NewSuiteLoader(src)
 
 	reporters := []Reporter{NewConsoleReporter()}
 	if junitFlag {
@@ -450,4 +453,14 @@ func printRequestInfo(req *http.Request, body []byte) {
 	if len(body) > 0 {
 		info.Printf(string(body))
 	}
+}
+
+func terminate(msgLines ...string) {
+	for _, line := range msgLines {
+		fmt.Fprintln(os.Stderr, line)
+	}
+
+	fmt.Println()
+
+	os.Exit(1)
 }
