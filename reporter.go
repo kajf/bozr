@@ -143,6 +143,8 @@ type suite struct {
 
 	SystemOut string `xml:"system-out"`
 	SystemErr string `xml:"system-err"`
+
+	fullName string
 }
 
 type properties struct {
@@ -177,7 +179,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 		r.suite = newSuite(result)
 	}
 
-	testCase := tc{Name: result.Case.Name, ClassName: r.suite.PackageName + "." + result.Suite.Name, Time: result.Duration.Seconds()}
+	testCase := tc{Name: result.Case.Name, ClassName: r.suite.fullName, Time: result.Duration.Seconds()}
 	if result.Error != nil {
 		testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Error.Cause.Error()}
 		testCase.Failure.Details = result.Error.Resp.ToString()
@@ -198,7 +200,7 @@ func (r JUnitXMLReporter) flushSuite() {
 	if r.suite == nil {
 		return
 	}
-	fileName := r.suite.PackageName + "." + r.suite.Name + ".xml"
+	fileName := r.suite.fullName + ".xml"
 	fp := filepath.Join(r.OutPath, fileName)
 	err := os.MkdirAll(r.OutPath, 0777)
 	if err != nil {
@@ -223,6 +225,7 @@ func newSuite(result TestResult) *suite {
 		Name:        result.Suite.Name,
 		PackageName: result.Suite.PackageName(),
 		TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05"),
+		fullName:    result.Suite.FullName(),
 		HostName:    "localhost",
 	}
 }
