@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -45,21 +44,6 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 		return nil
 	}
 
-	if !strings.HasSuffix(info.Name(), ".json") {
-		debug.Print("Ignore non json: " + sf.Path)
-		return nil
-	}
-
-	if !isSuite(path) {
-		return nil
-	}
-
-	err = validateSuite(path)
-	if err != nil {
-		fmt.Printf("Invalid suite file: %s\n%s\n", path, err.Error())
-		return nil
-	}
-
 	content, e := ioutil.ReadFile(path)
 
 	if e != nil {
@@ -92,7 +76,8 @@ type SuiteFileIterator interface {
 
 // DirSuiteFileIterator iterates over all suite files inside of specified root folder.
 type DirSuiteFileIterator struct {
-	RootDir string
+	RootDir  string
+	SuiteExt string
 
 	files []SuiteFile
 	pos   int
@@ -112,8 +97,8 @@ func (ds *DirSuiteFileIterator) addSuiteFile(path string, info os.FileInfo, err 
 		return nil
 	}
 
-	if !isSuite(path) {
-		debug.Printf("Skip non suite file: %s", path)
+	if !strings.HasSuffix(info.Name(), ds.SuiteExt) {
+		debug.Printf("Skip non suite file: %s\n", path)
 		return nil
 	}
 
@@ -141,10 +126,10 @@ func (ds *DirSuiteFileIterator) Next() *SuiteFile {
 }
 
 // NewSuiteLoader returns channel of suites that are read from specified folder.
-func NewSuiteLoader(rootDir string) <-chan TestSuite {
+func NewSuiteLoader(rootDir string, suiteExt string) <-chan TestSuite {
 	channel := make(chan TestSuite)
 
-	source := &DirSuiteFileIterator{RootDir: rootDir}
+	source := &DirSuiteFileIterator{RootDir: rootDir, SuiteExt: suiteExt}
 	source.init()
 
 	go func() {
@@ -167,8 +152,9 @@ func NewSuiteLoader(rootDir string) <-chan TestSuite {
 	return channel
 }
 
-func ValidateSuites(rootDir string) error {
-	source := &DirSuiteFileIterator{RootDir: rootDir}
+// ValidateSuites detects syntax errors in all test suite in the root directory.
+func ValidateSuites(rootDir string, suiteExt string) error {
+	source := &DirSuiteFileIterator{RootDir: rootDir, SuiteExt: suiteExt}
 	source.init()
 
 	errs := make([]*SuiteFileError, 0)
@@ -182,7 +168,6 @@ func ValidateSuites(rootDir string) error {
 
 		err := validateSuite(sf.Path)
 		if err != nil {
-			debug.Printf("suite file err: %s", err)
 			errs = append(errs, &SuiteFileError{SuiteFile: sf, err: err})
 		}
 	}
@@ -212,12 +197,12 @@ type SuitesValidationError struct {
 }
 
 func (e SuitesValidationError) Error() string {
-	msg := bytes.NewBufferString("")
+	msg := make([]string, 0)
 	for _, err := range e.errors {
-		fmt.Fprintln(msg, err.Error())
+		msg = append(msg, err.Error())
 	}
 
-	return msg.String()
+	return strings.Join(msg, "\n")
 }
 
 func isSuite(path string) bool {
@@ -246,11 +231,12 @@ func validateSuite(path string) error {
 	}
 
 	if !result.Valid() {
-		var msg string
+		msg := make([]string, 0)
 		for _, desc := range result.Errors() {
-			msg = fmt.Sprintf(msg+"%s\n", desc)
+			msg = append(msg, desc.String())
 		}
-		return errors.New(msg)
+
+		return errors.New(strings.Join(msg, "\n"))
 	}
 
 	return nil

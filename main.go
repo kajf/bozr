@@ -57,6 +57,8 @@ var (
 	debug *log.Logger
 )
 
+const suiteExt = ".json" // need to define bozr specific extension
+
 func initLogger() {
 	infoHandler := ioutil.Discard
 	debugHandler := ioutil.Discard
@@ -116,7 +118,7 @@ func main() {
 	src := flag.Arg(0)
 
 	if src == "" {
-		terminate("You must specify a directory or file with tests.\n\n")
+		terminate("You must specify a directory or file with tests.")
 		flag.Usage()
 		return
 	}
@@ -128,13 +130,13 @@ func main() {
 		return
 	}
 
-	// err = ValidateSuites(src)
-	// if err != nil {
-	// 	terminate("One or more test suites are invalid.", err.Error())
-	// 	return
-	// }
+	err = ValidateSuites(src, suiteExt)
+	if err != nil {
+		terminate("One or more test suites are invalid.", err.Error())
+		return
+	}
 
-	loader := NewSuiteLoader(src)
+	loader := NewSuiteLoader(src, suiteExt)
 
 	reporters := []Reporter{NewConsoleReporter()}
 	if junitFlag {
@@ -459,8 +461,6 @@ func terminate(msgLines ...string) {
 	for _, line := range msgLines {
 		fmt.Fprintln(os.Stderr, line)
 	}
-
-	fmt.Println()
 
 	os.Exit(1)
 }
