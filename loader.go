@@ -152,7 +152,7 @@ func NewSuiteLoader(rootDir string, suiteExt string) <-chan TestSuite {
 	return channel
 }
 
-// ValidateSuites detects syntax errors in all test suite in the root directory.
+// ValidateSuites detects syntax errors in all test suites in the root directory.
 func ValidateSuites(rootDir string, suiteExt string) error {
 	source := &DirSuiteFileIterator{RootDir: rootDir, SuiteExt: suiteExt}
 	source.init()
