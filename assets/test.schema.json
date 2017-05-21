@@ -82,7 +82,7 @@
                   ]
                 },
                 "bodyFile": {
-                  "type": "object"
+                  "type": "string"
                 }
               },
               "required": [
