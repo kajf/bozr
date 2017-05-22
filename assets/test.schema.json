@@ -15,7 +15,7 @@
       "ignore": {
         "type": "string",
         "description": "Ignore test due to a reason",
-        "minLength": 1
+        "minLength": 10
       },
       "calls": {
         "type": "array",
@@ -23,10 +23,12 @@
           "type": "object",
           "properties": {
             "args": {
-              "type": "object"
+              "type": "object",
+              "minProperties": 1
             },
             "on": {
               "type": "object",
+              "minProperties": 1,
               "properties": {
                 "method": {
                   "type": "string",
@@ -37,7 +39,9 @@
                     "DELETE",
                     "HEAD",
                     "OPTIONS",
-                    "PATCH"
+                    "PATCH",
+                    "CONNECT",
+                    "TRACE"
                   ]
                 },
                 "url": {
@@ -45,6 +49,7 @@
                 },
                 "headers": {
                   "type": "object",
+                  "minProperties": 1,
                   "properties": {
                     "Accept": {
                       "type": "string",
@@ -70,7 +75,8 @@
                   }
                 },
                 "params": {
-                  "type": "object"
+                  "type": "object",
+                  "minProperties": 1
                 },
                 "body": {
                   "oneOf": [
@@ -80,7 +86,7 @@
                     {
                       "type": "object"
                     }
-                  ],
+                  ]
                 },
                 "bodyFile": {
                   "type": "string"
@@ -93,6 +99,7 @@
             },
             "expect": {
               "type": "object",
+              "minProperties": 1,
               "properties": {
                 "statusCode": {
                   "type": "integer",
@@ -100,28 +107,74 @@
                     200,
                     201,
                     202,
+                    203,
+                    204,
+                    205,
+                    206,
+                    207,
+                    208,
+                    209,
+                    226,
+                    300,
                     301,
+                    302,
+                    303,
                     304,
+                    305,
+                    306,
+                    307,
+                    308,
                     400,
                     401,
+                    402,
                     403,
                     404,
                     405,
                     406,
+                    407,
+                    408,
+                    409,
+                    410,
+                    411,
+                    412,
+                    413,
+                    414,
                     415,
+                    416,
+                    417,
+                    418,
+                    421,
+                    422,
+                    423,
+                    424,
+                    426,
+                    428,
+                    429,
+                    431,
+                    451,
                     500,
                     501,
-                    503
+                    502,
+                    503,
+                    504,
+                    505,
+                    506,
+                    507,
+                    508,
+                    510,
+                    511
                   ]
                 },
                 "contentType": {
                   "type": "string"
                 },
                 "headers": {
-                  "type": "object"
+                  "type": "object",
+                  "minProperties": 1
                 },
                 "body": {
-                  "type": "object"
+                  "type": "object",
+                  "minProperties": 1
                 },
                 "bodySchemaFile": {
                   "type": "string"
@@ -130,19 +183,23 @@
                   "type": "string"
                 },
                 "absent": {
-                  "type": "array"
+                  "type": "array",
+                  "minItems": 1
                 }
               },
               "additionalProperties": false
             },
             "remember": {
               "type": "object",
+              "minProperties": 1,
               "properties": {
                 "body": {
-                  "type": "object"
+                  "type": "object",
+                  "minProperties": 1
                 },
                 "headers": {
-                  "type": "object"
+                  "type": "object",
+                  "minProperties": 1
                 }
               },
               "additionalProperties": false

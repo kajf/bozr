@@ -270,85 +270,135 @@ const suiteShapeSchema = `
 // used to validate suite
 const suiteDetailedSchema = `
 {
-	"$schema": "http://json-schema.org/draft-04/schema#",
-	"type": "array",
-	"items": {
-		"type": "object",
-		"properties": {
-			"name": {
-				"type": "string"
-			},
-			"ignore": {
-        		"type": "string",
-				"minLength": 10
-			},
-			"calls": {
-				"type": "array",
-				"items": {
-					"type": "object",
-					"properties": {
-						"args": {
-							"type": "object"
-						},
-						"on": {
-							"type": "object",
-							"properties": {
-								"method": {
-									"type": "string"
-								},
-								"url": {
-									"type": "string"
-								},
-								"headers": {
-									"type": "object"
-								},
-								"params": {
-									"type": "object"
-								}
-							},
-							"required": [
-								"method",
-								"url"
-							]
-						},
-						"expect": {
-							"type": "object",
-							"properties": {
-								"statusCode": {
-									"type": "integer"
-								},
-								"contentType": {
-									"type": "string"
-								},
-								"headers": {
-									"type": "object"
-								},
-								"body": {
-									"type": "object"
-								},
-								"bodySchemaFile": {
-									"type": "string"
-								},
-								"bodySchemaURI": {
-									"type": "string"
-								},
-								"absent": {
-								  "type" : "array"
-								}
-							},
-							"additionalProperties": false
-						}
-					},
-					"required": [
-						"on",
-						"expect"
-					]
-				}
-			}
-		},
-		"required": [
-			"calls"
-		]
-	}
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "ignore": {
+        "type": "string",
+        "minLength": 10
+      },
+      "calls": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "args": {
+              "type": "object",
+              "minProperties": 1
+            },
+            "on": {
+              "type": "object",
+              "minProperties": 1,
+              "properties": {
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "DELETE",
+                    "HEAD",
+                    "OPTIONS",
+                    "PATCH",
+                    "CONNECT",
+                    "TRACE"
+                  ]
+                },
+                "url": {
+                  "type": "string"
+                },
+                "headers": {
+                  "type": "object",
+                  "minProperties": 1
+                },
+                "params": {
+                  "type": "object",
+                  "minProperties": 1
+                },
+                "body": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ]
+                },
+                "bodyFile": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "method",
+                "url"
+              ]
+            },
+            "expect": {
+              "type": "object",
+              "minProperties": 1,
+              "properties": {
+                "statusCode": {
+                  "type": "integer"
+                },
+                "contentType": {
+                  "type": "string"
+                },
+                "headers": {
+                  "type": "object",
+                  "minProperties": 1
+                },
+                "body": {
+                  "type": "object",
+                  "minProperties": 1
+                },
+                "bodySchemaFile": {
+                  "type": "string"
+                },
+                "bodySchemaURI": {
+                  "type": "string"
+                },
+                "absent": {
+                  "type": "array",
+                  "minItems": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "remember": {
+              "type": "object",
+              "minProperties": 1,
+              "properties": {
+                "body": {
+                  "type": "object",
+                  "minProperties": 1
+                },
+                "headers": {
+                  "type": "object",
+                  "minProperties": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "on",
+            "expect"
+          ]
+        }
+      }
+    },
+    "required": [
+      "calls"
+    ]
+  }
 }
 `
