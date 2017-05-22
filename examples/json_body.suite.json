@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Example of 'body' as a JSON",
+    "calls": [
+      {
+        "on": {
+          "method": "POST",
+          "url": "https://reqres.in/api/users",
+          "body": {
+            "name": "morpheus",
+            "job": "leader"
+          }
+        },
+        "expect": {
+          "statusCode": 201
+        }
+      }
+    ]
+  },
+  {
+    "name": "Example of an external 'body' as a JSON",
+    "calls": [
+      {
+        "on": {
+          "method": "POST",
+          "url": "https://reqres.in/api/users",
+          "bodyFile": "external_body.json"
+        },
+        "expect": {
+          "statusCode": 201
+        }
+      }
+    ]
+  },
+  {
+    "name": "Ignored Test Case",
+    "ignore": "In development.",
+    "calls": [
+      {
+        "on": {
+          "method": "POST",
+          "url": "https://reqres.in/api/users",
+          "body": {
+            "name": "morpheus",
+            "job": "leader"
+          }
+        },
+        "expect": {
+          "statusCode": 201
+        }
+      }
+    ]
+  }
+]
