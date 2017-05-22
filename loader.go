@@ -235,7 +235,7 @@ func validateSuite(path string) error {
 	if !result.Valid() {
 		msg := make([]string, 0)
 		for _, desc := range result.Errors() {
-			msg = append(msg, desc.Description())
+			msg = append(msg, fmt.Sprintf("Field: %s, Error: %s", desc.Field(), desc.Description()))
 		}
 
 		return errors.New(strings.Join(msg, "\n"))
@@ -279,7 +279,8 @@ const suiteDetailedSchema = `
 				"type": "string"
 			},
 			"ignore": {
-        		"type": "string"
+        		"type": "string",
+				"minLength": 10
 			},
 			"calls": {
 				"type": "array",

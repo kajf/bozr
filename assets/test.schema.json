@@ -14,7 +14,8 @@
       },
       "ignore": {
         "type": "string",
-        "description": "Ignore test due to a reason"
+        "description": "Ignore test due to a reason",
+        "minLength": 1
       },
       "calls": {
         "type": "array",
@@ -79,7 +80,7 @@
                     {
                       "type": "object"
                     }
-                  ]
+                  ],
                 },
                 "bodyFile": {
                   "type": "string"

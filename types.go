@@ -42,9 +42,9 @@ func (suite TestSuite) FullName() string {
 }
 
 type TestCase struct {
-	Name   string `json:"name,omitempty"`
-	Ignore string `json:"ignore,omitempty"`
-	Calls  []Call `json:"calls,omitempty"`
+	Name   string  `json:"name,omitempty"`
+	Ignore *string `json:"ignore,omitempty"`
+	Calls  []Call  `json:"calls,omitempty"`
 }
 
 type Call struct {

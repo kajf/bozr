@@ -1,7 +1,6 @@
 [
   {
     "name": "XML example. Checking attributes in the response.",
-    "ignore": "",
     "calls": [
       {
         "args": {
