@@ -27,6 +27,21 @@
   ]
 },
 {
+  "name":"Check Image is loaded",
+  "calls": [
+    {
+      "on": {
+        "url" : "https://www.w3schools.com/html/html5.gif",
+        "method" : "GET"
+      },
+      "expect" : {
+        "statusCode": 200,
+        "contentType" : "image/gif"
+      }      
+    }
+  ]
+},
+{
   "name": "Example of the failed test.",
   "calls": [
     {

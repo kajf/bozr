@@ -13,7 +13,7 @@ func TestParseEmptyResponse(t *testing.T) {
 		},
 	}
 
-	data, err := resp.parseBody()
+	data, err := resp.Body()
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err.Error())
 	}

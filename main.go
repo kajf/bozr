@@ -257,14 +257,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 		}
 	}
 
-	m, err := testResp.parseBody()
-	if err != nil {
-		debug.Print("Can't parse response body to Map for [remember]")
-		terr.Cause = err
-		return terr
-	}
-
-	err = rememberBody(m, call.Remember.Body, rememberMap)
+	err = rememberBody(testResp, call.Remember.Body, rememberMap)
 	debug.Print("Remember: ", rememberMap)
 	if err != nil {
 		debug.Print("Error remember")
@@ -412,9 +405,14 @@ func toAbsPath(srcDir string, assetPath string) (string, error) {
 	return filepath.ToSlash(uri), nil
 }
 
-func rememberBody(body interface{}, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
+func rememberBody(resp Response, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
 
 	for varName, pathLine := range remember {
+		body, err := resp.Body()
+		if err != nil {
+			debug.Print("Can't parse response body to Map for [remember]")
+			return err
+		}
 
 		if rememberVar, err := GetByPath(body, pathLine); err == nil {
 			rememberedMap[varName] = rememberVar

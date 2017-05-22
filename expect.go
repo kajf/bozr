@@ -87,13 +87,15 @@ type BodyExpectation struct {
 
 func (e BodyExpectation) check(resp Response) error {
 
-	expectationItems := []interface{}{}
-
 	for pathStr, expectedValue := range e.pathExpectations {
-		expectationItems = append(expectationItems, bodyExpectationItem{Path: pathStr, ExpectedValue: expectedValue})
+
+		err := responseBodyPathCheck(resp, bodyExpectationItem{Path: pathStr, ExpectedValue: expectedValue}, checkExpectedPath)
+		if err != nil {
+			return err
+		}
 	}
 
-	return responseBodyPathCheck(resp, expectationItems, checkExpectedPath)
+	return nil
 }
 
 type bodyExpectationItem struct {
@@ -167,21 +169,21 @@ type AbsentExpectation struct {
 
 func (e AbsentExpectation) check(resp Response) error {
 
-	expectationItems := []interface{}{}
-
 	for _, pathStr := range e.paths {
-		expectationItems = append(expectationItems, pathStr)
+		err := responseBodyPathCheck(resp, pathStr, checkAbsentPath)
+		if err != nil {
+			return err
+		}
 	}
 
-	return responseBodyPathCheck(resp, expectationItems, checkAbsentPath)
+	return nil
 }
 
 type pathCheckFunc func(m interface{}, pathItem interface{}) string
 
-func responseBodyPathCheck(resp Response, pathItems []interface{}, checkPath pathCheckFunc) error {
-	errs := []string{}
+func responseBodyPathCheck(resp Response, pathItem interface{}, checkPath pathCheckFunc) error {
 
-	m, err := resp.parseBody()
+	m, err := resp.Body() // cached
 	if err != nil {
 		str := "Can't parse response body to Map." // TODO specific message for functions
 		str += " " + err.Error()
@@ -189,19 +191,9 @@ func responseBodyPathCheck(resp Response, pathItems []interface{}, checkPath pat
 		return errors.New(str)
 	}
 
-	for _, pathItem := range pathItems {
-		str := checkPath(m, pathItem)
-		if str != "" {
-			errs = append(errs, str)
-		}
-	}
-
-	if len(errs) > 0 {
-		var msg string
-		for _, err := range errs {
-			msg += err + "\n"
-		}
-		return errors.New(msg)
+	str := checkPath(m, pathItem)
+	if str != "" {
+		return errors.New(str)
 	}
 
 	return nil

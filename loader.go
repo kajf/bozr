@@ -233,7 +233,7 @@ func validateSuite(path string) error {
 	if !result.Valid() {
 		msg := make([]string, 0)
 		for _, desc := range result.Errors() {
-			msg = append(msg, desc.String())
+			msg = append(msg, desc.Description())
 		}
 
 		return errors.New(strings.Join(msg, "\n"))

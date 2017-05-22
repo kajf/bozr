@@ -98,12 +98,15 @@ type TError struct {
 	Cause error
 }
 
+// Response wraps test call http response
 type Response struct {
 	http http.Response
 	body []byte
 }
 
-func (resp Response) parseBody() (interface{}, error) {
+// Body retruns map for parsed response depending on provided 'Content-Type'
+// supported content types are 'application/json', 'application/xml', 'text/xml'
+func (resp Response) Body() (interface{}, error) {
 	if len(resp.body) == 0 {
 		return nil, nil
 	}
@@ -152,12 +155,12 @@ func (resp Response) ToString() string {
 	var body interface{}
 	contentType, _, _ := mime.ParseMediaType(resp.http.Header.Get("content-type"))
 	if contentType == "application/json" {
-		data, _ := resp.parseBody()
+		data, _ := resp.Body()
 		body, _ = json.MarshalIndent(data, "", "  ")
 	}
 
 	if contentType == "application/xml" || contentType == "text/xml" {
-		resp.parseBody()
+		resp.Body()
 		mp, _ := mxj.NewMapXml(resp.body, false)
 		body, _ = mp.XmlIndent("", "  ")
 	}

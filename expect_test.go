@@ -126,7 +126,7 @@ func TestBodyExpectationBool(t *testing.T) {
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
-		body: []byte("{\"flag\":true}"),
+		body: []byte(`{"flag":true}`),
 	})
 
 	if err != nil {
@@ -148,7 +148,7 @@ func TestBodyExpectationInt(t *testing.T) {
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
-		body: []byte("{\"len\":2}"),
+		body: []byte(`{"len":2}`),
 	})
 
 	if err != nil {
@@ -170,7 +170,7 @@ func TestBodyExpectationSize(t *testing.T) {
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
-		body: []byte("{\"items\":[]}"),
+		body: []byte(`{"items":[]}`),
 	})
 
 	if err != nil {
@@ -192,7 +192,7 @@ func TestBodyExpectationSearchBool(t *testing.T) {
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
-		body: []byte("{\"flag\":true}"),
+		body: []byte(`{"flag":true}`),
 	})
 
 	if err != nil {
@@ -214,7 +214,7 @@ func TestBodyExpectationSearchInt(t *testing.T) {
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
-		body: []byte("{\"len\":2}"),
+		body: []byte(`{"len":2}`),
 	})
 
 	if err != nil {
@@ -236,7 +236,7 @@ func TestBodyExpectationSearchArray(t *testing.T) {
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
-		body: []byte("{\"items\":[\"ONE\", \"TWO\"]}"),
+		body: []byte(`{"items":["ONE", "TWO"]}`),
 	})
 
 	if err != nil {
@@ -258,15 +258,15 @@ func TestBodyExpectationBoolFMT(t *testing.T) {
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
-		body: []byte("{\"flag\":true}"),
+		body: []byte(`{"flag":true}`),
 	})
 
 	if err == nil {
 		t.Error(err)
 	}
 
-	if strings.Compare("Expected value [false] on path [flag] does not match.", err.Error()) == 0 {
-		t.Error("Incorrect format of expected value.")
+	if strings.Compare("Expected value [false] on path [flag] does not match.", err.Error()) != 0 {
+		t.Error("Incorrect format of expected value:[", err, "]")
 	}
 }
 

@@ -1,6 +1,24 @@
 package main
 
-import "testing"
+import (
+	"net/http"
+	"testing"
+)
+
+func TestRememberBodyLazy(t *testing.T) {
+	resp := Response{
+		http: http.Response{
+			Header: map[string][]string{"Content-Type": {"application/json"}},
+		},
+		body: []byte(`# invalid body so it fails if parsed`),
+	}
+
+	err := rememberBody(resp, map[string]string{}, map[string]interface{}{})
+
+	if err != nil {
+		t.Error(err)
+	}
+}
 
 func TestConcatURL(t *testing.T) {
 
