@@ -18,6 +18,7 @@ type SuiteFile struct {
 	Path string
 	// Base directory from file is loaded.
 	BaseDir string
+	Ext     string
 }
 
 // RelDir returns difference between Path and BaseDir.
@@ -59,7 +60,7 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 	}
 
 	su := TestSuite{
-		Name:  strings.TrimSuffix(info.Name(), filepath.Ext(info.Name())),
+		Name:  strings.TrimSuffix(info.Name(), sf.Ext),
 		Dir:   sf.RelDir(),
 		Cases: testCases,
 	}
@@ -105,6 +106,7 @@ func (ds *DirSuiteFileIterator) addSuiteFile(path string, info os.FileInfo, err 
 	ds.files = append(ds.files, SuiteFile{
 		Path:    path,
 		BaseDir: ds.RootDir,
+		Ext:     ds.SuiteExt,
 	})
 	return nil
 }

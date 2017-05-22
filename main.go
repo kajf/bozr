@@ -57,7 +57,7 @@ var (
 	debug *log.Logger
 )
 
-const suiteExt = ".json" // need to define bozr specific extension
+const suiteExt = ".suite.json"
 
 func initLogger() {
 	infoHandler := ioutil.Discard

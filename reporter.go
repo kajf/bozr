@@ -137,6 +137,7 @@ type suite struct {
 	Tests    int `xml:"tests,attr"`
 	Failures int `xml:"failures,attr"`
 	Errors   int `xml:"errors,attr"`
+	Skipped  int `xml:"skipped,attr"`
 
 	Properties properties `xml:"properties"`
 	Cases      []tc       `xml:"testcase"`
@@ -187,6 +188,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 	}
 
 	if result.Skipped {
+		r.suite.Skipped = r.suite.Skipped + 1
 		testCase.Skipped = &skipped{Message: result.SkippedMsg}
 	}
 
