@@ -10,7 +10,7 @@ import (
 
 func TestExpectedStatusCode(t *testing.T) {
 	exp := StatusCodeExpectation{statusCode: 200}
-	err := exp.check(Response{
+	err := exp.check(&Response{
 		http: http.Response{
 			StatusCode: 400,
 		},
@@ -24,7 +24,7 @@ func TestExpectedStatusCode(t *testing.T) {
 
 func TestUnexpectedStatusCode(t *testing.T) {
 	exp := StatusCodeExpectation{statusCode: 200}
-	err := exp.check(Response{
+	err := exp.check(&Response{
 		http: http.Response{
 			StatusCode: 200,
 		},
@@ -40,7 +40,7 @@ func TestUnexpectedStatusCode(t *testing.T) {
 func TestExpectedHeader(t *testing.T) {
 	exp := HeaderExpectation{Name: "X-Test", Value: "PASS"}
 
-	err := exp.check(Response{
+	err := exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"X-Test": {"PASS"}},
 		},
@@ -55,7 +55,7 @@ func TestExpectedHeader(t *testing.T) {
 func TestUnexpectedHeader(t *testing.T) {
 	exp := HeaderExpectation{Name: "X-Test", Value: "PASS"}
 
-	err := exp.check(Response{
+	err := exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"X-Test": {"FAILED"}},
 		},
@@ -70,7 +70,7 @@ func TestUnexpectedHeader(t *testing.T) {
 func TestExpectedContentType(t *testing.T) {
 	exp := ContentTypeExpectation{Value: "application/json"}
 
-	err := exp.check(Response{
+	err := exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
@@ -85,7 +85,7 @@ func TestExpectedContentType(t *testing.T) {
 func TestExpectedContentTypeIgnoreEncoding(t *testing.T) {
 	exp := ContentTypeExpectation{Value: "application/json"}
 
-	err := exp.check(Response{
+	err := exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json; charset=utf-8"}},
 		},
@@ -100,7 +100,7 @@ func TestExpectedContentTypeIgnoreEncoding(t *testing.T) {
 func TestUnexpectedContentType(t *testing.T) {
 	exp := ContentTypeExpectation{Value: "application/json"}
 
-	err := exp.check(Response{
+	err := exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"text/html"}},
 		},
@@ -122,7 +122,7 @@ func TestBodyExpectationBool(t *testing.T) {
 
 	exp := BodyExpectation{pathExpectations: m}
 
-	err = exp.check(Response{
+	err = exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
@@ -144,7 +144,7 @@ func TestBodyExpectationInt(t *testing.T) {
 
 	exp := BodyExpectation{pathExpectations: m}
 
-	err = exp.check(Response{
+	err = exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
@@ -166,7 +166,7 @@ func TestBodyExpectationSize(t *testing.T) {
 
 	exp := BodyExpectation{pathExpectations: m}
 
-	err = exp.check(Response{
+	err = exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
@@ -188,7 +188,7 @@ func TestBodyExpectationSearchBool(t *testing.T) {
 
 	exp := BodyExpectation{pathExpectations: m}
 
-	err = exp.check(Response{
+	err = exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
@@ -210,7 +210,7 @@ func TestBodyExpectationSearchInt(t *testing.T) {
 
 	exp := BodyExpectation{pathExpectations: m}
 
-	err = exp.check(Response{
+	err = exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
@@ -232,7 +232,7 @@ func TestBodyExpectationSearchArray(t *testing.T) {
 
 	exp := BodyExpectation{pathExpectations: m}
 
-	err = exp.check(Response{
+	err = exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
@@ -254,7 +254,7 @@ func TestBodyExpectationBoolFMT(t *testing.T) {
 
 	exp := BodyExpectation{pathExpectations: m}
 
-	err = exp.check(Response{
+	err = exp.check(&Response{
 		http: http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},

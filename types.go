@@ -100,13 +100,26 @@ type TError struct {
 
 // Response wraps test call http response
 type Response struct {
-	http http.Response
-	body []byte
+	http       http.Response
+	body       []byte
+	parsedBody interface{}
 }
 
-// Body retruns map for parsed response depending on provided 'Content-Type'
+// Body retruns parsed response (array or map) depending on provided 'Content-Type'
 // supported content types are 'application/json', 'application/xml', 'text/xml'
-func (resp Response) Body() (interface{}, error) {
+func (resp *Response) Body() (interface{}, error) {
+	if resp.parsedBody != nil {
+		return resp.parsedBody, nil
+	}
+
+	var err error
+	resp.parsedBody, err = resp.parseBody()
+
+	return resp.parsedBody, err
+}
+
+func (resp Response) parseBody() (interface{}, error) {
+
 	if len(resp.body) == 0 {
 		return nil, nil
 	}
@@ -144,7 +157,7 @@ func (resp Response) Body() (interface{}, error) {
 
 // ToString return string representation of response data
 // including status code, headers and body.
-func (resp Response) ToString() string {
+func (resp *Response) ToString() string {
 	http := resp.http
 
 	headers := "\n"

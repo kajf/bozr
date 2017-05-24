@@ -12,7 +12,7 @@ import (
 // ResponseExpectation is an interface to any validation
 // that needs to be performed on response.
 type ResponseExpectation interface {
-	check(resp Response) error
+	check(resp *Response) error
 }
 
 // StatusCodeExpectation validates response HTTP code.
@@ -20,7 +20,7 @@ type StatusCodeExpectation struct {
 	statusCode int
 }
 
-func (e StatusCodeExpectation) check(resp Response) error {
+func (e StatusCodeExpectation) check(resp *Response) error {
 	if resp.http.StatusCode != e.statusCode {
 		msg := fmt.Sprintf("Unexpected Status Code. Expected: %d, Actual: %d\n", e.statusCode, resp.http.StatusCode)
 		return errors.New(msg)
@@ -34,7 +34,7 @@ type BodySchemaExpectation struct {
 	schemaURI string
 }
 
-func (e BodySchemaExpectation) check(resp Response) error {
+func (e BodySchemaExpectation) check(resp *Response) error {
 	contentType, _, _ := mime.ParseMediaType(resp.http.Header.Get("content-type"))
 
 	if contentType == "application/json" {
@@ -46,7 +46,7 @@ func (e BodySchemaExpectation) check(resp Response) error {
 
 var jsonSchemaCache = map[string]interface{}{}
 
-func (e BodySchemaExpectation) checkJSON(resp Response) error {
+func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 	if jsonSchemaCache[e.schemaURI] == nil {
 		debug.Printf("Loading schema %s", e.schemaURI)
 
@@ -85,7 +85,7 @@ type BodyExpectation struct {
 	pathExpectations map[string]interface{}
 }
 
-func (e BodyExpectation) check(resp Response) error {
+func (e BodyExpectation) check(resp *Response) error {
 
 	for pathStr, expectedValue := range e.pathExpectations {
 
@@ -128,7 +128,7 @@ type HeaderExpectation struct {
 	ValueParser func(string) string
 }
 
-func (e HeaderExpectation) check(resp Response) error {
+func (e HeaderExpectation) check(resp *Response) error {
 	value := resp.http.Header.Get(e.Name)
 	if e.ValueParser != nil {
 		value = e.ValueParser(value)
@@ -152,7 +152,7 @@ type ContentTypeExpectation struct {
 	Value string
 }
 
-func (e ContentTypeExpectation) check(resp Response) error {
+func (e ContentTypeExpectation) check(resp *Response) error {
 	parser := func(value string) string {
 		contentType, _, _ := mime.ParseMediaType(value)
 		return contentType
@@ -167,7 +167,7 @@ type AbsentExpectation struct {
 	paths []string
 }
 
-func (e AbsentExpectation) check(resp Response) error {
+func (e AbsentExpectation) check(resp *Response) error {
 
 	for _, pathStr := range e.paths {
 		err := responseBodyPathCheck(resp, pathStr, checkAbsentPath)
@@ -181,7 +181,7 @@ func (e AbsentExpectation) check(resp Response) error {
 
 type pathCheckFunc func(m interface{}, pathItem interface{}) string
 
-func responseBodyPathCheck(resp Response, pathItem interface{}, checkPath pathCheckFunc) error {
+func responseBodyPathCheck(resp *Response, pathItem interface{}, checkPath pathCheckFunc) error {
 
 	m, err := resp.Body() // cached
 	if err != nil {

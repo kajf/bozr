@@ -250,14 +250,14 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	}
 
 	for _, exp := range exps {
-		checkErr := exp.check(testResp)
+		checkErr := exp.check(&testResp)
 		if checkErr != nil {
 			terr.Cause = checkErr
 			return terr
 		}
 	}
 
-	err = rememberBody(testResp, call.Remember.Body, rememberMap)
+	err = rememberBody(&testResp, call.Remember.Body, rememberMap)
 	debug.Print("Remember: ", rememberMap)
 	if err != nil {
 		debug.Print("Error remember")
@@ -405,7 +405,7 @@ func toAbsPath(srcDir string, assetPath string) (string, error) {
 	return filepath.ToSlash(uri), nil
 }
 
-func rememberBody(resp Response, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
+func rememberBody(resp *Response, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
 
 	for varName, pathLine := range remember {
 		body, err := resp.Body()
