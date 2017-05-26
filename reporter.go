@@ -13,25 +13,28 @@ import (
 )
 
 type Reporter interface {
+	Init()
+
 	Report(result TestResult)
+
 	Flush()
 }
 
 type ConsoleReporter struct {
 	ExitCode int
 
-	start time.Time
+	execFrame *TimeFrame
 
 	total   int
 	failed  int
 	skipped int
 }
 
-func (r *ConsoleReporter) Report(result TestResult) {
-	if r.start.IsZero() {
-		r.start = time.Now()
-	}
+func (r *ConsoleReporter) Init() {
+	r.execFrame = &TimeFrame{Start: time.Now()}
+}
 
+func (r *ConsoleReporter) Report(result TestResult) {
 	r.total = r.total + 1
 
 	if result.Skipped {
@@ -52,7 +55,7 @@ func (r ConsoleReporter) reportSuccess(result TestResult) {
 	c := color.New(color.FgGreen).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("PASSED")
-	fmt.Printf("]  %s - %s \t%s\n", result.Suite.FullName(), result.Case.Name, result.Duration)
+	fmt.Printf("]  %s - %s \t%s\n", result.Suite.FullName(), result.Case.Name, result.ExecFrame.Duration())
 }
 
 func (r ConsoleReporter) reportSkipped(result TestResult) {
@@ -81,7 +84,7 @@ func (r ConsoleReporter) reportError(result TestResult) {
 }
 
 func (r ConsoleReporter) Flush() {
-	end := time.Now()
+	r.execFrame.End = time.Now()
 
 	overall := "PASSED"
 	if r.failed != 0 {
@@ -102,9 +105,12 @@ func (r ConsoleReporter) Flush() {
 	fmt.Fprintf(w, "Failed:\t %d \n", r.failed)
 	fmt.Fprintf(w, "Skipped:\t %d \n", r.skipped)
 
-	fmt.Fprintf(w, "Start time:\t %s\n", r.start.String())
-	fmt.Fprintf(w, "End time:\t %s\n", end.String())
-	fmt.Fprintf(w, "Duration:\t %s\n", end.Sub(r.start).String())
+	start := r.execFrame.Start
+	end := r.execFrame.End
+
+	fmt.Fprintf(w, "Start time:\t %s\n", start)
+	fmt.Fprintf(w, "End time:\t %s\n", end)
+	fmt.Fprintf(w, "Duration:\t %s\n", end.Sub(start).String())
 
 	w.Flush()
 	fmt.Println()
@@ -123,6 +129,10 @@ type JUnitXMLReporter struct {
 	// current suite
 	// when suite is being changed, flush previous one
 	suite *suite
+}
+
+func (r *JUnitXMLReporter) Init() {
+	// nothing to do here
 }
 
 type suite struct {
@@ -180,7 +190,7 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 		r.suite = newSuite(result)
 	}
 
-	testCase := tc{Name: result.Case.Name, ClassName: r.suite.fullName, Time: result.Duration.Seconds()}
+	testCase := tc{Name: result.Case.Name, ClassName: r.suite.fullName, Time: result.ExecFrame.Duration().Seconds()}
 	if result.Error != nil {
 		testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Error.Cause.Error()}
 		testCase.Failure.Details = result.Error.Resp.ToString()
@@ -194,7 +204,6 @@ func (r *JUnitXMLReporter) Report(result TestResult) {
 
 	r.suite.Tests = r.suite.Tests + 1
 	r.suite.ID = r.suite.ID + 1
-	r.suite.Time = r.suite.Time + result.Duration.Seconds()
 	r.suite.Cases = append(r.suite.Cases, testCase)
 }
 
@@ -248,6 +257,12 @@ type MultiReporter struct {
 func (r MultiReporter) Report(result TestResult) {
 	for _, reporter := range r.Reporters {
 		reporter.Report(result)
+	}
+}
+
+func (r MultiReporter) Init() {
+	for _, reporter := range r.Reporters {
+		reporter.Init()
 	}
 }
 

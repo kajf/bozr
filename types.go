@@ -89,8 +89,18 @@ type TestResult struct {
 	Skipped    bool
 	SkippedMsg string
 	// in case test failed, cause must be specified
-	Error    *TError
-	Duration time.Duration
+	Error *TError
+
+	ExecFrame TimeFrame
+}
+
+type TimeFrame struct {
+	Start time.Time
+	End   time.Time
+}
+
+func (tf TimeFrame) Duration() time.Duration {
+	return tf.End.Sub(tf.Start)
 }
 
 type TError struct {

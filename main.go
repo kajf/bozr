@@ -144,14 +144,16 @@ func main() {
 		reporters = append(reporters, NewJUnitReporter(path))
 	}
 	reporter := NewMultiReporter(reporters...)
+	reporter.Init()
 
 	// test case runner?
 	for suite := range loader {
 		for _, testCase := range suite.Cases {
 
 			result := TestResult{
-				Suite: suite,
-				Case:  testCase,
+				Suite:     suite,
+				Case:      testCase,
+				ExecFrame: TimeFrame{Start: time.Now()},
 			}
 
 			if testCase.Ignore != nil {
@@ -162,7 +164,6 @@ func main() {
 			}
 
 			rememberedMap := make(map[string]interface{})
-			start := time.Now()
 			for _, c := range testCase.Calls {
 				addAll(c.Args, rememberedMap)
 				terr := call(suite, testCase, c, rememberedMap)
@@ -172,7 +173,7 @@ func main() {
 				}
 			}
 
-			result.Duration = time.Since(start)
+			result.ExecFrame.End = time.Now()
 
 			reporter.Report(result)
 		}
