@@ -44,7 +44,7 @@ func init() {
 }
 
 var (
-	suiteDir        string
+	suitesDir       string
 	hostFlag        string
 	infoFlag        bool
 	debugFlag       bool
@@ -115,28 +115,28 @@ func main() {
 		}
 	}
 
-	src := flag.Arg(0)
+	suitesDir = flag.Arg(0)
 
-	if src == "" {
+	if suitesDir == "" {
 		terminate("You must specify a directory or file with tests.")
 		flag.Usage()
 		return
 	}
 
 	// check specified source dir/file exists
-	_, err := os.Lstat(src)
+	_, err := os.Lstat(suitesDir)
 	if err != nil {
 		terminate(err.Error())
 		return
 	}
 
-	err = ValidateSuites(src, suiteExt)
+	err = ValidateSuites(suitesDir, suiteExt)
 	if err != nil {
 		terminate("One or more test suites are invalid.", err.Error())
 		return
 	}
 
-	loader := NewSuiteLoader(src, suiteExt)
+	loader := NewSuiteLoader(suitesDir, suiteExt)
 
 	reporters := []Reporter{NewConsoleReporter()}
 	if junitFlag {
@@ -338,7 +338,7 @@ func toString(rw interface{}) string {
 	return fmt.Sprintf("%v", sv)
 }
 
-func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
+func expectations(call Call, suitePath string) ([]ResponseExpectation, error) {
 	var exps []ResponseExpectation
 	if call.Expect.StatusCode != 0 {
 		exps = append(exps, StatusCodeExpectation{statusCode: call.Expect.StatusCode})
@@ -351,7 +351,7 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 		)
 
 		if call.Expect.BodySchemaFile != "" {
-			schemeURI, err = toAbsPath(srcDir, call.Expect.BodySchemaFile)
+			schemeURI, err = toAbsPath(suitePath, call.Expect.BodySchemaFile)
 			if err != nil {
 				return nil, err
 			}
@@ -392,13 +392,14 @@ func expectations(call Call, srcDir string) ([]ResponseExpectation, error) {
 	return exps, nil
 }
 
-func toAbsPath(srcDir string, assetPath string) (string, error) {
+func toAbsPath(suitePath string, assetPath string) (string, error) {
+	debug.Printf("Building absolute path using: suiteDir: %s, srcDir: %s, assetPath: %s", suitesDir, suitePath, assetPath)
 	if filepath.IsAbs(assetPath) {
 		// ignore srcDir
 		return assetPath, nil
 	}
 
-	uri, err := filepath.Abs(filepath.Join(suiteDir, srcDir, assetPath))
+	uri, err := filepath.Abs(filepath.Join(suitesDir, suitePath, assetPath))
 	if err != nil {
 		return "", errors.New("Invalid file path: " + assetPath)
 	}
