@@ -15,7 +15,7 @@ import (
 type Reporter interface {
 	Init()
 
-	Report(result TestResult)
+	Report(result []TestResult)
 
 	Flush()
 }
@@ -34,20 +34,23 @@ func (r *ConsoleReporter) Init() {
 	r.execFrame = &TimeFrame{Start: time.Now()}
 }
 
-func (r *ConsoleReporter) Report(result TestResult) {
-	r.total = r.total + 1
+func (r *ConsoleReporter) Report(results []TestResult) {
 
-	if result.Skipped {
-		r.reportSkipped(result)
-		r.skipped = r.skipped + 1
-		return
-	}
+	for _, result := range results {
+		r.total = r.total + 1
 
-	if result.Error != nil {
-		r.failed = r.failed + 1
-		r.reportError(result)
-	} else {
-		r.reportSuccess(result)
+		if result.Skipped {
+			r.reportSkipped(result)
+			r.skipped = r.skipped + 1
+			return
+		}
+
+		if result.Error != nil {
+			r.failed = r.failed + 1
+			r.reportError(result)
+		} else {
+			r.reportSuccess(result)
+		}
 	}
 }
 
@@ -125,10 +128,6 @@ func NewConsoleReporter() Reporter {
 type JUnitXMLReporter struct {
 	// output directory
 	OutPath string
-
-	// current suite
-	// when suite is being changed, flush previous one
-	suite *suite
 }
 
 func (r *JUnitXMLReporter) Init() {
@@ -180,38 +179,48 @@ type skipped struct {
 	Message string `xml:"message,attr"`
 }
 
-func (r *JUnitXMLReporter) Report(result TestResult) {
-	if r.suite == nil {
-		r.suite = newSuite(result)
+func (reporter *JUnitXMLReporter) Report(results []TestResult) {
+
+	var suiteResult *suite
+	for _, result := range results {
+
+		if suiteResult == nil {
+			suiteResult = &suite{
+				ID:          0,
+				Name:        result.Suite.Name,
+				PackageName: result.Suite.PackageName(),
+				TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05.000Z"),
+				fullName:    result.Suite.FullName(),
+				HostName:    "localhost",
+			}
+		}
+
+		testCase := tc{Name: result.Case.Name, ClassName: suiteResult.fullName, Time: result.ExecFrame.Duration().Seconds()}
+		if result.Error != nil {
+			testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Error.Cause.Error()}
+			testCase.Failure.Details = result.Error.Resp.ToString()
+			suiteResult.Failures = suiteResult.Failures + 1
+		}
+
+		if result.Skipped {
+			suiteResult.Skipped = suiteResult.Skipped + 1
+			testCase.Skipped = &skipped{Message: result.SkippedMsg}
+		}
+
+		suiteResult.Tests = suiteResult.Tests + 1
+		suiteResult.ID = suiteResult.ID + 1
+		suiteResult.Cases = append(suiteResult.Cases, testCase)
 	}
 
-	if r.suite.Name != result.Suite.Name {
-		r.flushSuite()
-		r.suite = newSuite(result)
-	}
-
-	testCase := tc{Name: result.Case.Name, ClassName: r.suite.fullName, Time: result.ExecFrame.Duration().Seconds()}
-	if result.Error != nil {
-		testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Error.Cause.Error()}
-		testCase.Failure.Details = result.Error.Resp.ToString()
-		r.suite.Failures = r.suite.Failures + 1
-	}
-
-	if result.Skipped {
-		r.suite.Skipped = r.suite.Skipped + 1
-		testCase.Skipped = &skipped{Message: result.SkippedMsg}
-	}
-
-	r.suite.Tests = r.suite.Tests + 1
-	r.suite.ID = r.suite.ID + 1
-	r.suite.Cases = append(r.suite.Cases, testCase)
+	reporter.flushSuite(suiteResult)
 }
 
-func (r JUnitXMLReporter) flushSuite() {
-	if r.suite == nil {
+func (r JUnitXMLReporter) flushSuite(suite *suite) {
+	if suite == nil {
 		return
 	}
-	fileName := r.suite.fullName + ".xml"
+
+	fileName := suite.fullName + ".xml"
 	fp := filepath.Join(r.OutPath, fileName)
 	err := os.MkdirAll(r.OutPath, 0777)
 	if err != nil {
@@ -222,7 +231,7 @@ func (r JUnitXMLReporter) flushSuite() {
 		panic(err)
 	}
 
-	data, err := xml.Marshal(r.suite)
+	data, err := xml.Marshal(suite)
 	if err != nil {
 		panic(err)
 	}
@@ -230,19 +239,8 @@ func (r JUnitXMLReporter) flushSuite() {
 	f.Write(data)
 }
 
-func newSuite(result TestResult) *suite {
-	return &suite{
-		ID:          0,
-		Name:        result.Suite.Name,
-		PackageName: result.Suite.PackageName(),
-		TimeStamp:   time.Now().UTC().Format("2006-01-02T15:04:05.000Z"),
-		fullName:    result.Suite.FullName(),
-		HostName:    "localhost",
-	}
-}
-
 func (r JUnitXMLReporter) Flush() {
-	r.flushSuite()
+
 }
 
 func NewJUnitReporter(outdir string) Reporter {
@@ -254,9 +252,9 @@ type MultiReporter struct {
 	Reporters []Reporter
 }
 
-func (r MultiReporter) Report(result TestResult) {
+func (r MultiReporter) Report(results []TestResult) {
 	for _, reporter := range r.Reporters {
-		reporter.Report(result)
+		reporter.Report(results)
 	}
 }
 

@@ -148,38 +148,50 @@ func main() {
 
 	// test case runner?
 	for suite := range loader {
-		for _, testCase := range suite.Cases {
-
-			result := TestResult{
-				Suite:     suite,
-				Case:      testCase,
-				ExecFrame: TimeFrame{Start: time.Now()},
-			}
-
-			if testCase.Ignore != nil {
-				result.Skipped = true
-				result.SkippedMsg = *testCase.Ignore
-				reporter.Report(result)
-				continue
-			}
-
-			rememberedMap := make(map[string]interface{})
-			for _, c := range testCase.Calls {
-				addAll(c.Args, rememberedMap)
-				terr := call(suite, testCase, c, rememberedMap)
-				if terr != nil {
-					result.Error = terr
-					break
-				}
-			}
-
-			result.ExecFrame.End = time.Now()
-
-			reporter.Report(result)
-		}
+		runSuite(suite, reporter)
 	}
 
 	reporter.Flush()
+}
+
+func runSuite(suite TestSuite, reporter Reporter) {
+
+	//suiteResult := SuiteResult{Suite: suite}
+
+	results := []TestResult{}
+
+	for _, testCase := range suite.Cases {
+
+		result := TestResult{
+			Suite:     suite,
+			Case:      testCase,
+			ExecFrame: TimeFrame{Start: time.Now()},
+		}
+
+		if testCase.Ignore != nil {
+			result.Skipped = true
+			result.SkippedMsg = *testCase.Ignore
+			//reporter.Report(result)
+			results = append(results, result)
+			continue
+		}
+
+		rememberedMap := make(map[string]interface{})
+		for _, c := range testCase.Calls {
+			addAll(c.Args, rememberedMap)
+			terr := call(suite, testCase, c, rememberedMap)
+			if terr != nil {
+				result.Error = terr
+				break
+			}
+		}
+
+		result.ExecFrame.End = time.Now()
+
+		results = append(results, result)
+	}
+
+	reporter.Report(results)
 }
 
 func addAll(src, target map[string]interface{}) {

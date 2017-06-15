@@ -83,6 +83,7 @@ func (e Expect) hasSchema() bool {
 	return e.BodySchemaFile != "" || e.BodySchemaURI != ""
 }
 
+// TestResult represents single test case for reporting
 type TestResult struct {
 	Suite      TestSuite
 	Case       TestCase
