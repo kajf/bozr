@@ -155,9 +155,6 @@ func main() {
 }
 
 func runSuite(suite TestSuite, reporter Reporter) {
-
-	//suiteResult := SuiteResult{Suite: suite}
-
 	results := []TestResult{}
 
 	for _, testCase := range suite.Cases {
@@ -165,13 +162,13 @@ func runSuite(suite TestSuite, reporter Reporter) {
 		result := TestResult{
 			Suite:     suite,
 			Case:      testCase,
-			ExecFrame: TimeFrame{Start: time.Now()},
+			ExecFrame: TimeFrame{Start: time.Now(), End: time.Now()},
 		}
 
 		if testCase.Ignore != nil {
 			result.Skipped = true
 			result.SkippedMsg = *testCase.Ignore
-			//reporter.Report(result)
+
 			results = append(results, result)
 			continue
 		}
