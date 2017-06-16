@@ -10,15 +10,17 @@ Minimalistic tool to perform REST API tests based on JSON description
 bozr [OPTIONS] (DIR|FILE)
 
 Options:
-  -H, --host		Server to test
-  -h, --help		Print usage
-  -i, --info		Enable info mode. Print request and response details.
-  -d, --debug		Enable debug mode
-      --junit		Enable junit xml reporter
-  -v, --version		Print version information and quit
+  -H, --host      Server to test
+  -p, --parallel  Execute in parallel routines
+  -h, --help      Print usage
+  -i, --info      Enable info mode. Print request and response details.
+  -d, --debug     Enable debug mode
+      --junit     Enable junit xml reporter
+  -v, --version   Print version information and quit
 
 Examples:
   bozr ./examples/suite-file.json
+  bozr -p 2 ./examples
   bozr -H http://example.com ./examples
 ```
 
