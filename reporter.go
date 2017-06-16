@@ -182,6 +182,7 @@ type skipped struct {
 func (reporter *JUnitXMLReporter) Report(results []TestResult) {
 
 	var suiteResult *suite
+	var suiteTimeFrame TimeFrame
 	for _, result := range results {
 
 		if suiteResult == nil {
@@ -193,6 +194,8 @@ func (reporter *JUnitXMLReporter) Report(results []TestResult) {
 				fullName:    result.Suite.FullName(),
 				HostName:    "localhost",
 			}
+
+			suiteTimeFrame = result.ExecFrame
 		}
 
 		testCase := tc{Name: result.Case.Name, ClassName: suiteResult.fullName, Time: result.ExecFrame.Duration().Seconds()}
@@ -210,6 +213,9 @@ func (reporter *JUnitXMLReporter) Report(results []TestResult) {
 		suiteResult.Tests = suiteResult.Tests + 1
 		suiteResult.ID = suiteResult.ID + 1
 		suiteResult.Cases = append(suiteResult.Cases, testCase)
+
+		suiteTimeFrame.Extend(result.ExecFrame)
+		suiteResult.Time = suiteTimeFrame.Duration().Seconds()
 	}
 
 	reporter.flushSuite(suiteResult)

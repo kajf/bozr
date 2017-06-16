@@ -104,6 +104,16 @@ func (tf TimeFrame) Duration() time.Duration {
 	return tf.End.Sub(tf.Start)
 }
 
+func (tf *TimeFrame) Extend(tf2 TimeFrame) {
+	if tf.Start.After(tf2.Start) {
+		tf.Start = tf2.Start
+	}
+
+	if tf.End.Before(tf2.End) {
+		tf.End = tf2.End
+	}
+}
+
 type TError struct {
 	Resp  Response
 	Cause error
