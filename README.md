@@ -11,7 +11,7 @@ bozr [OPTIONS] (DIR|FILE)
 
 Options:
   -H, --host      Server to test
-  -p, --parallel  Execute in parallel routines
+  -w, --workers   Execute in parallel with specified number of workers
   -h, --help      Print usage
   -i, --info      Enable info mode. Print request and response details.
   -d, --debug     Enable debug mode
@@ -20,7 +20,7 @@ Options:
 
 Examples:
   bozr ./examples/suite-file.json
-  bozr -p 2 ./examples
+  bozr -w 2 ./examples
   bozr -H http://example.com ./examples
 ```
 

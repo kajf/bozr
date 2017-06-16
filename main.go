@@ -29,7 +29,7 @@ func init() {
 		h += "Options:\n"
 		h += "  -d, --debug		Enable debug mode\n"
 		h += "  -H, --host		Server to test\n"
-		h += "  -p, --parallel	Execute in parallel routines\n"
+		h += "  -w, --worker		Execute in parallel with specified number of workers\n"
 		h += "  -h, --help		Print usage\n"
 		h += "  -i, --info		Enable info mode. Print request and response details\n"
 		h += "      --junit		Enable junit xml reporter\n"
@@ -38,7 +38,7 @@ func init() {
 
 		h += "Examples:\n"
 		h += "  bozr ./examples\n"
-		h += "  bozr -p 2 ./examples\n"
+		h += "  bozr -w 2 ./examples\n"
 		h += "  bozr -H http://example.com ./examples \n"
 
 		fmt.Fprintf(os.Stderr, h)
@@ -86,7 +86,7 @@ func main() {
 	flag.BoolVar(&infoFlag, "info", false, "Enable info mode. Print request and response details.")
 
 	flag.StringVar(&hostFlag, "H", "", "Test server address. Example: http://example.com/api.")
-	flag.IntVar(&routinesFlag, "p", 1, "Execute test sutes in parallel with provided numer of routines. Default is 1.")
+	flag.IntVar(&routinesFlag, "w", 1, "Execute test sutes in parallel with provided numer of workers. Default is 1.")
 
 	flag.BoolVar(&helpFlag, "h", false, "Print usage")
 	flag.BoolVar(&helpFlag, "help", false, "Print usage")
