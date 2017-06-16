@@ -29,6 +29,7 @@ func init() {
 		h += "Options:\n"
 		h += "  -d, --debug		Enable debug mode\n"
 		h += "  -H, --host		Server to test\n"
+		h += "  -p, --parallel	Execute in parallel routines\n"
 		h += "  -h, --help		Print usage\n"
 		h += "  -i, --info		Enable info mode. Print request and response details\n"
 		h += "      --junit		Enable junit xml reporter\n"
@@ -37,6 +38,7 @@ func init() {
 
 		h += "Examples:\n"
 		h += "  bozr ./examples\n"
+		h += "  bozr -p 2 ./examples\n"
 		h += "  bozr -H http://example.com ./examples \n"
 
 		fmt.Fprintf(os.Stderr, h)
@@ -46,6 +48,7 @@ func init() {
 var (
 	suitesDir       string
 	hostFlag        string
+	routinesFlag    int
 	infoFlag        bool
 	debugFlag       bool
 	helpFlag        bool
@@ -83,6 +86,7 @@ func main() {
 	flag.BoolVar(&infoFlag, "info", false, "Enable info mode. Print request and response details.")
 
 	flag.StringVar(&hostFlag, "H", "", "Test server address. Example: http://example.com/api.")
+	flag.IntVar(&routinesFlag, "p", 1, "Execute test sutes in parallel with provided numer of routines. Default is 1.")
 
 	flag.BoolVar(&helpFlag, "h", false, "Print usage")
 	flag.BoolVar(&helpFlag, "help", false, "Print usage")
@@ -115,6 +119,11 @@ func main() {
 		}
 	}
 
+	if routinesFlag < 1 || routinesFlag > 9 {
+		fmt.Println("Invalid routines parameter [", routinesFlag, "]. Setting to default [1]")
+		routinesFlag = 1
+	}
+
 	suitesDir = flag.Arg(0)
 
 	if suitesDir == "" {
@@ -137,24 +146,12 @@ func main() {
 	}
 
 	loader := NewSuiteLoader(suitesDir, suiteExt)
+	reporter := createReporter()
 
-	reporters := []Reporter{NewConsoleReporter()}
-	if junitFlag {
-		path, _ := filepath.Abs(junitOutputFlag)
-		reporters = append(reporters, NewJUnitReporter(path))
-	}
-	reporter := NewMultiReporter(reporters...)
-	reporter.Init()
-
-	// test case runner?
-	for suite := range loader {
-		runSuite(suite, reporter)
-	}
-
-	reporter.Flush()
+	RunParallel(loader, reporter, runSuite, routinesFlag)
 }
 
-func runSuite(suite TestSuite, reporter Reporter) {
+func runSuite(suite TestSuite) []TestResult {
 	results := []TestResult{}
 
 	for _, testCase := range suite.Cases {
@@ -176,7 +173,7 @@ func runSuite(suite TestSuite, reporter Reporter) {
 		rememberedMap := make(map[string]interface{})
 		for _, c := range testCase.Calls {
 			addAll(c.Args, rememberedMap)
-			terr := call(suite, testCase, c, rememberedMap)
+			terr := call(suite.Dir, c, rememberedMap)
 			if terr != nil {
 				result.Error = terr
 				break
@@ -188,7 +185,7 @@ func runSuite(suite TestSuite, reporter Reporter) {
 		results = append(results, result)
 	}
 
-	reporter.Report(results)
+	return results
 }
 
 func addAll(src, target map[string]interface{}) {
@@ -197,15 +194,27 @@ func addAll(src, target map[string]interface{}) {
 	}
 }
 
-func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[string]interface{}) *TError {
-	debug.Printf("Starting call: %s - %s", testSuite.Name, testCase.Name)
+func createReporter() Reporter {
+	reporters := []Reporter{NewConsoleReporter()}
+	if junitFlag {
+		path, _ := filepath.Abs(junitOutputFlag)
+		reporters = append(reporters, NewJUnitReporter(path))
+	}
+	reporter := NewMultiReporter(reporters...)
+	reporter.Init()
+
+	return reporter
+}
+
+func call(suitePath string, call Call, rememberMap map[string]interface{}) *TError {
+
 	terr := &TError{}
 
 	on := call.On
 
 	dat := []byte(on.Body)
 	if on.BodyFile != "" {
-		uri, err := toAbsPath(testSuite.Dir, on.BodyFile)
+		uri, err := toAbsPath(suitePath, on.BodyFile)
 		if err != nil {
 			terr.Cause = err
 			return terr
@@ -253,7 +262,7 @@ func call(testSuite TestSuite, testCase TestCase, call Call, rememberMap map[str
 	info.Println(testResp.ToString())
 	info.Println("")
 
-	exps, err := expectations(call, testSuite.Dir)
+	exps, err := expectations(call, suitePath)
 	if err != nil {
 		terr.Cause = err
 		return terr
