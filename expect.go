@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mime"
 	"strings"
+	"sync"
 
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -47,6 +48,10 @@ func (e BodySchemaExpectation) check(resp *Response) error {
 var jsonSchemaCache = map[string]interface{}{}
 
 func (e BodySchemaExpectation) checkJSON(resp *Response) error {
+	// concurrent access to jsonSchemaCache (see 'w' CLI option)
+	// TODO replace with concurrent map when go 1.9 released
+	var mu sync.Mutex
+	mu.Lock()
 	if jsonSchemaCache[e.schemaURI] == nil {
 		debug.Printf("Loading schema %s", e.schemaURI)
 
@@ -59,6 +64,7 @@ func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 
 		jsonSchemaCache[e.schemaURI] = schema
 	}
+	mu.Unlock()
 
 	schemaLoader := gojsonschema.NewGoLoader(jsonSchemaCache[e.schemaURI])
 	documentLoader := gojsonschema.NewStringLoader(string(resp.body))
