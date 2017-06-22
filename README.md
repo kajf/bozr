@@ -19,7 +19,7 @@ Options:
   -v, --version   Print version information and quit
 
 Examples:
-  bozr ./examples/suite-file.json
+  bozr ./examples/suite-file.suite.json
   bozr -w 2 ./examples
   bozr -H http://example.com ./examples
 ```
@@ -30,7 +30,7 @@ Usage [demo](https://asciinema.org/a/85699)
 Download the [latest binary release](https://github.com/kajf/bozr/releases) and unpack it.
 
 ## Test Suite Format
-Test suite (suite_name.json)
+Test suite (suite_name.suite.json)
 
     ├ Test A [test case]
     |   ├ Name
