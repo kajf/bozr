@@ -50,6 +50,8 @@ var jsonSchemaCache = map[string]interface{}{}
 func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 	// concurrent access to jsonSchemaCache (see 'w' CLI option)
 	// TODO replace with concurrent map when go 1.9 released
+	var safeSchema interface{}
+
 	var mu sync.Mutex
 	mu.Lock()
 	if jsonSchemaCache[e.schemaURI] == nil {
@@ -64,9 +66,10 @@ func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 
 		jsonSchemaCache[e.schemaURI] = schema
 	}
+	safeSchema = jsonSchemaCache[e.schemaURI]
 	mu.Unlock()
 
-	schemaLoader := gojsonschema.NewGoLoader(jsonSchemaCache[e.schemaURI])
+	schemaLoader := gojsonschema.NewGoLoader(safeSchema)
 	documentLoader := gojsonschema.NewStringLoader(string(resp.body))
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
