@@ -42,7 +42,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 		if result.Skipped {
 			r.reportSkipped(result)
 			r.skipped = r.skipped + 1
-			return
+			continue
 		}
 
 		if result.Error != nil {
