@@ -45,16 +45,12 @@ func (e BodySchemaExpectation) check(resp *Response) error {
 	return fmt.Errorf("Unsupported content type: %s", contentType)
 }
 
-var jsonSchemaCache = map[string]interface{}{}
+var jsonSchemaCache sync.Map
 
 func (e BodySchemaExpectation) checkJSON(resp *Response) error {
-	// concurrent access to jsonSchemaCache (see 'w' CLI option)
-	// TODO replace with concurrent map when go 1.9 released
-	var safeSchema interface{}
+	var safeSchema, ok = jsonSchemaCache.Load(e.schemaURI)
 
-	var mu sync.Mutex
-	mu.Lock()
-	if jsonSchemaCache[e.schemaURI] == nil {
+	if !ok {
 		debug.Printf("Loading schema %s", e.schemaURI)
 
 		schemaLoader := gojsonschema.NewReferenceLoader(e.schemaURI)
@@ -64,10 +60,9 @@ func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 			return fmt.Errorf("failed to load schema: %s", err)
 		}
 
-		jsonSchemaCache[e.schemaURI] = schema
+		jsonSchemaCache.Store(e.schemaURI, schema)
+		safeSchema = schema
 	}
-	safeSchema = jsonSchemaCache[e.schemaURI]
-	mu.Unlock()
 
 	schemaLoader := gojsonschema.NewGoLoader(safeSchema)
 	documentLoader := gojsonschema.NewStringLoader(string(resp.body))
