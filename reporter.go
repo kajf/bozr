@@ -198,7 +198,12 @@ func (r *JUnitXMLReporter) Report(results []TestResult) {
 			suiteTimeFrame = result.ExecFrame
 		}
 
-		testCase := tc{Name: result.Case.Name, ClassName: suiteResult.fullName, Time: result.ExecFrame.Duration().Seconds()}
+		testCase := tc{
+			Name:      result.Case.Name,
+			ClassName: suiteResult.fullName,
+			Time:      result.ExecFrame.Duration().Seconds(),
+		}
+
 		if result.Error != nil {
 			errType := "FailedExpectation"
 			errMsg := result.Error.Cause.Error()
