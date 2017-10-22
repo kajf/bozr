@@ -200,8 +200,16 @@ func (reporter *JUnitXMLReporter) Report(results []TestResult) {
 
 		testCase := tc{Name: result.Case.Name, ClassName: suiteResult.fullName, Time: result.ExecFrame.Duration().Seconds()}
 		if result.Error != nil {
-			testCase.Failure = &failure{Type: "FailedExpectation", Message: result.Error.Cause.Error()}
-			testCase.Failure.Details = result.Error.Resp.ToString()
+			errType := "FailedExpectation"
+			errMsg := result.Error.Cause.Error()
+			errDetails := fmt.Sprintf("%s\n\n%s", errMsg, result.Error.Resp.ToString())
+
+			testCase.Failure = &failure{
+				Type:    errType,
+				Message: errMsg,
+				Details: errDetails,
+			}
+
 			suiteResult.Failures = suiteResult.Failures + 1
 		}
 
