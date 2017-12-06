@@ -234,6 +234,8 @@ func call(suitePath string, call Call, rememberMap map[string]interface{}) *TErr
 		return terr
 	}
 
+	sleep(call.Wait)
+
 	printRequestInfo(req, dat)
 
 	client := &http.Client{}
@@ -287,6 +289,15 @@ func call(suitePath string, call Call, rememberMap map[string]interface{}) *TErr
 	rememberHeaders(testResp.http.Header, call.Remember.Headers, rememberMap)
 
 	return nil
+}
+
+func sleep(seconds int) {
+	if seconds <= 0 {
+		return
+	}
+
+	info.Printf("Waiting for %d seconds before sending request\n", seconds)
+	time.Sleep(time.Second * time.Duration(seconds))
 }
 
 func populateRequest(on On, body string, rememberMap map[string]interface{}) (*http.Request, error) {

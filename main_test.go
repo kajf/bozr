@@ -20,6 +20,13 @@ func TestRememberBodyLazy(t *testing.T) {
 	}
 }
 
+func TestSleepNonPositive(t *testing.T) {
+	sleep(0)
+	sleep(-1)
+
+	// no NPE for returning before accessing empy info logger
+}
+
 func TestConcatURL(t *testing.T) {
 
 	t.Run("open base and closed path", func(t *testing.T) {
