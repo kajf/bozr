@@ -48,7 +48,6 @@ type TestCase struct {
 }
 
 type Call struct {
-	Wait     int                    `json:"wait,omitempty"`
 	Args     map[string]interface{} `json:"args,omitempty"`
 	On       On                     `json:"on,omitempty"`
 	Expect   Expect                 `json:"expect,omitempty"`

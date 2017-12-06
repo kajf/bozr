@@ -290,10 +290,6 @@ const suiteDetailedSchema = `
         "items": {
           "type": "object",
           "properties": {
-			"wait": {
-			  "type": "integer",
-              "minProperties": 1
-			},
             "args": {
               "type": "object",
               "minProperties": 1
