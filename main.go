@@ -127,8 +127,9 @@ func main() {
 	suitesDir = flag.Arg(0)
 
 	if suitesDir == "" {
-		terminate("You must specify a directory or file with tests.")
 		flag.Usage()
+		fmt.Println()
+		terminate("You must specify a directory or file with tests.")
 		return
 	}
 
