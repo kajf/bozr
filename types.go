@@ -226,9 +226,11 @@ type Throttle struct {
 	queue     []time.Time
 }
 
+// InfiniteLimit is a constant that represents an absence of any limits.
+const InfiniteLimit = 0
+
 // NewThrottle creates Throttle with following notation: not more than X executions per time period
 // e.g. not more than 300 calls per 1 minute
-// zero limit means no limit
 func NewThrottle(limit int, perTimeFrame time.Duration) *Throttle {
 	return &Throttle{limit: limit, timeFrame: perTimeFrame, queue: make([]time.Time, 0)}
 }
@@ -248,14 +250,14 @@ func (t *Throttle) cleanOld() {
 // RunOrPause should be added to any throttled operation
 // so it either runs without interruption or waits for next time frame if current time frame call limit is exceeded
 func (t *Throttle) RunOrPause() {
-	if t.limit == 0 {
+	if t.limit == InfiniteLimit {
 		return
 	} // no limit, so exit
 
 	t.cleanOld()
 
-	totlalCallsInFrame := len(t.queue)
-	limitExceeded := (totlalCallsInFrame == t.limit)
+	totalCallsInFrame := len(t.queue)
+	limitExceeded := (totalCallsInFrame == t.limit)
 
 	if limitExceeded {
 		eldestCallInFrame := t.queue[0]
