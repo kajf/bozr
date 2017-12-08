@@ -12,6 +12,7 @@ bozr [OPTIONS] (DIR|FILE)
 Options:
   -H, --host      Server to test
   -w, --workers   Execute in parallel with specified number of workers
+      --throttle  Execute no more than specified number of requests per second (in suite)
   -h, --help      Print usage
   -i, --info      Enable info mode. Print request and response details.
   -d, --debug     Enable debug mode
