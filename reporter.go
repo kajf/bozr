@@ -179,7 +179,7 @@ type skipped struct {
 	Message string `xml:"message,attr"`
 }
 
-func (reporter *JUnitXMLReporter) Report(results []TestResult) {
+func (r *JUnitXMLReporter) Report(results []TestResult) {
 
 	var suiteResult *suite
 	var suiteTimeFrame TimeFrame
@@ -226,7 +226,7 @@ func (reporter *JUnitXMLReporter) Report(results []TestResult) {
 		suiteResult.Time = suiteTimeFrame.Duration().Seconds()
 	}
 
-	reporter.flushSuite(suiteResult)
+	r.flushSuite(suiteResult)
 }
 
 func (r JUnitXMLReporter) flushSuite(suite *suite) {

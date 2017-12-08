@@ -23,8 +23,7 @@ type StatusCodeExpectation struct {
 
 func (e StatusCodeExpectation) check(resp *Response) error {
 	if resp.http.StatusCode != e.statusCode {
-		msg := fmt.Sprintf("Unexpected Status Code. Expected: %d, Actual: %d\n", e.statusCode, resp.http.StatusCode)
-		return errors.New(msg)
+		return fmt.Errorf("Unexpected Status Code. Expected: %d, Actual: %d", e.statusCode, resp.http.StatusCode)
 	}
 	return nil
 }
@@ -140,11 +139,10 @@ func (e HeaderExpectation) check(resp *Response) error {
 
 	value = strings.TrimSpace(value)
 	if value == "" {
-		return fmt.Errorf("Missing header. Expected \"%s: %s\"\n", e.Name, e.Value)
+		return fmt.Errorf("Missing header. Expected \"%s: %s\"", e.Name, e.Value)
 	}
 	if e.Value != "" && e.Value != value {
-		msg := "Unexpected header. Expected \"%s: %s\". Actual \"%s: %s\"\n"
-		return fmt.Errorf(msg, e.Name, e.Value, e.Name, value)
+		return fmt.Errorf("Unexpected header. Expected \"%s: %s\". Actual \"%s: %s\"", e.Name, e.Value, e.Name, value)
 	}
 	return nil
 }

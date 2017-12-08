@@ -24,6 +24,7 @@ type TestSuite struct {
 	Cases []TestCase
 }
 
+// PackageName builds name of a package based on folder where test is located
 func (suite TestSuite) PackageName() string {
 	if strings.HasPrefix(suite.Dir, ".") {
 		return ""
@@ -32,6 +33,7 @@ func (suite TestSuite) PackageName() string {
 	return strings.Replace(filepath.ToSlash(suite.Dir), "/", ".", -1)
 }
 
+// FullName builds name of the test including package and test name
 func (suite TestSuite) FullName() string {
 	pkg := suite.PackageName()
 	if pkg == "" {
@@ -41,12 +43,14 @@ func (suite TestSuite) FullName() string {
 	return fmt.Sprintf("%s.%s", suite.PackageName(), suite.Name)
 }
 
+// TestCase represents single test scenario
 type TestCase struct {
 	Name   string  `json:"name,omitempty"`
 	Ignore *string `json:"ignore,omitempty"`
 	Calls  []Call  `json:"calls,omitempty"`
 }
 
+// Call defines metadata for one request-response virifiation within TestCase
 type Call struct {
 	Args     map[string]interface{} `json:"args,omitempty"`
 	On       On                     `json:"on,omitempty"`
@@ -54,11 +58,13 @@ type Call struct {
 	Remember Remember               `json:"remember,omitempty"`
 }
 
+// Remember defines items from HTTP response to persist for usage in future calls
 type Remember struct {
 	Body    map[string]string `json:"body,omitempty"`
 	Headers map[string]string `json:"headers,omitempty"`
 }
 
+// On is a metadata for building a HTTP request
 type On struct {
 	Method   string            `json:"method"`
 	URL      string            `json:"url"`
@@ -68,6 +74,7 @@ type On struct {
 	BodyFile string            `json:"bodyFile"`
 }
 
+// Expect is a metadata for HTTP response verification
 type Expect struct {
 	StatusCode int `json:"statusCode"`
 	// shortcut for content-type header
@@ -95,15 +102,19 @@ type TestResult struct {
 	ExecFrame TimeFrame
 }
 
+// TimeFrame describes period of time
 type TimeFrame struct {
 	Start time.Time
 	End   time.Time
 }
 
+// Duration of TimeFrame from Start to End
 func (tf TimeFrame) Duration() time.Duration {
 	return tf.End.Sub(tf.Start)
 }
 
+// Extend does extension of time perod by other provided TimeFrame
+// from earlier start to elder end
 func (tf *TimeFrame) Extend(tf2 TimeFrame) {
 	if tf.Start.After(tf2.Start) {
 		tf.Start = tf2.Start
@@ -114,12 +125,13 @@ func (tf *TimeFrame) Extend(tf2 TimeFrame) {
 	}
 }
 
+// TError stands for test error in report
 type TError struct {
 	Resp  Response
 	Cause error
 }
 
-// Response wraps test call http response
+// Response wraps test call HTTP response
 type Response struct {
 	http       http.Response
 	body       []byte
