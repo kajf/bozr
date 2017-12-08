@@ -446,10 +446,9 @@ func rememberBody(resp *Response, remember map[string]string, rememberedMap map[
 		if rememberVar, err := GetByPath(body, pathLine); err == nil {
 			rememberedMap[varName] = rememberVar
 		} else {
-			strErr := fmt.Sprintf("Remembered value not found, path: %v", pathLine)
-			err = errors.New(strErr)
+			debug.Print(err)
+			return fmt.Errorf("Remembered value not found, path: %v", pathLine)
 		}
-		//fmt.Printf("v: %v\n", getByPath(bodyMap, b...))
 	}
 
 	return err
