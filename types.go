@@ -212,7 +212,7 @@ func (resp *Response) ToString() string {
 	}
 
 	if body == nil {
-		body = resp.body
+		body = ""
 	}
 
 	details := fmt.Sprintf("%s \n %s \n%s", http.Status, headers, body)
