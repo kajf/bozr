@@ -116,3 +116,54 @@ func TestTimeFrameExtendNoIntersection(t *testing.T) {
 		t.Error("wrong intersection extension", tf.Start, tf.End)
 	}
 }
+
+func TestThrottleFixedSize(t *testing.T) {
+	requestLimit := 2
+	tr := NewThrottle(requestLimit, 50*time.Millisecond)
+
+	tr.RunOrPause()
+	tr.RunOrPause()
+	tr.RunOrPause() // should pause on this one
+
+	if len(tr.queue) != requestLimit {
+		t.Error("unexpected length " + string(len(tr.queue)))
+	}
+}
+
+func TestThrottleCleanOld(t *testing.T) {
+	tr := NewThrottle(3, time.Second)
+	now := time.Now()
+
+	// fake queue
+	q := make([]time.Time, 0)
+	q = append(q, now.Add(-9*time.Second))
+	q = append(q, now.Add(-7*time.Second))
+	q = append(q, now)
+
+	tr.queue = q
+	// --
+
+	tr.cleanOld()
+
+	if len(tr.queue) != 1 {
+		t.Error("unexpected length ", len(tr.queue))
+	}
+}
+
+func TestThrottleFirstCall(t *testing.T) {
+	tr := NewThrottle(3, time.Second)
+
+	tr.RunOrPause()
+
+	if len(tr.queue) != 1 {
+		t.Error("unexpected length ", len(tr.queue))
+	}
+}
+
+func TestThrottleZeroLimit(t *testing.T) {
+	tr := NewThrottle(0, time.Second)
+
+	tr.RunOrPause()
+
+	// no NPE, no timeout
+}

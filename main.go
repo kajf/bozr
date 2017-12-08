@@ -30,6 +30,7 @@ func init() {
 		h += "  -d, --debug		Enable debug mode\n"
 		h += "  -H, --host		Server to test\n"
 		h += "  -w, --worker		Execute in parallel with specified number of workers\n"
+		h += "      --throttle	Execute no more than specified number of requests per second (in suite)\n"
 		h += "  -h, --help		Print usage\n"
 		h += "  -i, --info		Enable info mode. Print request and response details\n"
 		h += "      --junit		Enable junit xml reporter\n"
@@ -49,6 +50,7 @@ var (
 	suitesDir       string
 	hostFlag        string
 	routinesFlag    int
+	throttleFlag    int
 	infoFlag        bool
 	debugFlag       bool
 	helpFlag        bool
@@ -87,6 +89,7 @@ func main() {
 
 	flag.StringVar(&hostFlag, "H", "", "Test server address. Example: http://example.com/api.")
 	flag.IntVar(&routinesFlag, "w", 1, "Execute test sutes in parallel with provided numer of workers. Default is 1.")
+	flag.IntVar(&throttleFlag, "throttle", 0, "Execute no more than specified number of requests per minute (in suite)")
 
 	flag.BoolVar(&helpFlag, "h", false, "Print usage")
 	flag.BoolVar(&helpFlag, "help", false, "Print usage")
@@ -155,6 +158,8 @@ func main() {
 func runSuite(suite TestSuite) []TestResult {
 	results := []TestResult{}
 
+	throttle := NewThrottle(throttleFlag, time.Minute)
+
 	for _, testCase := range suite.Cases {
 
 		result := TestResult{
@@ -173,6 +178,9 @@ func runSuite(suite TestSuite) []TestResult {
 
 		rememberedMap := make(map[string]interface{})
 		for _, c := range testCase.Calls {
+
+			throttle.RunOrPause()
+
 			addAll(c.Args, rememberedMap)
 			terr := call(suite.Dir, c, rememberedMap)
 			if terr != nil {

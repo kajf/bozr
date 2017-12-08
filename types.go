@@ -206,3 +206,55 @@ func (resp *Response) ToString() string {
 	details := fmt.Sprintf("%s \n %s \n%s", http.Status, headers, body)
 	return details
 }
+
+// Throttle implements rate limiting based on sliding time window
+type Throttle struct {
+	limit     int
+	timeFrame time.Duration
+	queue     []time.Time
+}
+
+// NewThrottle creates Throttle with following notation: not more than X executions per time period
+// e.g. not more than 300 calls per 1 minute
+// zero limit means no limit
+func NewThrottle(limit int, perTimeFrame time.Duration) *Throttle {
+	return &Throttle{limit: limit, timeFrame: perTimeFrame, queue: make([]time.Time, 0)}
+}
+
+func (t *Throttle) cleanOld() {
+	for _, callTime := range t.queue {
+
+		timeSince := time.Since(callTime)
+		if timeSince <= t.timeFrame {
+			break
+		} // queue is ordered, so no point to proceed
+
+		t.queue = t.queue[1:]
+	} // clean up top callTimes older than frame
+}
+
+// RunOrPause should be added to any throttled operation
+// so it either runs without interruption or waits for next time frame if current time frame call limit is exceeded
+func (t *Throttle) RunOrPause() {
+	if t.limit == 0 {
+		return
+	} // no limit, so exit
+
+	t.cleanOld()
+
+	totlalCallsInFrame := len(t.queue)
+	limitExceeded := (totlalCallsInFrame == t.limit)
+
+	if limitExceeded {
+		eldestCallInFrame := t.queue[0]
+		durationSinceEldest := time.Since(eldestCallInFrame)
+
+		remaining := t.timeFrame - durationSinceEldest
+
+		time.Sleep(remaining)
+
+		t.queue = t.queue[1:] // free up space for new item
+	}
+
+	t.queue = append(t.queue, time.Now())
+}
