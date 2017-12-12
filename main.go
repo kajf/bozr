@@ -176,13 +176,13 @@ func runSuite(suite TestSuite) []TestResult {
 			continue
 		}
 
-		rememberedMap := make(map[string]interface{})
+		vars := NewVars()
 		for _, c := range testCase.Calls {
 
 			throttle.RunOrPause()
 
-			addAll(c.Args, rememberedMap)
-			terr := call(suite.Dir, c, rememberedMap)
+			vars.AddAll(c.Args)
+			terr := call(suite.Dir, c, vars)
 			if terr != nil {
 				result.Error = terr
 				break
@@ -197,12 +197,6 @@ func runSuite(suite TestSuite) []TestResult {
 	return results
 }
 
-func addAll(src, target map[string]interface{}) {
-	for key, val := range src {
-		target[key] = val
-	}
-}
-
 func createReporter() Reporter {
 	reporters := []Reporter{NewConsoleReporter()}
 	if junitFlag {
@@ -215,7 +209,7 @@ func createReporter() Reporter {
 	return reporter
 }
 
-func call(suitePath string, call Call, rememberMap map[string]interface{}) *TError {
+func call(suitePath string, call Call, vars *Vars) *TError {
 
 	terr := &TError{}
 
@@ -237,7 +231,7 @@ func call(suitePath string, call Call, rememberMap map[string]interface{}) *TErr
 		}
 	}
 
-	req, err := populateRequest(on, string(dat), rememberMap)
+	req, err := populateRequest(on, string(dat), vars)
 	if err != nil {
 		terr.Cause = err
 		return terr
@@ -285,27 +279,27 @@ func call(suitePath string, call Call, rememberMap map[string]interface{}) *TErr
 		}
 	}
 
-	err = rememberBody(&testResp, call.Remember.Body, rememberMap)
-	debug.Print("Remember: ", rememberMap)
+	err = rememberBody(&testResp, call.Remember.Body, vars)
+	debug.Print("Remember: ", vars)
 	if err != nil {
 		debug.Print("Error remember")
 		terr.Cause = err
 		return terr
 	}
 
-	rememberHeaders(testResp.http.Header, call.Remember.Headers, rememberMap)
+	rememberHeaders(testResp.http.Header, call.Remember.Headers, vars)
 
 	return nil
 }
 
-func populateRequest(on On, body string, rememberMap map[string]interface{}) (*http.Request, error) {
+func populateRequest(on On, body string, vars *Vars) (*http.Request, error) {
 
-	urlStr, err := urlPrefix(populateRememberedVars(on.URL, rememberMap))
+	urlStr, err := urlPrefix(vars.ApplyTo(on.URL))
 	if err != nil {
 		return nil, errors.New("Cannot create request. Invalid url: " + on.URL)
 	}
 
-	body = populateRememberedVars(body, rememberMap)
+	body = vars.ApplyTo(body)
 	dat := []byte(body)
 
 	req, err := http.NewRequest(on.Method, urlStr, bytes.NewBuffer(dat))
@@ -314,12 +308,12 @@ func populateRequest(on On, body string, rememberMap map[string]interface{}) (*h
 	}
 
 	for key, value := range on.Headers {
-		req.Header.Add(key, populateRememberedVars(value, rememberMap))
+		req.Header.Add(key, vars.ApplyTo(value))
 	}
 
 	q := req.URL.Query()
 	for key, value := range on.Params {
-		q.Add(key, populateRememberedVars(value, rememberMap))
+		q.Add(key, vars.ApplyTo(value))
 	}
 	req.URL.RawQuery = q.Encode()
 
@@ -340,15 +334,6 @@ func concatURL(base string, p string) (string, error) {
 		return "", err
 	}
 	return baseURL.Scheme + "://" + baseURL.Host + path.Join(baseURL.Path, p), nil
-}
-
-func populateRememberedVars(str string, rememberMap map[string]interface{}) string {
-	res := str
-	for varName, val := range rememberMap {
-		placeholder := "{" + varName + "}"
-		res = strings.Replace(res, placeholder, toString(val), -1)
-	}
-	return res
 }
 
 // toString returns value suitable to insert as an argument
@@ -434,7 +419,7 @@ func toAbsPath(suitePath string, assetPath string) (string, error) {
 	return filepath.ToSlash(uri), nil
 }
 
-func rememberBody(resp *Response, remember map[string]string, rememberedMap map[string]interface{}) (err error) {
+func rememberBody(resp *Response, remember map[string]string, vars *Vars) (err error) {
 
 	for varName, pathLine := range remember {
 		body, err := resp.Body()
@@ -444,7 +429,7 @@ func rememberBody(resp *Response, remember map[string]string, rememberedMap map[
 		}
 
 		if rememberVar, err := GetByPath(body, pathLine); err == nil {
-			rememberedMap[varName] = rememberVar
+			vars.Add(varName, rememberVar)
 		} else {
 			debug.Print(err)
 			return fmt.Errorf("Remembered value not found, path: %v", pathLine)
@@ -454,14 +439,14 @@ func rememberBody(resp *Response, remember map[string]string, rememberedMap map[
 	return err
 }
 
-func rememberHeaders(header http.Header, remember map[string]string, rememberedMap map[string]interface{}) {
+func rememberHeaders(header http.Header, remember map[string]string, vars *Vars) {
 	for valueName, headerName := range remember {
 		value := header.Get(headerName)
 		if value == "" {
 			continue
 		}
 
-		rememberedMap[valueName] = value
+		vars.Add(valueName, value)
 	}
 }
 

@@ -12,7 +12,7 @@ func TestPopulateRequestBody(t *testing.T) {
 	value := "abc"
 
 	// when
-	req, _ := populateRequest(on, "pre {var} post", map[string]interface{}{"var": value})
+	req, _ := populateRequest(on, "pre {var} post", &Vars{items: map[string]interface{}{"var": value}})
 
 	//then
 	buf := new(bytes.Buffer)
@@ -22,36 +22,6 @@ func TestPopulateRequestBody(t *testing.T) {
 		t.Error(
 			"body does not conatain value", value,
 			"got", got,
-		)
-	}
-}
-
-func TestPopulateRememberedVars(t *testing.T) {
-	token := "test_token"
-	rememberMap := map[string]interface{}{"savedToken": token}
-
-	got := populateRememberedVars("bearer {savedToken}", rememberMap)
-
-	if got != "bearer "+token {
-		t.Error(
-			"expected", "bearer "+token,
-			"got", got,
-		)
-	}
-}
-
-func TestPopulateRememberedVarsMultiple(t *testing.T) {
-	token := "test_token"
-	second := "second"
-	rememberMap := map[string]interface{}{"savedToken": token, "aSecond": second}
-
-	got := populateRememberedVars("prefix {savedToken} middle {aSecond} postfix", rememberMap)
-
-	expected := "prefix " + token + " middle " + second + " postfix"
-	if got != expected {
-		t.Error(
-			"expected[", expected,
-			"got[", got,
 		)
 	}
 }
@@ -80,8 +50,9 @@ func TestRememberHeader(t *testing.T) {
 	responseHeaders := map[string][]string{"X-Test": {"PASS"}}
 	remember := map[string]string{"valueKey": "X-Test"}
 	remembered := map[string]interface{}{}
+	vars := &Vars{items: remembered}
 
-	rememberHeaders(responseHeaders, remember, remembered)
+	rememberHeaders(responseHeaders, remember, vars)
 
 	if len(remembered) != 1 {
 		t.Errorf("Unexpected map length: %d", len(remember))

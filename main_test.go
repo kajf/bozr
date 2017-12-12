@@ -13,7 +13,7 @@ func TestRememberBodyLazy(t *testing.T) {
 		body: []byte(`# invalid body so it fails if parsed`),
 	}
 
-	err := rememberBody(&resp, map[string]string{}, map[string]interface{}{})
+	err := rememberBody(&resp, map[string]string{}, &Vars{})
 
 	if err != nil {
 		t.Error(err)

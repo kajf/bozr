@@ -167,3 +167,35 @@ func TestThrottleZeroLimit(t *testing.T) {
 
 	// no NPE, no timeout
 }
+
+func TestVarsApplyTo(t *testing.T) {
+	token := "test_token"
+	rememberMap := map[string]interface{}{"savedToken": token}
+	vars := &Vars{items: rememberMap}
+
+	got := vars.ApplyTo("bearer {savedToken}")
+
+	if got != "bearer "+token {
+		t.Error(
+			"expected", "bearer "+token,
+			"got", got,
+		)
+	}
+}
+
+func TestVarsApplyToMultiple(t *testing.T) {
+	token := "test_token"
+	second := "second"
+	rememberMap := map[string]interface{}{"savedToken": token, "aSecond": second}
+	vars := &Vars{items: rememberMap}
+
+	got := vars.ApplyTo("prefix {savedToken} middle {aSecond} postfix")
+
+	expected := "prefix " + token + " middle " + second + " postfix"
+	if got != expected {
+		t.Error(
+			"expected[", expected,
+			"got[", got,
+		)
+	}
+}

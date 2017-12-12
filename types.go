@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"mime"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -217,6 +218,51 @@ func (resp *Response) ToString() string {
 
 	details := fmt.Sprintf("%s \n %s \n%s", http.Status, headers, body)
 	return details
+}
+
+// Vars defines map of test case level variables (e.g. args, remember, env)
+type Vars struct {
+	items map[string]interface{}
+}
+
+// NewVars create new Vars object with default set of env variables
+func NewVars() *Vars {
+	v := &Vars{items: make(map[string]interface{})}
+
+	v.addEnv()
+
+	return v
+}
+
+func (v *Vars) addEnv() {
+
+	for _, e := range os.Environ() {
+		pair := strings.Split(e, "=")
+		v.items["env:"+pair[0]] = pair[1]
+	}
+}
+
+// Add is adding variable with name and value to map
+func (v *Vars) Add(name string, val interface{}) {
+	v.items[name] = val
+}
+
+// AddAll is a shortcut for adding provided map of variables in for-loop
+func (v *Vars) AddAll(src map[string]interface{}) {
+	for key, val := range src {
+		v.items[key] = val
+	}
+}
+
+// ApplyTo updates input template with values correspondent to placeholders
+// according to current vars map
+func (v *Vars) ApplyTo(str string) string {
+	res := str
+	for varName, val := range v.items {
+		placeholder := "{" + varName + "}"
+		res = strings.Replace(res, placeholder, toString(val), -1)
+	}
+	return res
 }
 
 // Throttle implements rate limiting based on sliding time window
