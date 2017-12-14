@@ -140,13 +140,15 @@ Path fromat is the same as in 'Expect' body section
 ### Section 'Args'
 Specifies plaseholder values for future reference (within test scope)
 
+Placeholder values could be used inside of `url`, `params`, `headers`, `body`, `bodyFile` fields.
+
 ```json
 "args": {
   "currencyCode" : "USD",
   "magicNumber" : "12f"
 }
 ```
-Given 'args' are defined like above, placeholders {currencyCode} and {magicNumber} may be used in params, body or bodyFile.
+Given `args` are defined like above, placeholders {currencyCode} and {magicNumber} may be used in correspondent test case.
 
 example_bodyfile.json
 
@@ -172,8 +174,6 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
 }
 ```
 
-You can use placeholders inside of the `url` and `headers` fields.
-
 ```json
 {
     "on": {
@@ -187,9 +187,9 @@ You can use placeholders inside of the `url` and `headers` fields.
 ```
 
 ### Section 'Remember'
-Similar to 'Args' section, specifies plaseholder values for future reference (within test case scope).
+Similar to `args` section, specifies plaseholder values for future reference (within test case scope).
 
-The difference is that values for placeholders are taken from response (syntax is similar to 'Expect' matchers).
+The difference is that values for placeholders are taken from response (syntax is similar to `expect` matchers).
 
 There are two types of sources for values to remember: response body and headers.
 
@@ -210,6 +210,23 @@ This section allowes more complex test scenarios like:
 
 - 'request login token, remember, then use remembered {token} to request some data and verify'
 - 'create resource, remember resource id from response, then use remembered {id} to delete resource'
+
+### Using environment variables in tests
+Similar to `args` and `remember` sections, OS environment variables could be used as plaseholder values for future reference (within test case scope). 
+
+Given `MY_FILTER` environment exists in terminal session, the following syntax enables its usage
+
+```json
+{
+  "on": {
+    "url": "http://example.com",
+    "method": "GET",
+    "params": {
+      "filter": "{env:MY_FILTER}"
+    }
+  }
+}
+```
 
 ## Editor integration
 To make work with test files convenient, we suggest to configure you text editors to use [this](./assets/test.schema.json) json schema. In this case editor will suggest what fields are available and highlight misspells.
