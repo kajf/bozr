@@ -214,7 +214,7 @@ This section allowes more complex test scenarios like:
 ### Using environment variables in tests
 Similar to `args` and `remember` sections, OS environment variables could be used as plaseholder values for future reference (within test case scope). 
 
-Given `MY_FILTER` environment exists in terminal session, the following syntax enables its usage
+Given `MY_FILTER` environment variable exists in terminal session, the following syntax enables its usage
 
 ```json
 {
