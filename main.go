@@ -30,7 +30,7 @@ func init() {
 		h += "  -d, --debug		Enable debug mode\n"
 		h += "  -H, --host		Server to test\n"
 		h += "  -w, --worker		Execute in parallel with specified number of workers\n"
-		h += "      --throttle	Execute no more than specified number of requests per second (in suite)\n"
+		h += "      --throttle	Execute no more than specified number of requests per minute (in suite)\n"
 		h += "  -h, --help		Print usage\n"
 		h += "  -i, --info		Enable info mode. Print request and response details\n"
 		h += "      --junit		Enable junit xml reporter\n"
