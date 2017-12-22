@@ -54,6 +54,11 @@ Test suite (suite_name.suite.json)
             ├ expect
             └ remember
 
+## Suite file extension
+All suites must have `.suite.json` extension.
+
+If you want to temporary disable suite (mute it), change extension to `.xsuite.json`. Bozr does not execute muted suites, but reports all test cases as skipped.
+
 ### Section 'On'
 Represents http request parameters
 
@@ -212,7 +217,7 @@ This section allowes more complex test scenarios like:
 - 'create resource, remember resource id from response, then use remembered {id} to delete resource'
 
 ### Using environment variables in tests
-Similar to `args` and `remember` sections, OS environment variables could be used as plaseholder values for future reference (within test case scope). 
+Similar to `args` and `remember` sections, OS environment variables could be used as plaseholder values for future reference (within test case scope).
 
 Given `MY_FILTER` environment variable exists in terminal session, the following syntax enables its usage
 
