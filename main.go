@@ -62,7 +62,10 @@ var (
 	debug *log.Logger
 )
 
-const suiteExt = ".suite.json"
+const (
+	suiteExt        = ".suite.json"
+	ignoredSuiteExt = ".xsuite.json"
+)
 
 func initLogger() {
 	infoHandler := ioutil.Discard
@@ -143,13 +146,13 @@ func main() {
 		return
 	}
 
-	err = ValidateSuites(suitesDir, suiteExt)
+	err = ValidateSuites(suitesDir, suiteExt, ignoredSuiteExt)
 	if err != nil {
 		terminate("One or more test suites are invalid.", err.Error())
 		return
 	}
 
-	loader := NewSuiteLoader(suitesDir, suiteExt)
+	loader := NewSuiteLoader(suitesDir, suiteExt, ignoredSuiteExt)
 	reporter := createReporter()
 
 	RunParallel(loader, reporter, runSuite, routinesFlag)

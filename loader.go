@@ -19,6 +19,9 @@ type SuiteFile struct {
 	// Base directory from file is loaded.
 	BaseDir string
 	Ext     string
+
+	// If true then skip all test cases in this suite
+	Muted bool
 }
 
 // RelDir returns difference between Path and BaseDir.
@@ -52,17 +55,26 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 		return nil
 	}
 
-	var testCases []TestCase
-	err = json.Unmarshal(content, &testCases)
+	var rawCases []*TestCase
+	err = json.Unmarshal(content, &rawCases)
 	if err != nil {
 		fmt.Println("Cannot parse file:", path, "Error: ", err.Error())
 		return nil
 	}
 
+	var cases []TestCase
+	for _, tc := range rawCases {
+		if sf.Muted {
+			msg := "Muted suite"
+			tc.Ignore = &msg
+		}
+		cases = append(cases, *tc)
+	}
+
 	su := TestSuite{
 		Name:  strings.TrimSuffix(info.Name(), sf.Ext),
 		Dir:   sf.RelDir(),
-		Cases: testCases,
+		Cases: cases,
 	}
 
 	return &su
@@ -77,8 +89,9 @@ type SuiteFileIterator interface {
 
 // DirSuiteFileIterator iterates over all suite files inside of specified root folder.
 type DirSuiteFileIterator struct {
-	RootDir  string
-	SuiteExt string
+	RootDir   string
+	SuiteExt  string
+	XSuiteExt string
 
 	files []SuiteFile
 	pos   int
@@ -98,16 +111,28 @@ func (ds *DirSuiteFileIterator) addSuiteFile(path string, info os.FileInfo, err 
 		return nil
 	}
 
-	if !strings.HasSuffix(info.Name(), ds.SuiteExt) {
-		debug.Printf("Skip non suite file: %s\n", path)
+	fileName := info.Name()
+
+	isSuite := strings.HasSuffix(fileName, ds.SuiteExt)
+	isXSuite := strings.HasSuffix(fileName, ds.XSuiteExt)
+
+	if !(isSuite || isXSuite) {
+		debug.Printf("Skipping non-suite file: %s\n", fileName)
 		return nil
+	}
+
+	ext := ds.SuiteExt
+	if isXSuite {
+		ext = ds.XSuiteExt
 	}
 
 	ds.files = append(ds.files, SuiteFile{
 		Path:    path,
 		BaseDir: ds.RootDir,
-		Ext:     ds.SuiteExt,
+		Ext:     ext,
+		Muted:   isXSuite,
 	})
+
 	return nil
 }
 
@@ -128,10 +153,10 @@ func (ds *DirSuiteFileIterator) Next() *SuiteFile {
 }
 
 // NewSuiteLoader returns channel of suites that are read from specified folder.
-func NewSuiteLoader(rootDir string, suiteExt string) <-chan TestSuite {
+func NewSuiteLoader(rootDir, suiteExt, xsuiteExt string) <-chan TestSuite {
 	channel := make(chan TestSuite)
 
-	source := &DirSuiteFileIterator{RootDir: rootDir, SuiteExt: suiteExt}
+	source := &DirSuiteFileIterator{RootDir: rootDir, SuiteExt: suiteExt, XSuiteExt: xsuiteExt}
 	source.init()
 
 	go func() {
@@ -155,8 +180,8 @@ func NewSuiteLoader(rootDir string, suiteExt string) <-chan TestSuite {
 }
 
 // ValidateSuites detects syntax errors in all test suites in the root directory.
-func ValidateSuites(rootDir string, suiteExt string) error {
-	source := &DirSuiteFileIterator{RootDir: rootDir, SuiteExt: suiteExt}
+func ValidateSuites(rootDir, suiteExt, xsuiteExt string) error {
+	source := &DirSuiteFileIterator{RootDir: rootDir, SuiteExt: suiteExt, XSuiteExt: xsuiteExt}
 	source.init()
 
 	errs := make([]*SuiteFileError, 0)

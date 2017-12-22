@@ -1,0 +1,71 @@
+[
+  {
+    "name": "Example of the successful test.",
+    "calls": [
+      {
+        "args": {
+          "currency": "USD"
+        },
+        "on": {
+          "url": "http://api.fixer.io/latest",
+          "method": "GET",
+          "params": {
+            "base": "{currency}"
+          },
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "contentType": "application/json",
+          "body": {
+            "base": "USD"
+          },
+          "absent": [
+            "rates.ZZZ"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "name": "Check Image is loaded",
+    "calls": [
+      {
+        "on": {
+          "url": "https://www.w3schools.com/html/html5.gif",
+          "method": "GET"
+        },
+        "expect": {
+          "statusCode": 200,
+          "contentType": "image/gif"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Example of the failed test.",
+    "calls": [
+      {
+        "on": {
+          "url": "http://api.fixer.io/latest",
+          "method": "GET",
+          "params": {
+            "base": "USD"
+          },
+          "headers": {
+            "accept": "application/json"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "contentType": "application/json",
+          "body": {
+            "base": "EUR"
+          }
+        }
+      }
+    ]
+  }
+]
