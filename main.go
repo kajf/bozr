@@ -49,7 +49,7 @@ func init() {
 var (
 	suitesDir       string
 	hostFlag        string
-	routinesFlag    int
+	workersFlag     int
 	throttleFlag    int
 	infoFlag        bool
 	debugFlag       bool
@@ -91,7 +91,7 @@ func main() {
 	flag.BoolVar(&infoFlag, "info", false, "Enable info mode. Print request and response details.")
 
 	flag.StringVar(&hostFlag, "H", "", "Test server address. Example: http://example.com/api.")
-	flag.IntVar(&routinesFlag, "w", 1, "Execute test sutes in parallel with provided numer of workers. Default is 1.")
+	flag.IntVar(&workersFlag, "w", 1, "Execute test sutes in parallel with provided numer of workers. Default is 1.")
 	flag.IntVar(&throttleFlag, "throttle", 0, "Execute no more than specified number of requests per second (in suite)")
 
 	flag.BoolVar(&helpFlag, "h", false, "Print usage")
@@ -125,9 +125,9 @@ func main() {
 		}
 	}
 
-	if routinesFlag < 1 || routinesFlag > 9 {
-		fmt.Println("Invalid routines parameter [", routinesFlag, "]. Setting to default [1]")
-		routinesFlag = 1
+	if workersFlag < 1 || workersFlag > 9 {
+		fmt.Println("Invalid number of workers:  [", workersFlag, "]. Setting to default [1]")
+		workersFlag = 1
 	}
 
 	suitesDir = flag.Arg(0)
@@ -155,7 +155,7 @@ func main() {
 	loader := NewSuiteLoader(suitesDir, suiteExt, ignoredSuiteExt)
 	reporter := createReporter()
 
-	RunParallel(loader, reporter, runSuite, routinesFlag)
+	RunParallel(loader, reporter, runSuite, workersFlag)
 }
 
 func runSuite(suite TestSuite) []TestResult {
