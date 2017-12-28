@@ -199,3 +199,73 @@ func TestVarsApplyToMultiple(t *testing.T) {
 		)
 	}
 }
+
+func TestExpectPopulateWithNoChange(t *testing.T) {
+	path := "items.id"
+
+	expect := &Expect{Body: map[string]interface{}{path: "xyz"}}
+	vars := Vars{items: map[string]interface{}{"savedId": "abc"}}
+
+	expect.populateWith(vars)
+
+	if expect.Body[path] != "xyz" || len(expect.Body) != 1 {
+		t.Errorf("body was modified, body %v", expect.Body)
+	}
+}
+
+func TestExpectPopulateWithHeaders(t *testing.T) {
+
+	header := "Key"
+	val := "myId"
+
+	expect := &Expect{Headers: map[string]string{header: "{savedId}"}}
+	vars := Vars{items: map[string]interface{}{"savedId": val}}
+
+	expect.populateWith(vars)
+
+	if expect.Headers[header] != val {
+		t.Errorf("header does not contain val '%s', headers %v", val, expect.Headers)
+	}
+}
+
+func TestExpectPopulateWithBody(t *testing.T) {
+
+	path := "items.id"
+	expect := &Expect{Body: map[string]interface{}{path: "{savedId}"}}
+
+	val := "myId"
+	vars := Vars{items: map[string]interface{}{"savedId": val}}
+
+	expect.populateWith(vars)
+
+	if expect.Body[path] != val {
+		t.Errorf("body does not contain var '%s', body %v", val, expect.Body)
+	}
+}
+
+func TestExpectPopulateWithBodyArray(t *testing.T) {
+
+	path := "items.id"
+	expect := &Expect{Body: map[string]interface{}{path: []string{"{savedId}", "abc", "{nextId}"}}}
+
+	val := "myId"
+	vars := Vars{items: map[string]interface{}{"savedId": val, "nextId": 3}}
+
+	expect.populateWith(vars)
+
+	arr := expect.Body[path].([]string)
+	if arr[0] != "myId" || arr[1] != "abc" || arr[2] != "3" {
+		t.Errorf("body does not contain var '%s', body %v", val, expect.Body)
+	}
+}
+
+func TestExpectPopulateWithBodyInt(t *testing.T) {
+	expect := &Expect{Body: map[string]interface{}{"items.id": 12}}
+	vars := Vars{items: map[string]interface{}{"savedId": "someId"}}
+
+	expect.populateWith(vars)
+
+	if expect.Body["items.id"] != 12 || len(expect.Body) != 1 {
+		t.Errorf("body was modified, body %v", expect.Body)
+	}
+}

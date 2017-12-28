@@ -91,6 +91,28 @@ func (e Expect) hasSchema() bool {
 	return e.BodySchemaFile != "" || e.BodySchemaURI != ""
 }
 
+func (e Expect) populateWith(vars Vars) {
+	//expect.Headers        map[string]string
+	for name, val := range e.Headers {
+		e.Headers[name] = vars.ApplyTo(val)
+	}
+
+	//expect.Body           map[string]interface{} - string, array, num
+	for path, val := range e.Body {
+
+		switch typedExpect := val.(type) {
+		case []string:
+			for i, el := range typedExpect {
+				typedExpect[i] = vars.ApplyTo(el)
+			}
+		case string:
+			e.Body[path] = vars.ApplyTo(typedExpect)
+		default:
+			// do nothing with values like numbers
+		}
+	}
+}
+
 // TestResult represents single test case for reporting
 type TestResult struct {
 	Suite      TestSuite

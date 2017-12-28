@@ -20,7 +20,7 @@
           "statusCode": 200,
           "contentType": "application/json",
           "body": {
-            "base": "USD"
+            "base": "{currency}"
           },
           "absent": [
             "rates.ZZZ"

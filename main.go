@@ -268,7 +268,8 @@ func call(suitePath string, call Call, vars *Vars) *TError {
 	info.Println(testResp.ToString())
 	info.Println("")
 
-	exps, err := expectations(call, suitePath)
+	call.Expect.populateWith(*vars)
+	exps, err := expectations(call.Expect, suitePath)
 	if err != nil {
 		terr.Cause = err
 		return terr
@@ -353,54 +354,54 @@ func toString(rw interface{}) string {
 	return fmt.Sprintf("%v", sv)
 }
 
-func expectations(call Call, suitePath string) ([]ResponseExpectation, error) {
+func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error) {
 	var exps []ResponseExpectation
-	if call.Expect.StatusCode != 0 {
-		exps = append(exps, StatusCodeExpectation{statusCode: call.Expect.StatusCode})
+	if expect.StatusCode != 0 {
+		exps = append(exps, StatusCodeExpectation{statusCode: expect.StatusCode})
 	}
 
-	if call.Expect.hasSchema() {
+	if expect.hasSchema() {
 		var (
 			schemeURI string
 			err       error
 		)
 
-		if call.Expect.BodySchemaFile != "" {
-			schemeURI, err = toAbsPath(suitePath, call.Expect.BodySchemaFile)
+		if expect.BodySchemaFile != "" {
+			schemeURI, err = toAbsPath(suitePath, expect.BodySchemaFile)
 			if err != nil {
 				return nil, err
 			}
 			schemeURI = "file:///" + schemeURI
 		}
 
-		if call.Expect.BodySchemaURI != "" {
-			isHTTP := strings.HasPrefix(call.Expect.BodySchemaURI, "http://")
-			isHTTPS := strings.HasPrefix(call.Expect.BodySchemaURI, "https://")
+		if expect.BodySchemaURI != "" {
+			isHTTP := strings.HasPrefix(expect.BodySchemaURI, "http://")
+			isHTTPS := strings.HasPrefix(expect.BodySchemaURI, "https://")
 			if !(isHTTP || isHTTPS) {
-				schemeURI = hostFlag + call.Expect.BodySchemaURI
+				schemeURI = hostFlag + expect.BodySchemaURI
 			} else {
-				schemeURI = call.Expect.BodySchemaURI
+				schemeURI = expect.BodySchemaURI
 			}
 		}
 		exps = append(exps, BodySchemaExpectation{schemaURI: schemeURI})
 	}
 
-	if len(call.Expect.Body) > 0 {
-		exps = append(exps, BodyExpectation{pathExpectations: call.Expect.Body})
+	if len(expect.Body) > 0 {
+		exps = append(exps, BodyExpectation{pathExpectations: expect.Body})
 	}
 
-	if len(call.Expect.Absent) > 0 {
-		exps = append(exps, AbsentExpectation{paths: call.Expect.Absent})
+	if len(expect.Absent) > 0 {
+		exps = append(exps, AbsentExpectation{paths: expect.Absent})
 	}
 
-	if len(call.Expect.Headers) > 0 {
-		for k, v := range call.Expect.Headers {
+	if len(expect.Headers) > 0 {
+		for k, v := range expect.Headers {
 			exps = append(exps, HeaderExpectation{Name: k, Value: v})
 		}
 	}
 
-	if call.Expect.ContentType != "" {
-		exps = append(exps, ContentTypeExpectation{call.Expect.ContentType})
+	if expect.ContentType != "" {
+		exps = append(exps, ContentTypeExpectation{expect.ContentType})
 	}
 
 	// and so on
