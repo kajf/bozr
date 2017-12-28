@@ -180,13 +180,14 @@ func runSuite(suite TestSuite) []TestResult {
 		}
 
 		vars := NewVars()
-		for _, c := range testCase.Calls {
+		for i, c := range testCase.Calls {
 
 			throttle.RunOrPause()
 
 			vars.AddAll(c.Args)
 			terr := call(suite.Dir, c, vars)
 			if terr != nil {
+				terr.CallNum = i
 				result.Error = terr
 				break
 			}

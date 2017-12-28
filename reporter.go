@@ -78,7 +78,8 @@ func (r ConsoleReporter) reportError(result TestResult) {
 	c := color.New(color.FgRed).Add(color.Bold)
 	fmt.Printf("[")
 	c.Print("FAILED")
-	fmt.Printf("]  %s - %s \n", result.Suite.FullName(), result.Case.Name)
+	fmt.Printf("]  %s - %s - on call %d \n", result.Suite.FullName(), result.Case.Name, result.Error.CallNum+1)
+
 	lines := strings.Split(result.Error.Cause.Error(), "\n")
 
 	for _, line := range lines {
@@ -207,7 +208,7 @@ func (r *JUnitXMLReporter) Report(results []TestResult) {
 		if result.Error != nil {
 			errType := "FailedExpectation"
 			errMsg := result.Error.Cause.Error()
-			errDetails := fmt.Sprintf("%s\n\n%s", errMsg, result.Error.Resp.ToString())
+			errDetails := fmt.Sprintf("On Call %d - %s\n\n%s", result.Error.CallNum+1, errMsg, result.Error.Resp.ToString())
 
 			testCase.Failure = &failure{
 				Type:    errType,

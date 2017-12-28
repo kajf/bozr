@@ -150,8 +150,9 @@ func (tf *TimeFrame) Extend(tf2 TimeFrame) {
 
 // TError stands for test error in report
 type TError struct {
-	Resp  Response
-	Cause error
+	CallNum int
+	Resp    Response
+	Cause   error
 }
 
 // Response wraps test call HTTP response
