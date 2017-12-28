@@ -1,6 +1,6 @@
 [
   {
-    "name": "Example of the successful test.",
+    "name": "Example of the successful test",
     "calls": [
       {
         "args": {
@@ -45,7 +45,7 @@
     ]
   },
   {
-    "name": "Example of the failed test.",
+    "name": "Example of the failed test",
     "calls": [
       {
         "on": {

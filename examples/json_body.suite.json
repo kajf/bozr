@@ -34,7 +34,7 @@
   },
   {
     "name": "Ignored Test Case",
-    "ignore": "In development.",
+    "ignore": "In development",
     "calls": [
       {
         "on": {
