@@ -145,7 +145,7 @@ Path fromat is the same as in 'Expect' body section
 ### Section 'Args'
 Specifies plaseholder values for future reference (within test scope)
 
-Placeholder values could be used inside of `url`, `params`, `headers`, `body`, `bodyFile` fields.
+Placeholder values could be used inside `on.url`, `on.params`, `on.headers`, `on.body`, `on.bodyFile`, `expect.headers`, `expect.body` sections.
 
 ```json
 "args": {
