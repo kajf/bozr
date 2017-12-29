@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -339,20 +338,6 @@ func concatURL(base string, p string) (string, error) {
 		return "", err
 	}
 	return baseURL.Scheme + "://" + baseURL.Host + path.Join(baseURL.Path, p), nil
-}
-
-// toString returns value suitable to insert as an argument
-// if value if a float where decimal part is zero - convert to int
-func toString(rw interface{}) string {
-	var sv interface{} = rw
-	if fv, ok := rw.(float64); ok {
-		_, frac := math.Modf(fv)
-		if frac == 0 {
-			sv = int(fv)
-		}
-	}
-
-	return fmt.Sprintf("%v", sv)
 }
 
 func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error) {

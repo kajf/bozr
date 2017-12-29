@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"mime"
 	"net/http"
 	"os"
@@ -286,6 +287,20 @@ func (v *Vars) ApplyTo(str string) string {
 		res = strings.Replace(res, placeholder, toString(val), -1)
 	}
 	return res
+}
+
+// toString returns value suitable to insert as an argument
+// if value if a float where decimal part is zero - convert to int
+func toString(rw interface{}) string {
+	var sv interface{} = rw
+	if fv, ok := rw.(float64); ok {
+		_, frac := math.Modf(fv)
+		if frac == 0 {
+			sv = int(fv)
+		}
+	}
+
+	return fmt.Sprintf("%v", sv)
 }
 
 // Throttle implements rate limiting based on sliding time window
