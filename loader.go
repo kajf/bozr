@@ -14,14 +14,18 @@ import (
 
 // SuiteFile describes location of the suite file.
 type SuiteFile struct {
+
 	// Path to the file.
 	Path string
+
 	// Base directory from file is loaded.
 	BaseDir string
-	Ext     string
+
+	// Ext is preserved to create 'clean' suite name
+	Ext string
 
 	// If true then skip all test cases in this suite
-	Muted bool
+	Ignored bool
 }
 
 // RelDir returns difference between Path and BaseDir.
@@ -64,8 +68,8 @@ func (sf SuiteFile) ToSuite() *TestSuite {
 
 	var cases []TestCase
 	for _, tc := range rawCases {
-		if sf.Muted {
-			msg := "Muted suite"
+		if sf.Ignored {
+			msg := "Ignored suite"
 			tc.Ignore = &msg
 		}
 		cases = append(cases, *tc)
@@ -130,7 +134,7 @@ func (ds *DirSuiteFileIterator) addSuiteFile(path string, info os.FileInfo, err 
 		Path:    path,
 		BaseDir: ds.RootDir,
 		Ext:     ext,
-		Muted:   isXSuite,
+		Ignored: isXSuite,
 	})
 
 	return nil
