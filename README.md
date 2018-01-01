@@ -57,7 +57,7 @@ Test suite (suite_name.suite.json)
 ## Suite file extension
 All suites must have `.suite.json` extension.
 
-If you want to temporary disable suite (mute it), change extension to `.xsuite.json`. Bozr does not execute muted suites, but reports all test cases as skipped.
+If you want to temporary disable suite, change extension to `.xsuite.json`. Bozr does not execute ignored suites, but reports all test cases as skipped.
 
 ### Section 'On'
 Represents http request parameters
