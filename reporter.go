@@ -6,12 +6,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"text/tabwriter"
 	"time"
 
 	"github.com/fatih/color"
 )
 
+// Reporter is used to write down test results using particular formats and outputs
 type Reporter interface {
 	Init()
 
@@ -20,10 +22,14 @@ type Reporter interface {
 	Flush()
 }
 
+// ConsoleReporter is a simple reporter that outputs everything to the StdOut.
 type ConsoleReporter struct {
 	ExitCode int
 
 	execFrame *TimeFrame
+
+	// to prevent collisions while working with StdOut
+	ioMutex *sync.Mutex
 
 	total   int
 	failed  int
@@ -35,6 +41,7 @@ func (r *ConsoleReporter) Init() {
 }
 
 func (r *ConsoleReporter) Report(results []TestResult) {
+	r.ioMutex.Lock()
 
 	for _, result := range results {
 		r.total = r.total + 1
@@ -52,6 +59,8 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 			r.reportSuccess(result)
 		}
 	}
+
+	r.ioMutex.Unlock()
 }
 
 func (r ConsoleReporter) reportSuccess(result TestResult) {
@@ -88,6 +97,7 @@ func (r ConsoleReporter) reportError(result TestResult) {
 }
 
 func (r ConsoleReporter) Flush() {
+	r.ioMutex.Lock()
 	r.execFrame.End = time.Now()
 
 	overall := "PASSED"
@@ -118,11 +128,12 @@ func (r ConsoleReporter) Flush() {
 
 	w.Flush()
 	fmt.Println()
+	r.ioMutex.Unlock()
 }
 
 // NewConsoleReporter returns new instance of console reporter
 func NewConsoleReporter() Reporter {
-	return &ConsoleReporter{ExitCode: 0}
+	return &ConsoleReporter{ExitCode: 0, ioMutex: &sync.Mutex{}}
 }
 
 // JUnitXMLReporter produces separate xml file for each test sute
