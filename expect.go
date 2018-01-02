@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"mime"
@@ -13,7 +14,12 @@ import (
 // ResponseExpectation is an interface to any validation
 // that needs to be performed on response.
 type ResponseExpectation interface {
+
+	// check does the response meet expectation
 	check(resp *Response) error
+
+	// desc returns user-friendly description of expectation
+	desc() string
 }
 
 // StatusCodeExpectation validates response HTTP code.
@@ -26,6 +32,10 @@ func (e StatusCodeExpectation) check(resp *Response) error {
 		return fmt.Errorf("Unexpected Status Code. Expected: %d, Actual: %d", e.statusCode, resp.http.StatusCode)
 	}
 	return nil
+}
+
+func (e StatusCodeExpectation) desc() string {
+	return fmt.Sprintf("Status code is %d", e.statusCode)
 }
 
 // BodySchemaExpectation validates response body against schema.
@@ -42,6 +52,10 @@ func (e BodySchemaExpectation) check(resp *Response) error {
 	}
 
 	return fmt.Errorf("Unsupported content type: %s", contentType)
+}
+
+func (e BodySchemaExpectation) desc() string {
+	return fmt.Sprintf("Body matches the schema (%s)", e.schemaURI)
 }
 
 var jsonSchemaCache sync.Map
@@ -101,6 +115,15 @@ func (e BodyExpectation) check(resp *Response) error {
 	return nil
 }
 
+func (e BodyExpectation) desc() string {
+	buf := bytes.NewBufferString("")
+	for pathStr, expectedValue := range e.pathExpectations {
+		buf.WriteString(fmt.Sprintf("%s %s", pathStr, expectedValue))
+	}
+
+	return buf.String()
+}
+
 type bodyExpectationItem struct {
 	Path          string
 	ExpectedValue interface{}
@@ -147,6 +170,10 @@ func (e HeaderExpectation) check(resp *Response) error {
 	return nil
 }
 
+func (e HeaderExpectation) desc() string {
+	return fmt.Sprintf("Header '%s' matches expected value '%s", e.Name, e.Value)
+}
+
 // ContentTypeExpectation validates media type returned in the Content-Type header.
 // Encoding information is excluded from matching value.
 // E.g. "application/json;charset=utf-8" header transformed to "application/json" media type.
@@ -164,6 +191,10 @@ func (e ContentTypeExpectation) check(resp *Response) error {
 	return headerCheck.check(resp)
 }
 
+func (e ContentTypeExpectation) desc() string {
+	return fmt.Sprintf("Content Type is '%s'", e.Value)
+}
+
 // AbsentExpectation validates paths are absent in response body
 type AbsentExpectation struct {
 	paths []string
@@ -179,6 +210,10 @@ func (e AbsentExpectation) check(resp *Response) error {
 	}
 
 	return nil
+}
+
+func (e AbsentExpectation) desc() string {
+	return "Something is absent. That's expected."
 }
 
 type pathCheckFunc func(m interface{}, pathItem interface{}) string
