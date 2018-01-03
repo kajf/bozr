@@ -184,12 +184,11 @@ func runSuite(suite TestSuite) []TestResult {
 			throttle.RunOrPause()
 
 			vars.AddAll(c.Args)
-			terr := call(suite.Dir, c, vars)
-			if terr != nil {
-				terr.CallNum = i
-				result.Error = terr
-				break
-			}
+
+			trace := call(suite.Dir, c, vars)
+			trace.Num = i
+
+			result.Traces = append(result.Traces, trace)
 		}
 
 		result.ExecFrame.End = time.Now()
@@ -212,9 +211,9 @@ func createReporter() Reporter {
 	return reporter
 }
 
-func call(suitePath string, call Call, vars *Vars) *TError {
+func call(suitePath string, call Call, vars *Vars) *CallTrace {
 
-	terr := &TError{}
+	trace := &CallTrace{}
 
 	on := call.On
 
@@ -222,23 +221,25 @@ func call(suitePath string, call Call, vars *Vars) *TError {
 	if on.BodyFile != "" {
 		uri, err := toAbsPath(suitePath, on.BodyFile)
 		if err != nil {
-			terr.Cause = err
-			return terr
+			trace.ErrorCause = err
+			return trace
 		}
 
 		if d, err := ioutil.ReadFile(uri); err == nil {
 			dat = d
 		} else {
-			terr.Cause = fmt.Errorf("Can't read body file: %s", err.Error())
-			return terr
+			trace.ErrorCause = fmt.Errorf("Can't read body file: %s", err.Error())
+			return trace
 		}
 	}
 
 	req, err := populateRequest(on, string(dat), vars)
 	if err != nil {
-		terr.Cause = err
-		return terr
+		trace.ErrorCause = err
+		return trace
 	}
+
+	trace.Req = req
 
 	printRequestInfo(req, dat)
 
@@ -248,8 +249,8 @@ func call(suitePath string, call Call, vars *Vars) *TError {
 
 	if err != nil {
 		debug.Print("Error when sending request", err)
-		terr.Cause = err
-		return terr
+		trace.ErrorCause = err
+		return trace
 	}
 
 	defer resp.Body.Close()
@@ -257,12 +258,12 @@ func call(suitePath string, call Call, vars *Vars) *TError {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		debug.Print("Error reading response")
-		terr.Cause = err
-		return terr
+		trace.ErrorCause = err
+		return trace
 	}
 
 	testResp := Response{http: *resp, body: body}
-	terr.Resp = testResp
+	trace.Resp = &testResp
 
 	info.Println(strings.Repeat("-", 50))
 	info.Println(testResp.ToString())
@@ -271,29 +272,32 @@ func call(suitePath string, call Call, vars *Vars) *TError {
 	call.Expect.populateWith(*vars)
 	exps, err := expectations(call.Expect, suitePath)
 	if err != nil {
-		terr.Cause = err
-		return terr
+		trace.ErrorCause = err
+		return trace
 	}
 
 	for _, exp := range exps {
 		checkErr := exp.check(&testResp)
+
 		if checkErr != nil {
-			terr.Cause = checkErr
-			return terr
+			trace.addError(checkErr)
+			return trace
 		}
+
+		trace.addExp(exp.desc())
 	}
 
 	err = rememberBody(&testResp, call.Remember.Body, vars)
 	debug.Print("Remember: ", vars)
 	if err != nil {
 		debug.Print("Error remember")
-		terr.Cause = err
-		return terr
+		trace.ErrorCause = err
+		return trace
 	}
 
 	rememberHeaders(testResp.http.Header, call.Remember.Headers, vars)
 
-	return nil
+	return trace
 }
 
 func populateRequest(on On, body string, vars *Vars) (*http.Request, error) {

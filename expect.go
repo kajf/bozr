@@ -116,12 +116,7 @@ func (e BodyExpectation) check(resp *Response) error {
 }
 
 func (e BodyExpectation) desc() string {
-	buf := bytes.NewBufferString("")
-	for pathStr, expectedValue := range e.pathExpectations {
-		buf.WriteString(fmt.Sprintf("%s %s", pathStr, expectedValue))
-	}
-
-	return buf.String()
+	return fmt.Sprintf("Expected body's structure / values (%d checks)", len(e.pathExpectations))
 }
 
 type bodyExpectationItem struct {
@@ -213,7 +208,14 @@ func (e AbsentExpectation) check(resp *Response) error {
 }
 
 func (e AbsentExpectation) desc() string {
-	return "Something is absent. That's expected."
+	buf := bytes.NewBufferString("")
+
+	buf.WriteString("Absent fields:")
+	for _, path := range e.paths {
+		buf.WriteString(fmt.Sprintf("  - %s", path))
+	}
+
+	return buf.String()
 }
 
 type pathCheckFunc func(m interface{}, pathItem interface{}) string
