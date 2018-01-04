@@ -245,7 +245,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 
 	trace.Req = req
 
-	// printRequestInfo(req, dat)
+	printRequestInfo(req, dat)
 
 	client := &http.Client{}
 
@@ -269,9 +269,9 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 	testResp := Response{http: *resp, body: body}
 	trace.Resp = &testResp
 
-	// info.Println(strings.Repeat("-", 50))
-	// info.Println(testResp.ToString())
-	// info.Println("")
+	info.Println(strings.Repeat("-", 50))
+	info.Println(testResp.ToString())
+	info.Println("")
 
 	call.Expect.populateWith(*vars)
 	exps, err := expectations(call.Expect, suitePath)

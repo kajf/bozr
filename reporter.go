@@ -120,6 +120,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 		r.Write(" ").Write(result.Case.Name)
 		r.Write(" [").Write(result.ExecFrame.Duration().Round(time.Millisecond)).Write("]")
 
+		// if result.hasError() {
 		for _, trace := range result.Traces {
 			if trace.Req == nil {
 				// fmt.Println("REQ IS NIL!!!") // TODO
@@ -141,14 +142,30 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 					r.WriteStatus(StatusPassed, OutputIcon)
 				}
 
-				r.Write(" ").WriteDimmed(exp)
+				r.Write(" ").Write(exp)
 
 				r.Unintend()
 			}
+			// r.StartLine()
 
-			r.StartLine()
+			// r.Intend()
+			// {
+			// 	r.StartLine()
+			// 	r.WriteDimmed("Response:")
+			// 	r.StartLine()
+			// 	r.WriteDimmed(strings.Repeat("-", 50))
+			// 	for _, line := range strings.Split(trace.Resp.ToString(), "\n") {
+			// 		r.StartLine()
+			// 		r.WriteDimmed(line)
+			// 	}
+			// 	r.StartLine()
+			// 	r.WriteDimmed(strings.Repeat("-", 50))
+			// }
+			// r.Unintend()
+
 			r.Unintend()
 		}
+		// }
 
 		r.Unintend()
 
