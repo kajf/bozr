@@ -103,6 +103,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 
 		if result.Skipped {
 			r.WriteStatus(StatusSkipped, OutputLabel).Write(" ").Write(result.Case.Name)
+			r.Write(" (").Write(result.SkippedMsg).Write(")")
 			r.skipped = r.skipped + 1
 			r.Unintend()
 
@@ -117,7 +118,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 		}
 
 		r.Write(" ").Write(result.Case.Name)
-		r.Write(" ").Write(result.ExecFrame.Duration().Round(time.Millisecond))
+		r.Write(" [").Write(result.ExecFrame.Duration().Round(time.Millisecond)).Write("]")
 
 		for _, trace := range result.Traces {
 			if trace.Req == nil {
@@ -128,7 +129,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 			r.Intend()
 
 			r.StartLine()
-			r.WriteDimmed(trace.Req.Method).Write(" ").WriteDimmed(trace.Req.URL)
+			r.WriteDimmed(trace.Req.Method).Write(" ").WriteDimmed(trace.Req.URL).Write(" [").Write(trace.ExecFrame.Duration().Round(time.Millisecond)).Write("]")
 
 			for exp, failed := range trace.ExpDesc {
 				r.Intend()
