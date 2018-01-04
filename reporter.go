@@ -129,7 +129,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 			r.Intend()
 
 			r.StartLine()
-			r.WriteDimmed(trace.Req.Method).Write(" ").WriteDimmed(trace.Req.URL).Write(" [").Write(trace.ExecFrame.Duration().Round(time.Millisecond)).Write("]")
+			r.Write(trace.Req.Method).Write(" ").Write(trace.Req.URL).Write(" [").Write(trace.ExecFrame.Duration().Round(time.Millisecond)).Write("]")
 
 			for exp, failed := range trace.ExpDesc {
 				r.Intend()
