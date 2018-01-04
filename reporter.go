@@ -45,7 +45,7 @@ func (r *ConsoleReporter) Init() {
 
 const (
 	DefaultIntendSize = 4
-	CaretIcon         = "↳"
+	CaretIcon         = "\u2514" // ↳
 )
 
 type Status struct {
@@ -60,8 +60,8 @@ const (
 )
 
 var (
-	StatusPassed  Status = Status{Icon: "✔", Label: "PASSED", Color: color.FgGreen}
-	StatusFailed  Status = Status{Icon: "✘", Label: "FAILED", Color: color.FgRed}
+	StatusPassed  Status = Status{Icon: "\u221A", Label: "PASSED", Color: color.FgGreen} // ✔
+	StatusFailed  Status = Status{Icon: "\u00D7", Label: "FAILED", Color: color.FgRed}   // ✘
 	StatusSkipped Status = Status{Icon: "", Label: "SKIPPED", Color: color.FgYellow}
 )
 
