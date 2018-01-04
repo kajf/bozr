@@ -189,6 +189,10 @@ func runSuite(suite TestSuite) []TestResult {
 			trace.Num = i
 
 			result.Traces = append(result.Traces, trace)
+
+			if trace.hasError() {
+				break
+			}
 		}
 
 		result.ExecFrame.End = time.Now()
