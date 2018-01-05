@@ -112,7 +112,7 @@ func checkExpectedPath(m interface{}, pathItem interface{}) string {
 
 		ok, err := SearchByPath(m, expectationItem.ExpectedValue, expectationItem.Path)
 		if !ok {
-			return fmt.Sprintf("Expected value [%v] on path [%s] does not match.", expectationItem.ExpectedValue, expectationItem.Path)
+			return fmt.Sprintf("Expected value %#v on path %#v is not found", expectationItem.ExpectedValue, expectationItem.Path)
 		}
 		if err != nil {
 			return err.Error()

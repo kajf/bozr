@@ -8,3 +8,5 @@ vendor
 report
 bozr
 bozr.exe
+debug
+debug.test

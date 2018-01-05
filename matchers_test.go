@@ -612,6 +612,15 @@ func TestGetByPathWithPartialMatch(t *testing.T) {
 	}
 }
 
+func TestCleanPathFuncTrimmed(t *testing.T) {
+	path := cleanPath("some.ids.myFunc()")
+
+	last := path[len(path)-1]
+	if last == "myFunc()" {
+		t.Error("Function should not be the last item in path", path)
+	}
+}
+
 func jsonAsArray(s string) ([]interface{}, error) {
 	arr := make([]interface{}, 0)
 	err := json.Unmarshal([]byte(s), &arr)
