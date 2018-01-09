@@ -168,12 +168,14 @@ func (tf *TimeFrame) Extend(tf2 TimeFrame) {
 
 // CallTrace stands for test error in report
 type CallTrace struct {
-	Num        int
-	Req        *http.Request
-	Resp       *Response
-	ErrorCause error
-	ExpDesc    map[string]bool
-	ExecFrame  TimeFrame
+	Num           int
+	RequestMethod string
+	RequestURL    string
+	RequestDump   []byte
+	ResponseDump  []byte
+	ErrorCause    error
+	ExpDesc       map[string]bool
+	ExecFrame     TimeFrame
 }
 
 func (trace *CallTrace) addExp(desc string) {
@@ -198,7 +200,7 @@ func (trace *CallTrace) hasError() bool {
 
 // Response wraps test call HTTP response
 type Response struct {
-	http       http.Response
+	http       *http.Response
 	body       []byte
 	parsedBody interface{}
 }

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"path"
@@ -57,7 +58,6 @@ var (
 	junitFlag       bool
 	junitOutputFlag string
 
-	info  *log.Logger
 	debug *log.Logger
 )
 
@@ -67,18 +67,12 @@ const (
 )
 
 func initLogger() {
-	infoHandler := ioutil.Discard
 	debugHandler := ioutil.Discard
-
-	if infoFlag {
-		infoHandler = os.Stdout
-	}
 
 	if debugFlag {
 		debugHandler = os.Stdout
 	}
 
-	info = log.New(infoHandler, "", 0)
 	debug = log.New(debugHandler, "DEBUG: ", log.Ltime|log.Lshortfile)
 }
 
@@ -204,7 +198,7 @@ func runSuite(suite TestSuite) []TestResult {
 }
 
 func createReporter() Reporter {
-	reporters := []Reporter{NewConsoleReporter()}
+	reporters := []Reporter{NewConsoleReporter(infoFlag)}
 	if junitFlag {
 		path, _ := filepath.Abs(junitOutputFlag)
 		reporters = append(reporters, NewJUnitReporter(path))
@@ -243,9 +237,10 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 		return trace
 	}
 
-	trace.Req = req
-
-	printRequestInfo(req, dat)
+	reqDump, _ := httputil.DumpRequestOut(req, true)
+	trace.RequestDump = reqDump
+	trace.RequestMethod = req.Method
+	trace.RequestURL = req.URL.String()
 
 	client := &http.Client{}
 
@@ -259,6 +254,9 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 
 	defer resp.Body.Close()
 
+	respDump, _ := httputil.DumpResponse(resp, true)
+	trace.ResponseDump = respDump
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		debug.Print("Error reading response")
@@ -266,12 +264,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 		return trace
 	}
 
-	testResp := Response{http: *resp, body: body}
-	trace.Resp = &testResp
-
-	info.Println(strings.Repeat("-", 50))
-	info.Println(testResp.ToString())
-	info.Println("")
+	testResp := Response{http: resp, body: body}
 
 	call.Expect.populateWith(*vars)
 	exps, err := expectations(call.Expect, suitePath)
@@ -445,24 +438,6 @@ func rememberHeaders(header http.Header, remember map[string]string, vars *Vars)
 		}
 
 		vars.Add(valueName, value)
-	}
-}
-
-func printRequestInfo(req *http.Request, body []byte) {
-	info.Println()
-	info.Printf("%s %s %s\n", req.Method, req.URL.String(), req.Proto)
-
-	if len(req.Header) > 0 {
-		info.Println()
-	}
-
-	for k, v := range req.Header {
-		info.Printf("%s: %s", k, strings.Join(v, " "))
-	}
-	info.Println()
-
-	if len(body) > 0 {
-		info.Printf(string(body))
 	}
 }
 
