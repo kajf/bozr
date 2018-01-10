@@ -171,8 +171,8 @@ type CallTrace struct {
 	Num           int
 	RequestMethod string
 	RequestURL    string
-	RequestDump   []byte
-	ResponseDump  []byte
+	RequestDump   string
+	ResponseDump  string
 	ErrorCause    error
 	ExpDesc       map[string]bool
 	ExecFrame     TimeFrame

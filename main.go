@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"os"
 	"path"
@@ -238,8 +237,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 		return trace
 	}
 
-	reqDump, _ := httputil.DumpRequestOut(req, true)
-	trace.RequestDump = reqDump
+	trace.RequestDump = dumpRequest(req, dat)
 	trace.RequestMethod = req.Method
 	trace.RequestURL = req.URL.String()
 
@@ -255,8 +253,6 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 
 	defer resp.Body.Close()
 
-	respDump, _ := httputil.DumpResponse(resp, true)
-	trace.ResponseDump = respDump
 	trace.ExecFrame = TimeFrame{Start: execStart, End: time.Now()}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -267,6 +263,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 	}
 
 	testResp := Response{http: resp, body: body}
+	trace.ResponseDump = testResp.ToString()
 
 	call.Expect.populateWith(*vars)
 	exps, err := expectations(call.Expect, suitePath)
@@ -441,6 +438,22 @@ func rememberHeaders(header http.Header, remember map[string]string, vars *Vars)
 
 		vars.Add(valueName, value)
 	}
+}
+
+func dumpRequest(req *http.Request, body []byte) string {
+	buf := bytes.NewBufferString("")
+
+	buf.WriteString(fmt.Sprintf("%s %s %s\n", req.Method, req.URL.String(), req.Proto))
+
+	for k, v := range req.Header {
+		buf.WriteString(fmt.Sprintf("%s: %s", k, strings.Join(v, " ")))
+	}
+
+	if len(body) > 0 {
+		buf.WriteString(string(body))
+	}
+
+	return buf.String()
 }
 
 func terminate(msgLines ...string) {

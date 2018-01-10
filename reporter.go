@@ -157,7 +157,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 
 					r.Intend()
 					{
-						dump := string(trace.RequestDump)
+						dump := trace.RequestDump
 						if len(dump) > 0 {
 							for _, line := range strings.Split(dump, "\n") {
 								r.StartLine()
@@ -166,7 +166,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 							r.StartLine()
 						}
 
-						dump = string(trace.ResponseDump)
+						dump = trace.ResponseDump
 						if len(dump) > 0 {
 							for _, line := range strings.Split(string(trace.ResponseDump), "\n") {
 								r.StartLine()
@@ -337,10 +337,20 @@ func (r *JUnitXMLReporter) Report(results []TestResult) {
 			Time:      result.ExecFrame.Duration().Seconds(),
 		}
 
-		if result.Error != nil {
+		if result.hasError() {
 			errType := "FailedExpectation"
 			errMsg := result.Error()
-			errDetails := fmt.Sprintf("%s\n\n%s", errMsg, "") // TODO
+
+			errIndex := 0
+			errRespDump := ""
+			for index, trace := range result.Traces {
+				if trace.hasError() {
+					errIndex = index
+					errRespDump = string(trace.ResponseDump)
+				}
+			}
+
+			errDetails := fmt.Sprintf("On Call %d - %s\n\n%s", errIndex, errMsg, errRespDump)
 
 			testCase.Failure = &failure{
 				Type:    errType,
