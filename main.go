@@ -212,6 +212,7 @@ func createReporter() Reporter {
 func call(suitePath string, call Call, vars *Vars) *CallTrace {
 
 	trace := &CallTrace{}
+	execStart := time.Now()
 
 	on := call.On
 
@@ -256,6 +257,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 
 	respDump, _ := httputil.DumpResponse(resp, true)
 	trace.ResponseDump = respDump
+	trace.ExecFrame = TimeFrame{Start: execStart, End: time.Now()}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
