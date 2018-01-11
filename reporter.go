@@ -79,7 +79,7 @@ func (r *ConsoleReporter) Indent() {
 	r.IndentSize = r.IndentSize + defaultIndentSize
 }
 
-func (r *ConsoleReporter) Unintend() {
+func (r *ConsoleReporter) Unindent() {
 	r.IndentSize = r.IndentSize - defaultIndentSize
 }
 
@@ -115,7 +115,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 			skippedFg.Print(") ")
 
 			r.skipped = r.skipped + 1
-			r.Unintend()
+			r.Unindent()
 
 			continue
 		}
@@ -149,7 +149,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 
 					r.Write(" ").Write(exp)
 
-					r.Unintend()
+					r.Unindent()
 				}
 
 				if r.LogHTTP {
@@ -175,14 +175,14 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 							r.StartLine()
 						}
 					}
-					r.Unintend()
+					r.Unindent()
 				}
 
-				r.Unintend()
+				r.Unindent()
 			}
 		}
 
-		r.Unintend()
+		r.Unindent()
 	}
 
 	r.StartLine()
