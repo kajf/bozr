@@ -3,15 +3,18 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"text/tabwriter"
 	"time"
 
 	"github.com/fatih/color"
 )
 
+// Reporter is used to write down test results using particular formats and outputs
 type Reporter interface {
 	Init()
 
@@ -20,10 +23,17 @@ type Reporter interface {
 	Flush()
 }
 
+// ConsoleReporter is a simple reporter that outputs everything to the StdOut.
 type ConsoleReporter struct {
-	ExitCode int
+	ExitCode   int
+	LogHTTP    bool
+	Writer     io.Writer
+	IndentSize int
 
 	execFrame *TimeFrame
+
+	// to prevent collisions while working with StdOut
+	ioMutex *sync.Mutex
 
 	total   int
 	failed  int
@@ -34,60 +44,181 @@ func (r *ConsoleReporter) Init() {
 	r.execFrame = &TimeFrame{Start: time.Now()}
 }
 
+const (
+	defaultIndentSize = 4
+	caretIcon         = "\u2514" // ↳
+)
+
+type status struct {
+	Icon  string
+	Label string
+	Color color.Attribute
+}
+
+const (
+	outputLabel int = iota
+	outputIcon
+)
+
+var (
+	statusPassed  = status{Icon: "\u221A", Label: "PASSED", Color: color.FgGreen} // ✔
+	statusFailed  = status{Icon: "\u00D7", Label: "FAILED", Color: color.FgRed}   // ✘
+	statusSkipped = status{Icon: "", Label: "SKIPPED", Color: color.FgYellow}
+)
+
+func (r *ConsoleReporter) verbose() bool {
+	return r.LogHTTP
+}
+
+func (r *ConsoleReporter) StartLine() {
+	r.Writer.Write([]byte("\n"))
+	r.Writer.Write([]byte(strings.Repeat(" ", r.IndentSize)))
+}
+
+func (r *ConsoleReporter) Indent() {
+	r.IndentSize = r.IndentSize + defaultIndentSize
+}
+
+func (r *ConsoleReporter) Unindent() {
+	r.IndentSize = r.IndentSize - defaultIndentSize
+}
+
 func (r *ConsoleReporter) Report(results []TestResult) {
+	r.ioMutex.Lock()
+
+	if len(results) == 0 {
+		r.ioMutex.Unlock()
+		return
+	}
+
+	// suite
+	suite := results[0].Suite
+
+	r.StartLine()
+	r.Write(suite.FullName())
 
 	for _, result := range results {
+
 		r.total = r.total + 1
 
+		r.Indent()
+
+		r.StartLine()
+		r.Write(caretIcon).Write(" ")
+
 		if result.Skipped {
-			r.reportSkipped(result)
+			r.WriteStatus(statusSkipped, outputLabel).Write(" ").Write(result.Case.Name)
+
+			skippedFg := color.New(color.FgHiYellow)
+			skippedFg.Print(" (")
+			skippedFg.Print(result.SkippedMsg)
+			skippedFg.Print(") ")
+
 			r.skipped = r.skipped + 1
+			r.Unindent()
+
 			continue
 		}
 
-		if result.Error != nil {
+		if result.hasError() {
+			r.WriteStatus(statusFailed, outputLabel)
 			r.failed = r.failed + 1
-			r.reportError(result)
 		} else {
-			r.reportSuccess(result)
+			r.WriteStatus(statusPassed, outputLabel)
 		}
+
+		r.Write(" ").Write(result.Case.Name)
+		r.Write(" [").Write(result.ExecFrame.Duration().Round(time.Millisecond)).Write("]")
+
+		if result.hasError() || r.LogHTTP {
+			for _, trace := range result.Traces {
+				r.Indent()
+
+				r.StartLine()
+				r.Write(trace.RequestMethod).Write(" ").Write(trace.RequestURL).Write(" [").Write(trace.ExecFrame.Duration().Round(time.Millisecond)).Write("]")
+
+				for exp, failed := range trace.ExpDesc {
+					r.Indent()
+					r.StartLine()
+
+					if failed {
+						r.WriteStatus(statusFailed, outputIcon)
+					} else {
+						r.WriteStatus(statusPassed, outputIcon)
+					}
+
+					r.Write(" ").Write(exp)
+
+					r.Unindent()
+				}
+
+				if r.LogHTTP {
+					r.StartLine()
+
+					r.Indent()
+					{
+						dump := trace.RequestDump
+						if len(dump) > 0 {
+							for _, line := range strings.Split(dump, "\n") {
+								r.StartLine()
+								r.WriteDimmed(line)
+							}
+							r.StartLine()
+						}
+
+						dump = trace.ResponseDump
+						if len(dump) > 0 {
+							for _, line := range strings.Split(string(trace.ResponseDump), "\n") {
+								r.StartLine()
+								r.WriteDimmed(line)
+							}
+							r.StartLine()
+						}
+					}
+					r.Unindent()
+				}
+
+				r.Unindent()
+			}
+		}
+
+		r.Unindent()
 	}
+
+	r.StartLine()
+
+	r.ioMutex.Unlock()
 }
 
-func (r ConsoleReporter) reportSuccess(result TestResult) {
-	c := color.New(color.FgGreen).Add(color.Bold)
-	fmt.Printf("[")
-	c.Print("PASSED")
-	fmt.Printf("]  %s - %s \t%s\n", result.Suite.FullName(), result.Case.Name, result.ExecFrame.Duration())
+func (r ConsoleReporter) WriteDimmed(content interface{}) ConsoleReporter {
+	c := color.New(color.FgHiBlack)
+	c.Print(content)
+	return r
 }
 
-func (r ConsoleReporter) reportSkipped(result TestResult) {
-	c := color.New(color.FgYellow).Add(color.Bold)
-	fmt.Printf("[")
-	c.Print("SKIPPED")
-	fmt.Printf("] %s - %s", result.Suite.FullName(), result.Case.Name)
-	if result.SkippedMsg != "" {
-		reasonColor := color.New(color.FgMagenta)
-		reasonColor.Printf("\t (%s)", result.SkippedMsg)
-	}
-
-	fmt.Printf("\n")
+func (r ConsoleReporter) Write(content interface{}) ConsoleReporter {
+	r.Writer.Write([]byte(fmt.Sprintf("%v", content)))
+	return r
 }
 
-func (r ConsoleReporter) reportError(result TestResult) {
-	c := color.New(color.FgRed).Add(color.Bold)
-	fmt.Printf("[")
-	c.Print("FAILED")
-	fmt.Printf("]  %s - %s - on call %d \n", result.Suite.FullName(), result.Case.Name, result.Error.CallNum+1)
+func (r ConsoleReporter) WriteStatus(status status, output int) ConsoleReporter {
+	c := color.New(status.Color).Add(color.Bold)
+	var val string
 
-	lines := strings.Split(result.Error.Cause.Error(), "\n")
-
-	for _, line := range lines {
-		fmt.Printf("\t\t%s \n", line)
+	if output == outputIcon {
+		val = status.Icon
 	}
+
+	if output == outputLabel {
+		val = status.Label
+	}
+
+	c.Print(val)
+	return r
 }
 
 func (r ConsoleReporter) Flush() {
+	r.ioMutex.Lock()
 	r.execFrame.End = time.Now()
 
 	overall := "PASSED"
@@ -112,17 +243,18 @@ func (r ConsoleReporter) Flush() {
 	start := r.execFrame.Start
 	end := r.execFrame.End
 
-	fmt.Fprintf(w, "Start time:\t %s\n", start)
-	fmt.Fprintf(w, "End time:\t %s\n", end)
-	fmt.Fprintf(w, "Duration:\t %s\n", end.Sub(start).String())
+	fmt.Fprintf(w, "Start time:\t %s\n", start.Round(time.Millisecond))
+	fmt.Fprintf(w, "End time:\t %s\n", end.Round(time.Millisecond))
+	fmt.Fprintf(w, "Duration:\t %s\n", end.Sub(start).Round(time.Millisecond))
 
 	w.Flush()
 	fmt.Println()
+	r.ioMutex.Unlock()
 }
 
 // NewConsoleReporter returns new instance of console reporter
-func NewConsoleReporter() Reporter {
-	return &ConsoleReporter{ExitCode: 0}
+func NewConsoleReporter(logHTTP bool) Reporter {
+	return &ConsoleReporter{ExitCode: 0, ioMutex: &sync.Mutex{}, Writer: os.Stdout, LogHTTP: logHTTP}
 }
 
 // JUnitXMLReporter produces separate xml file for each test sute
@@ -205,10 +337,20 @@ func (r *JUnitXMLReporter) Report(results []TestResult) {
 			Time:      result.ExecFrame.Duration().Seconds(),
 		}
 
-		if result.Error != nil {
+		if result.hasError() {
 			errType := "FailedExpectation"
-			errMsg := result.Error.Cause.Error()
-			errDetails := fmt.Sprintf("On Call %d - %s\n\n%s", result.Error.CallNum+1, errMsg, result.Error.Resp.ToString())
+			errMsg := result.Error()
+
+			errIndex := 0
+			errRespDump := ""
+			for index, trace := range result.Traces {
+				if trace.hasError() {
+					errIndex = index
+					errRespDump = string(trace.ResponseDump)
+				}
+			}
+
+			errDetails := fmt.Sprintf("On Call %d - %s\n\n%s", errIndex, errMsg, errRespDump)
 
 			testCase.Failure = &failure{
 				Type:    errType,

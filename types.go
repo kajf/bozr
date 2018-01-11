@@ -120,10 +120,27 @@ type TestResult struct {
 	Case       TestCase
 	Skipped    bool
 	SkippedMsg string
-	// in case test failed, cause must be specified
-	Error *TError
+	Traces     []*CallTrace
 
 	ExecFrame TimeFrame
+}
+
+func (result *TestResult) hasError() bool {
+	for _, trace := range result.Traces {
+		if trace.hasError() {
+			return true
+		}
+	}
+	return false
+}
+
+func (result *TestResult) Error() string {
+	for _, trace := range result.Traces {
+		if trace.hasError() {
+			return trace.ErrorCause.Error()
+		}
+	}
+	return ""
 }
 
 // TimeFrame describes period of time
@@ -149,16 +166,41 @@ func (tf *TimeFrame) Extend(tf2 TimeFrame) {
 	}
 }
 
-// TError stands for test error in report
-type TError struct {
-	CallNum int
-	Resp    Response
-	Cause   error
+// CallTrace stands for test error in report
+type CallTrace struct {
+	Num           int
+	RequestMethod string
+	RequestURL    string
+	RequestDump   string
+	ResponseDump  string
+	ErrorCause    error
+	ExpDesc       map[string]bool
+	ExecFrame     TimeFrame
+}
+
+func (trace *CallTrace) addExp(desc string) {
+	if trace.ExpDesc == nil {
+		trace.ExpDesc = make(map[string]bool)
+	}
+	trace.ExpDesc[desc] = false
+}
+
+func (trace *CallTrace) addError(err error) {
+	if trace.ExpDesc == nil {
+		trace.ExpDesc = make(map[string]bool)
+	}
+
+	trace.ErrorCause = err
+	trace.ExpDesc[err.Error()] = true
+}
+
+func (trace *CallTrace) hasError() bool {
+	return trace.ErrorCause != nil
 }
 
 // Response wraps test call HTTP response
 type Response struct {
-	http       http.Response
+	http       *http.Response
 	body       []byte
 	parsedBody interface{}
 }
