@@ -28,7 +28,7 @@ type ConsoleReporter struct {
 	ExitCode   int
 	LogHTTP    bool
 	Writer     io.Writer
-	IntendSize int
+	IndentSize int
 
 	execFrame *TimeFrame
 
@@ -45,7 +45,7 @@ func (r *ConsoleReporter) Init() {
 }
 
 const (
-	defaultIntendSize = 4
+	defaultIndentSize = 4
 	caretIcon         = "\u2514" // ↳
 )
 
@@ -72,15 +72,15 @@ func (r *ConsoleReporter) verbose() bool {
 
 func (r *ConsoleReporter) StartLine() {
 	r.Writer.Write([]byte("\n"))
-	r.Writer.Write([]byte(strings.Repeat(" ", r.IntendSize)))
+	r.Writer.Write([]byte(strings.Repeat(" ", r.IndentSize)))
 }
 
-func (r *ConsoleReporter) Intend() {
-	r.IntendSize = r.IntendSize + defaultIntendSize
+func (r *ConsoleReporter) Indent() {
+	r.IndentSize = r.IndentSize + defaultIndentSize
 }
 
 func (r *ConsoleReporter) Unintend() {
-	r.IntendSize = r.IntendSize - defaultIntendSize
+	r.IndentSize = r.IndentSize - defaultIndentSize
 }
 
 func (r *ConsoleReporter) Report(results []TestResult) {
@@ -101,7 +101,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 
 		r.total = r.total + 1
 
-		r.Intend()
+		r.Indent()
 
 		r.StartLine()
 		r.Write(caretIcon).Write(" ")
@@ -132,13 +132,13 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 
 		if result.hasError() || r.LogHTTP {
 			for _, trace := range result.Traces {
-				r.Intend()
+				r.Indent()
 
 				r.StartLine()
 				r.Write(trace.RequestMethod).Write(" ").Write(trace.RequestURL).Write(" [").Write(trace.ExecFrame.Duration().Round(time.Millisecond)).Write("]")
 
 				for exp, failed := range trace.ExpDesc {
-					r.Intend()
+					r.Indent()
 					r.StartLine()
 
 					if failed {
@@ -155,7 +155,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 				if r.LogHTTP {
 					r.StartLine()
 
-					r.Intend()
+					r.Indent()
 					{
 						dump := trace.RequestDump
 						if len(dump) > 0 {
