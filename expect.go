@@ -86,7 +86,7 @@ func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 	}
 
 	if !result.Valid() {
-		msg := "Unexpected Body Schema:\n"
+		msg := "Unexpected Body Schema:\n\t"
 		for _, desc := range result.Errors() {
 			msg = fmt.Sprintf(msg+"%s\n", desc)
 		}
@@ -212,7 +212,7 @@ func (e AbsentExpectation) desc() string {
 
 	buf.WriteString("Absent fields:")
 	for _, path := range e.paths {
-		buf.WriteString(fmt.Sprintf("  - %s", path))
+		buf.WriteString(fmt.Sprintf("\n  - %s", path))
 	}
 
 	return buf.String()

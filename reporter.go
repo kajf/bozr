@@ -147,7 +147,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 						r.WriteStatus(statusPassed, outputIcon)
 					}
 
-					r.Write(" ").Write(exp)
+					r.Write(" ").WriteMultiline(exp, r.Write)
 
 					r.Unindent()
 				}
@@ -159,19 +159,13 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 					{
 						dump := trace.RequestDump
 						if len(dump) > 0 {
-							for _, line := range strings.Split(dump, "\n") {
-								r.StartLine()
-								r.WriteDimmed(line)
-							}
+							r.WriteMultiline(dump, r.WriteDimmed)
 							r.StartLine()
 						}
 
 						dump = trace.ResponseDump
 						if len(dump) > 0 {
-							for _, line := range strings.Split(string(trace.ResponseDump), "\n") {
-								r.StartLine()
-								r.WriteDimmed(line)
-							}
+							r.WriteMultiline(trace.ResponseDump, r.WriteDimmed)
 							r.StartLine()
 						}
 					}
@@ -193,6 +187,16 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 func (r ConsoleReporter) WriteDimmed(content interface{}) ConsoleReporter {
 	c := color.New(color.FgHiBlack)
 	c.Print(content)
+	return r
+}
+
+func (r ConsoleReporter) WriteMultiline(content string, writer func(content interface{}) ConsoleReporter) ConsoleReporter {
+	for i, line := range strings.Split(content, "\n") {
+		if i > 0 {
+			r.StartLine()
+		}
+		writer(line)
+	}
 	return r
 }
 
