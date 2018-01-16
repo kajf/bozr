@@ -86,9 +86,9 @@ func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 	}
 
 	if !result.Valid() {
-		msg := "Unexpected Body Schema:\n\t"
+		msg := "Unexpected Body Schema:"
 		for _, desc := range result.Errors() {
-			msg = fmt.Sprintf(msg+"%s\n", desc)
+			msg = fmt.Sprintf(msg+"\n\t%s", desc)
 		}
 		return errors.New(msg)
 	}
