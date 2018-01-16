@@ -11,7 +11,7 @@ import (
 func TestExpectedStatusCode(t *testing.T) {
 	exp := StatusCodeExpectation{statusCode: 200}
 	err := exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			StatusCode: 400,
 		},
 		body: nil,
@@ -25,7 +25,7 @@ func TestExpectedStatusCode(t *testing.T) {
 func TestUnexpectedStatusCode(t *testing.T) {
 	exp := StatusCodeExpectation{statusCode: 200}
 	err := exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			StatusCode: 200,
 		},
 		body: nil,
@@ -41,7 +41,7 @@ func TestExpectedHeader(t *testing.T) {
 	exp := HeaderExpectation{Name: "X-Test", Value: "PASS"}
 
 	err := exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"X-Test": {"PASS"}},
 		},
 		body: nil,
@@ -56,7 +56,7 @@ func TestUnexpectedHeader(t *testing.T) {
 	exp := HeaderExpectation{Name: "X-Test", Value: "PASS"}
 
 	err := exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"X-Test": {"FAILED"}},
 		},
 		body: nil,
@@ -71,7 +71,7 @@ func TestExpectedContentType(t *testing.T) {
 	exp := ContentTypeExpectation{Value: "application/json"}
 
 	err := exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: nil,
@@ -86,7 +86,7 @@ func TestExpectedContentTypeIgnoreEncoding(t *testing.T) {
 	exp := ContentTypeExpectation{Value: "application/json"}
 
 	err := exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json; charset=utf-8"}},
 		},
 		body: nil,
@@ -101,7 +101,7 @@ func TestUnexpectedContentType(t *testing.T) {
 	exp := ContentTypeExpectation{Value: "application/json"}
 
 	err := exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"text/html"}},
 		},
 		body: nil,
@@ -123,7 +123,7 @@ func TestBodyExpectationBool(t *testing.T) {
 	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte(`{"flag":true}`),
@@ -145,7 +145,7 @@ func TestBodyExpectationInt(t *testing.T) {
 	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte(`{"len":2}`),
@@ -167,7 +167,7 @@ func TestBodyExpectationSize(t *testing.T) {
 	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte(`{"items":[]}`),
@@ -189,7 +189,7 @@ func TestBodyExpectationSearchBool(t *testing.T) {
 	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte(`{"flag":true}`),
@@ -211,7 +211,7 @@ func TestBodyExpectationSearchInt(t *testing.T) {
 	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte(`{"len":2}`),
@@ -233,7 +233,7 @@ func TestBodyExpectationSearchArray(t *testing.T) {
 	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte(`{"items":["ONE", "TWO"]}`),
@@ -255,7 +255,7 @@ func TestBodyExpectationBoolFMT(t *testing.T) {
 	exp := BodyExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte(`{"flag":true}`),
@@ -265,7 +265,7 @@ func TestBodyExpectationBoolFMT(t *testing.T) {
 		t.Error(err)
 	}
 
-	if strings.Compare("Expected value [false] on path [flag] does not match.", err.Error()) != 0 {
+	if strings.Compare("Expected value false on path \"flag\" is not found", err.Error()) != 0 {
 		t.Error("Incorrect format of expected value:[", err, "]")
 	}
 }

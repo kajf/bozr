@@ -11,7 +11,6 @@ import (
 const (
 	expectationPathSeparator = "."
 	expectationSearchSign    = "~"
-	pathSizeFunction         = "size()"
 )
 
 // GetByPath returns value by exact path line
@@ -24,11 +23,11 @@ func GetByPath(m interface{}, pathLine string) (interface{}, error) {
 		return nil, errors.New(str)
 	}
 
-	if strings.HasSuffix(pathLine, pathSizeFunction) {
-		currSize, err := calcSize(pathLine, res)
+	if HasPathFunc(pathLine) {
+		funcRes, err := CallPathFunc(pathLine, res[0])
 
 		if err == nil {
-			return currSize, nil
+			return funcRes, nil
 		}
 
 		return nil, err
@@ -43,30 +42,32 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 
 	res := Search(m, pathLine)
 
-	if strings.HasSuffix(pathLine, pathSizeFunction) {
-		currSize, err := calcSize(pathLine, res)
+	if HasPathFunc(pathLine) {
 
+		if len(res) != 1 {
+			return false, fmt.Errorf("Required exactly one result to calculate, found %#v on path %#v", len(res), pathLine)
+		}
+
+		funcRes, err := CallPathFunc(pathLine, res[0])
 		if err == nil {
-			if currSize == expectedValue {
+			if funcRes == expectedValue {
 				return true, nil
 			}
-
-			str := fmt.Sprintf("expected [%v].size() [%v] does not match actual [%v]", pathLine, expectedValue, currSize)
-			return false, errors.New(str)
+			return false, fmt.Errorf("Expected value %#v does not match actual %#v on path %#v", expectedValue, funcRes, pathLine)
 		}
 
 		return false, err
 	}
 
+	// case when single path should match multiple expectations, e.g. items.id : [12,34,56]
 	switch typedExpectedValue := expectedValue.(type) {
 	case []interface{}:
-		//found := false
 		for _, expectedItem := range typedExpectedValue {
 
 			found := findDeep(res, expectedItem)
 
 			if !found {
-				str := fmt.Sprintf("Value [%v] not found by path [%v]", expectedItem, pathLine)
+				str := fmt.Sprintf("Value %#v not found on path %#v", expectedItem, pathLine)
 				return false, errors.New(str)
 			}
 		}
@@ -78,30 +79,8 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 		}
 	}
 
-	str := fmt.Sprintf("Value [%v] not found by path [%v]", expectedValue, pathLine)
+	str := fmt.Sprintf("Value %#v not found on path %#v", expectedValue, pathLine)
 	return false, errors.New(str)
-}
-
-func calcSize(pathLine string, res []interface{}) (float64, error) {
-
-	if !strings.HasSuffix(pathLine, pathSizeFunction) {
-		str := fmt.Sprintf("Path has no size function [%v] to calculate", pathLine)
-		return -1.0, errors.New(str)
-	}
-
-	if len(res) != 1 {
-		str := fmt.Sprintf("Required exactly one value to calculate, found [%v] on path [%v]", len(res), pathLine)
-		return -2.0, errors.New(str)
-	}
-
-	switch arr := res[0].(type) {
-	case []interface{}:
-		return float64(len(arr)), nil
-
-	default:
-		str := fmt.Sprintf(".size() is not applicable to search result [%v] ", res)
-		return -3.0, errors.New(str)
-	}
 }
 
 // Search values represented by (pathLine) recursively at tree object (m)
@@ -172,9 +151,13 @@ func findDeep(items []interface{}, expected interface{}) bool {
 
 func cleanPath(pathLine string) []string {
 	pathLine = strings.Replace(pathLine, expectationSearchSign, "", -1) // compliance for redundant '~' opeator
-	pathLine = strings.TrimSuffix(pathLine, pathSizeFunction)           // function
-
 	path := strings.Split(pathLine, expectationPathSeparator)
+
+	last := path[len(path)-1]
+	lastIsFunc := strings.HasSuffix(last, "()")
+	if lastIsFunc {
+		path = path[0 : len(path)-1]
+	} // remove functions
 
 	return path
 }

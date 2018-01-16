@@ -7,7 +7,7 @@ import (
 
 func TestRememberBodyLazy(t *testing.T) {
 	resp := Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte(`# invalid body so it fails if parsed`),

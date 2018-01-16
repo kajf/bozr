@@ -8,7 +8,7 @@ import (
 
 func TestResponseBodyOnce(t *testing.T) {
 	resp := Response{
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 		body: []byte(`{"key":true}`),
@@ -25,7 +25,7 @@ func TestResponseBodyOnce(t *testing.T) {
 func TestParseEmptyResponse(t *testing.T) {
 	resp := Response{
 		body: make([]byte, 0),
-		http: http.Response{
+		http: &http.Response{
 			Header: map[string][]string{"Content-Type": {"application/json"}},
 		},
 	}

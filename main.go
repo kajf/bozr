@@ -57,7 +57,6 @@ var (
 	junitFlag       bool
 	junitOutputFlag string
 
-	info  *log.Logger
 	debug *log.Logger
 )
 
@@ -67,18 +66,12 @@ const (
 )
 
 func initLogger() {
-	infoHandler := ioutil.Discard
 	debugHandler := ioutil.Discard
-
-	if infoFlag {
-		infoHandler = os.Stdout
-	}
 
 	if debugFlag {
 		debugHandler = os.Stdout
 	}
 
-	info = log.New(infoHandler, "", 0)
 	debug = log.New(debugHandler, "DEBUG: ", log.Ltime|log.Lshortfile)
 }
 
@@ -184,10 +177,13 @@ func runSuite(suite TestSuite) []TestResult {
 			throttle.RunOrPause()
 
 			vars.AddAll(c.Args)
-			terr := call(suite.Dir, c, vars)
-			if terr != nil {
-				terr.CallNum = i
-				result.Error = terr
+
+			trace := call(suite.Dir, c, vars)
+			trace.Num = i
+
+			result.Traces = append(result.Traces, trace)
+
+			if trace.hasError() {
 				break
 			}
 		}
@@ -201,7 +197,7 @@ func runSuite(suite TestSuite) []TestResult {
 }
 
 func createReporter() Reporter {
-	reporters := []Reporter{NewConsoleReporter()}
+	reporters := []Reporter{NewConsoleReporter(infoFlag)}
 	if junitFlag {
 		path, _ := filepath.Abs(junitOutputFlag)
 		reporters = append(reporters, NewJUnitReporter(path))
@@ -212,9 +208,10 @@ func createReporter() Reporter {
 	return reporter
 }
 
-func call(suitePath string, call Call, vars *Vars) *TError {
+func call(suitePath string, call Call, vars *Vars) *CallTrace {
 
-	terr := &TError{}
+	trace := &CallTrace{}
+	execStart := time.Now()
 
 	on := call.On
 
@@ -222,25 +219,27 @@ func call(suitePath string, call Call, vars *Vars) *TError {
 	if on.BodyFile != "" {
 		uri, err := toAbsPath(suitePath, on.BodyFile)
 		if err != nil {
-			terr.Cause = err
-			return terr
+			trace.ErrorCause = err
+			return trace
 		}
 
 		if d, err := ioutil.ReadFile(uri); err == nil {
 			dat = d
 		} else {
-			terr.Cause = fmt.Errorf("Can't read body file: %s", err.Error())
-			return terr
+			trace.ErrorCause = fmt.Errorf("Can't read body file: %s", err.Error())
+			return trace
 		}
 	}
 
 	req, err := populateRequest(on, string(dat), vars)
 	if err != nil {
-		terr.Cause = err
-		return terr
+		trace.ErrorCause = err
+		return trace
 	}
 
-	printRequestInfo(req, dat)
+	trace.RequestDump = dumpRequest(req, dat)
+	trace.RequestMethod = req.Method
+	trace.RequestURL = req.URL.String()
 
 	client := &http.Client{}
 
@@ -248,52 +247,53 @@ func call(suitePath string, call Call, vars *Vars) *TError {
 
 	if err != nil {
 		debug.Print("Error when sending request", err)
-		terr.Cause = err
-		return terr
+		trace.ErrorCause = err
+		return trace
 	}
 
 	defer resp.Body.Close()
 
+	trace.ExecFrame = TimeFrame{Start: execStart, End: time.Now()}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		debug.Print("Error reading response")
-		terr.Cause = err
-		return terr
+		trace.ErrorCause = err
+		return trace
 	}
 
-	testResp := Response{http: *resp, body: body}
-	terr.Resp = testResp
-
-	info.Println(strings.Repeat("-", 50))
-	info.Println(testResp.ToString())
-	info.Println("")
+	testResp := Response{http: resp, body: body}
+	trace.ResponseDump = testResp.ToString()
 
 	call.Expect.populateWith(*vars)
 	exps, err := expectations(call.Expect, suitePath)
 	if err != nil {
-		terr.Cause = err
-		return terr
+		trace.ErrorCause = err
+		return trace
 	}
 
 	for _, exp := range exps {
 		checkErr := exp.check(&testResp)
+
 		if checkErr != nil {
-			terr.Cause = checkErr
-			return terr
+			trace.addError(checkErr)
+			return trace
 		}
+
+		trace.addExp(exp.desc())
 	}
 
 	err = rememberBody(&testResp, call.Remember.Body, vars)
 	debug.Print("Remember: ", vars)
 	if err != nil {
 		debug.Print("Error remember")
-		terr.Cause = err
-		return terr
+		trace.ErrorCause = err
+		return trace
 	}
 
 	rememberHeaders(testResp.http.Header, call.Remember.Headers, vars)
 
-	return nil
+	return trace
 }
 
 func populateRequest(on On, body string, vars *Vars) (*http.Request, error) {
@@ -440,22 +440,20 @@ func rememberHeaders(header http.Header, remember map[string]string, vars *Vars)
 	}
 }
 
-func printRequestInfo(req *http.Request, body []byte) {
-	info.Println()
-	info.Printf("%s %s %s\n", req.Method, req.URL.String(), req.Proto)
+func dumpRequest(req *http.Request, body []byte) string {
+	buf := bytes.NewBufferString("")
 
-	if len(req.Header) > 0 {
-		info.Println()
-	}
+	buf.WriteString(fmt.Sprintf("%s %s %s\n", req.Method, req.URL.String(), req.Proto))
 
 	for k, v := range req.Header {
-		info.Printf("%s: %s", k, strings.Join(v, " "))
+		buf.WriteString(fmt.Sprintf("%s: %s", k, strings.Join(v, " ")))
 	}
-	info.Println()
 
 	if len(body) > 0 {
-		info.Printf(string(body))
+		buf.WriteString(string(body))
 	}
+
+	return buf.String()
 }
 
 func terminate(msgLines ...string) {
