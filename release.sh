@@ -6,20 +6,51 @@ if [ $# -eq 0 ]
 fi
 
 RELEASE_DIR=./release
-GOARCH=amd64
+export GOARCH=amd64
 
 mkdir -p $RELEASE_DIR
 
-GOOS=windows
+MD5_SUM=""
+if [ -x "$(command -v md5sum)" ]; then
+  MD5_SUM=md5sum
+fi
+
+if [ -x "$(command -v md5)" ]; then
+  MD5_SUM=md5
+fi
+
+# Windows build
+export GOOS=windows
 go build -o bozr.exe
+
+if [ -n $MD5_SUM ]; then
+  echo "Windows: " "$($MD5_SUM ./bozr.exe)"
+fi
+
 zip -r $RELEASE_DIR/bozr-$1.$GOOS-$GOARCH.zip bozr.exe
 rm bozr.exe
 
-GOOS=darwin
+echo "------------------------------"
+
+# MacOS build
+export GOOS=darwin
 go build -o bozr
+
+if [ -n $MD5_SUM ]; then
+  echo "Darwin: " "$($MD5_SUM ./bozr)"
+fi
+
 tar -czvf $RELEASE_DIR/bozr-$1.$GOOS-$GOARCH.tar.gz bozr
 
-GOOS=linux
+echo "------------------------------"
+
+# Linux build
+export GOOS=linux
 go build -o bozr
+
+if [ -n $MD5_SUM ]; then
+  echo "Linux: " "$($MD5_SUM ./bozr)"
+fi
+
 tar -czvf $RELEASE_DIR/bozr-$1.$GOOS-$GOARCH.tar.gz bozr
 rm ./bozr
