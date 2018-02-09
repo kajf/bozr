@@ -446,11 +446,12 @@ func dumpRequest(req *http.Request, body []byte) string {
 	buf.WriteString(fmt.Sprintf("%s %s %s\n", req.Method, req.URL.String(), req.Proto))
 
 	for k, v := range req.Header {
-		buf.WriteString(fmt.Sprintf("%s: %s", k, strings.Join(v, " ")))
+		buf.WriteString(fmt.Sprintf("%s: %s\n", k, strings.Join(v, " ")))
 	}
 
 	if len(body) > 0 {
-		buf.WriteString(string(body))
+		buf.WriteString("\n")
+		buf.Write(body)
 	}
 
 	return buf.String()
