@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"mime"
 	"net/http"
@@ -76,6 +77,33 @@ type On struct {
 	BodyFile string            `json:"bodyFile"`
 }
 
+// BodyContent returns request body content regardless of its source
+// e.g. provided inline or fetched from file
+func (on On) BodyContent(suitePath string) (string, error) {
+	const quote byte = '"'
+
+	dat := []byte(on.Body)
+	if len(dat) > 0 && dat[0] == quote && dat[len(dat)-1] == quote {
+		dat = dat[1 : len(dat)-1]
+	} // remove leading and trailing double quotes (suppress JSON string)
+
+	if on.BodyFile != "" {
+		uri, err := toAbsPath(suitePath, on.BodyFile)
+		if err != nil {
+			return "", err
+		}
+
+		d, err := ioutil.ReadFile(uri)
+		if err != nil {
+			return "", fmt.Errorf("Can't read body file: %s", err.Error())
+		}
+
+		dat = d
+	}
+
+	return string(dat), nil
+}
+
 // Expect is a metadata for HTTP response verification
 type Expect struct {
 	StatusCode int `json:"statusCode"`
@@ -88,8 +116,35 @@ type Expect struct {
 	BodySchemaURI  string                 `json:"bodySchemaURI"`
 }
 
-func (e Expect) hasSchema() bool {
+// HasSchema tests whether the Expect contains scheme verification part
+func (e Expect) HasSchema() bool {
 	return e.BodySchemaFile != "" || e.BodySchemaURI != ""
+}
+
+// BodySchema returns scheme URI regardless of its source
+// e.g. provided from URI or fetched from file
+func (e Expect) BodySchema(suitePath string) (string, error) {
+
+	if e.BodySchemaFile != "" {
+		schemeURI, err := toAbsPath(suitePath, e.BodySchemaFile)
+		if err != nil {
+			return "", err
+		}
+
+		return "file:///" + schemeURI, nil
+	}
+
+	if e.BodySchemaURI != "" {
+		isHTTP := strings.HasPrefix(e.BodySchemaURI, "http://")
+		isHTTPS := strings.HasPrefix(e.BodySchemaURI, "https://")
+		if !(isHTTP || isHTTPS) {
+			return hostFlag + e.BodySchemaURI, nil
+		}
+
+		return e.BodySchemaURI, nil
+	}
+
+	return "", nil
 }
 
 func (e Expect) populateWith(vars Vars) {
@@ -112,6 +167,21 @@ func (e Expect) populateWith(vars Vars) {
 			// do nothing with values like numbers
 		}
 	}
+}
+
+func toAbsPath(suitePath string, assetPath string) (string, error) {
+	debug.Printf("Building absolute path using: suiteDir: %s, srcDir: %s, assetPath: %s", suitesDir, suitePath, assetPath)
+	if filepath.IsAbs(assetPath) {
+		// ignore srcDir
+		return assetPath, nil
+	}
+
+	uri, err := filepath.Abs(filepath.Join(suitesDir, suitePath, assetPath))
+	if err != nil {
+		return "", errors.New("Invalid file path: " + assetPath)
+	}
+
+	return filepath.ToSlash(uri), nil
 }
 
 // TestResult represents single test case for reporting

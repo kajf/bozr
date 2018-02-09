@@ -215,29 +215,19 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 
 	on := call.On
 
-	dat := []byte(on.Body)
-	if on.BodyFile != "" {
-		uri, err := toAbsPath(suitePath, on.BodyFile)
-		if err != nil {
-			trace.ErrorCause = err
-			return trace
-		}
-
-		if d, err := ioutil.ReadFile(uri); err == nil {
-			dat = d
-		} else {
-			trace.ErrorCause = fmt.Errorf("Can't read body file: %s", err.Error())
-			return trace
-		}
-	}
-
-	req, err := populateRequest(on, string(dat), vars)
+	bodyContent, err := on.BodyContent(suitePath)
 	if err != nil {
 		trace.ErrorCause = err
 		return trace
 	}
 
-	trace.RequestDump = dumpRequest(req, dat)
+	req, err := populateRequest(on, bodyContent, vars)
+	if err != nil {
+		trace.ErrorCause = err
+		return trace
+	}
+
+	trace.RequestDump = dumpRequest(req, bodyContent)
 	trace.RequestMethod = req.Method
 	trace.RequestURL = req.URL.String()
 
@@ -346,29 +336,13 @@ func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error
 		exps = append(exps, StatusCodeExpectation{statusCode: expect.StatusCode})
 	}
 
-	if expect.hasSchema() {
-		var (
-			schemeURI string
-			err       error
-		)
+	if expect.HasSchema() {
 
-		if expect.BodySchemaFile != "" {
-			schemeURI, err = toAbsPath(suitePath, expect.BodySchemaFile)
-			if err != nil {
-				return nil, err
-			}
-			schemeURI = "file:///" + schemeURI
+		schemeURI, err := expect.BodySchema(suitePath)
+		if err != nil {
+			return nil, err
 		}
 
-		if expect.BodySchemaURI != "" {
-			isHTTP := strings.HasPrefix(expect.BodySchemaURI, "http://")
-			isHTTPS := strings.HasPrefix(expect.BodySchemaURI, "https://")
-			if !(isHTTP || isHTTPS) {
-				schemeURI = hostFlag + expect.BodySchemaURI
-			} else {
-				schemeURI = expect.BodySchemaURI
-			}
-		}
 		exps = append(exps, BodySchemaExpectation{schemaURI: schemeURI})
 	}
 
@@ -392,21 +366,6 @@ func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error
 
 	// and so on
 	return exps, nil
-}
-
-func toAbsPath(suitePath string, assetPath string) (string, error) {
-	debug.Printf("Building absolute path using: suiteDir: %s, srcDir: %s, assetPath: %s", suitesDir, suitePath, assetPath)
-	if filepath.IsAbs(assetPath) {
-		// ignore srcDir
-		return assetPath, nil
-	}
-
-	uri, err := filepath.Abs(filepath.Join(suitesDir, suitePath, assetPath))
-	if err != nil {
-		return "", errors.New("Invalid file path: " + assetPath)
-	}
-
-	return filepath.ToSlash(uri), nil
 }
 
 func rememberBody(resp *Response, remember map[string]string, vars *Vars) (err error) {
@@ -440,7 +399,7 @@ func rememberHeaders(header http.Header, remember map[string]string, vars *Vars)
 	}
 }
 
-func dumpRequest(req *http.Request, body []byte) string {
+func dumpRequest(req *http.Request, body string) string {
 	buf := bytes.NewBufferString("")
 
 	buf.WriteString(fmt.Sprintf("%s %s %s\n", req.Method, req.URL.String(), req.Proto))
@@ -451,7 +410,7 @@ func dumpRequest(req *http.Request, body []byte) string {
 
 	if len(body) > 0 {
 		buf.WriteString("\n")
-		buf.Write(body)
+		buf.WriteString(body)
 	}
 
 	return buf.String()

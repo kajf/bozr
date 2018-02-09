@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 )
@@ -267,5 +268,37 @@ func TestExpectPopulateWithBodyInt(t *testing.T) {
 
 	if expect.Body["items.id"] != 12 || len(expect.Body) != 1 {
 		t.Errorf("body was modified, body %v", expect.Body)
+	}
+}
+
+func TestOnBodyContentRemovesStartEndDoubleQuotes(t *testing.T) {
+	on := &On{Body: []byte("\"abc\"")}
+
+	s, err := on.BodyContent("")
+
+	if err != nil || strings.HasPrefix(s, "\"") || strings.HasSuffix(s, "\"") {
+		t.Error("Double quotes was not removed", s, err)
+	}
+}
+
+func TestOnBodyContentKeepsMiddleDoubleQuotes(t *testing.T) {
+	initialString := "abc \"middle\" ending"
+	on := &On{Body: []byte(initialString)}
+
+	s, err := on.BodyContent("")
+
+	if err != nil || s != initialString {
+		t.Error(s, err)
+	}
+}
+
+func TestOnBodyContentKeepsSingleQuotes(t *testing.T) {
+	initialString := "'abc'"
+	on := &On{Body: []byte(initialString)}
+
+	s, err := on.BodyContent("")
+
+	if err != nil || s != initialString {
+		t.Error(s, err)
 	}
 }
