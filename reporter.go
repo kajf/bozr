@@ -134,6 +134,16 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 			for _, trace := range result.Traces {
 				r.Indent()
 
+				if trace.Terminated() {
+					r.Indent()
+					r.StartLine()
+
+					r.Write(trace.ErrorCause.Error())
+					r.Unindent()
+
+					continue
+				}
+
 				r.StartLine()
 				r.Write(trace.RequestMethod).Write(" ").Write(trace.RequestURL).Write(" [").Write(trace.ExecFrame.Duration().Round(time.Millisecond)).Write("]")
 
@@ -153,9 +163,10 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 				}
 
 				if r.LogHTTP {
-					r.StartLine()
-
 					r.Indent()
+
+					r.StartLine()
+					r.StartLine()
 					{
 						dump := trace.RequestDump
 						if len(dump) > 0 {

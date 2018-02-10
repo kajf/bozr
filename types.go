@@ -268,6 +268,12 @@ func (trace *CallTrace) hasError() bool {
 	return trace.ErrorCause != nil
 }
 
+// Terminated returns true if request failed due to the issues with making request
+// or parsing response, not due to unmet expectations
+func (trace *CallTrace) Terminated() bool {
+	return trace.ErrorCause != nil && len(trace.ExpDesc) == 0
+}
+
 // Response wraps test call HTTP response
 type Response struct {
 	http       *http.Response
