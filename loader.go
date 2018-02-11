@@ -386,7 +386,14 @@ const suiteDetailedSchema = `
                   "minProperties": 1
                 },
                 "body": {
-                  "type": "object",
+				  "type": "object",
+				  "patternProperties": {
+					".+": {
+						"type": [
+							"string", "boolean", "null", "number"
+						]
+					}
+				  },
                   "minProperties": 1
                 },
                 "bodySchemaFile": {
