@@ -140,6 +140,7 @@ func (r *ConsoleReporter) Report(results []TestResult) {
 
 					r.Write(trace.ErrorCause.Error())
 					r.Unindent()
+					r.Unindent()
 
 					continue
 				}
