@@ -143,7 +143,7 @@ Path fromat is the same as in 'Expect' body section
 ```
 
 ### Section 'Args'
-Specifies plaseholder values for future reference (within test scope)
+Specifies placeholder values for future reference (within test scope)
 
 Placeholder values could be used inside `on.url`, `on.params`, `on.headers`, `on.body`, `on.bodyFile`, `expect.headers`, `expect.body` sections.
 
