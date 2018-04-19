@@ -1,6 +1,6 @@
 ![Bozr](https://raw.githubusercontent.com/kajf/bozr/master/assets/bozr.png)
 
-Minimalistic tool to perform REST API tests based on JSON description
+Minimalistic tool to perform API tests based on JSON description
 
 [![Build Status](https://travis-ci.org/kajf/bozr.svg?branch=master)](https://travis-ci.org/kajf/bozr?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kajf/bozr)](https://goreportcard.com/report/github.com/kajf/bozr)
