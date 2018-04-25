@@ -265,7 +265,7 @@ func TestBodyExpectationBoolFMT(t *testing.T) {
 		t.Error(err)
 	}
 
-	if strings.Compare("Expected value false on path \"flag\" is not found", err.Error()) != 0 {
+	if strings.Compare("Value false not found on path \"flag\"", err.Error()) != 0 {
 		t.Error("Incorrect format of expected value:[", err, "]")
 	}
 }

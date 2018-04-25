@@ -36,8 +36,8 @@ func GetByPath(m interface{}, pathLine string) (interface{}, error) {
 	return res[0], nil
 }
 
-// SearchByPath search traversing maps and arrays deep
-func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bool, error) {
+// SearchByPath search traversing maps and arrays deep. Returns error with message if expected value not found, nil - otherwise
+func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) error {
 	//fmt.Println("searchByPath", m, expectedValue, path, reflect.TypeOf(expectedValue))
 
 	resArr := Search(m, pathLine)
@@ -45,18 +45,18 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 	if HasPathFunc(pathLine) {
 
 		if len(resArr) != 1 {
-			return false, fmt.Errorf("Required exactly one result to calculate, found %#v on path %#v", len(resArr), pathLine)
+			return fmt.Errorf("Required exactly one result to calculate, found %#v on path %#v", len(resArr), pathLine)
 		}
 
 		funcRes, err := CallPathFunc(pathLine, resArr[0])
 		if err == nil {
 			if funcRes == expectedValue {
-				return true, nil
+				return nil
 			}
-			return false, fmt.Errorf("Expected value %#v does not match actual %#v on path %#v", expectedValue, funcRes, pathLine)
+			return fmt.Errorf("Expected value %#v does not match actual %#v on path %#v", expectedValue, funcRes, pathLine)
 		}
 
-		return false, err
+		return err
 	}
 
 	switch typedExpectedValue := expectedValue.(type) {
@@ -68,11 +68,11 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 
 			if !found {
 				str := fmt.Sprintf("Value %#v not found on path %#v", expectedItem, pathLine)
-				return false, errors.New(str)
+				return errors.New(str)
 			}
 		}
 
-		return true, nil
+		return nil
 
 	// single path have to match object, e.g. root.items : {id: 1, name: 'example'}
 	case map[string]interface{}:
@@ -82,7 +82,7 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 			case []interface{}:
 				for _, singleResItem := range typedSingleRes {
 					if matchesAll(typedExpectedValue, singleResItem) {
-						return true, nil
+						return nil
 					}
 				}
 			}
@@ -90,12 +90,12 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 
 	default:
 		if findDeep(resArr, expectedValue) {
-			return true, nil
+			return nil
 		}
 	}
 
 	str := fmt.Sprintf("Value %#v not found on path %#v", expectedValue, pathLine)
-	return false, errors.New(str)
+	return errors.New(str)
 }
 
 func matchesAll(expectedMap map[string]interface{}, searchResult interface{}) bool {

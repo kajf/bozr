@@ -76,10 +76,10 @@ func TestSearchByPathId(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := SearchByPath(m, 417601.0, "rate_tables.id")
+	err = SearchByPath(m, 417601.0, "rate_tables.id")
 
-	if !found {
-		t.Error()
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -96,10 +96,10 @@ func TestSearchByPathKey(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := SearchByPath(m, "-1", "root.key")
+	err = SearchByPath(m, "-1", "root.key")
 
-	if !found {
-		t.Error()
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -113,10 +113,10 @@ func TestSearchByPathInArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := SearchByPath(m, "test 2", "root.name")
+	err = SearchByPath(m, "test 2", "root.name")
 
-	if !found {
-		t.Error()
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -128,10 +128,10 @@ func TestSearchByPathArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, err := SearchByPath(m, 2.0, "root.size()")
+	err = SearchByPath(m, 2.0, "root.size()")
 
-	if !found || err != nil {
-		t.Error("unexpected", found, "err", err)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -141,10 +141,10 @@ func TestSearchBySizeEmptyRootArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, err := SearchByPath(m, 2.0, "size()")
+	err = SearchByPath(m, 2.0, "size()")
 
-	if !found || err != nil {
-		t.Error("unexpected", found, "err", err)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -160,10 +160,10 @@ func TestSearchByPathDuplicates(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, err := SearchByPath(m, 3.0, "counters.counters.size()")
+	err = SearchByPath(m, 3.0, "counters.counters.size()")
 
-	if !found || err != nil {
-		t.Error("unexpected", found, "err", err)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -191,10 +191,10 @@ func TestSearchByPathWithObjectFieldsFromDifferentItems(t *testing.T) {
 		"name": "bar",
 	}
 
-	found, err := SearchByPath(m, expect, "items")
+	err = SearchByPath(m, expect, "items")
 
-	if found {
-		t.Error("unexpected", found, "name and id have to be from the same item")
+	if err == nil {
+		t.Error("unexpected foundation. name and id have to be from the same item")
 	}
 }
 
@@ -222,10 +222,10 @@ func TestSearchByPathWithObject(t *testing.T) {
 		"name": "bar",
 	}
 
-	found, err := SearchByPath(m, expect, "items")
+	err = SearchByPath(m, expect, "items")
 
-	if !found || err != nil {
-		t.Error("unexpected", found, "err", err)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -267,10 +267,10 @@ func TestSearchByPathWithMultiArraysObject(t *testing.T) {
 		"name": "baz",
 	}
 
-	found, err := SearchByPath(m, expect, "lookups.items")
+	err = SearchByPath(m, expect, "lookups.items")
 
-	if !found || err != nil {
-		t.Error("unexpected", found, "err", err)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -322,13 +322,11 @@ func TestSearchByInvalidPathWithPathFunction(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, err := SearchByPath(m, nil, "notExist.size()")
+	err = SearchByPath(m, nil, "notExist.size()")
 
-	if found || err == nil {
+	if err == nil {
 		t.Error(
-			"expected found=false + path error",
-			"got", found,
-			"err", err,
+			"expected foundation", err,
 		)
 	}
 }
@@ -349,10 +347,10 @@ func TestSearchByPathSingleObject(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := SearchByPath(m, "-2", "second.key")
+	err = SearchByPath(m, "-2", "second.key")
 
-	if !found {
-		t.Error()
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -368,9 +366,9 @@ func TestSearchByPathNotFound(t *testing.T) {
 		t.Error(err)
 	}
 
-	found, _ := SearchByPath(m, "-2", "single.key")
+	err = SearchByPath(m, "-2", "single.key")
 
-	if found {
+	if err == nil {
 		t.Error()
 	}
 }
@@ -387,8 +385,8 @@ func TestSearchByPathExactHasArray(t *testing.T) {
 	}
 
 	arr := []interface{}{"a", "b"}
-	ok, err := SearchByPath(m, arr, "items.id")
-	if !ok || err != nil {
+	err = SearchByPath(m, arr, "items.id")
+	if err != nil {
 		t.Error(err)
 	}
 }
@@ -405,8 +403,8 @@ func TestSearchByPathHasNotAllArrayItems(t *testing.T) {
 	}
 
 	arr := []string{"a", "b", "c"}
-	ok, err := SearchByPath(m, arr, "items.id")
-	if ok {
+	err = SearchByPath(m, arr, "items.id")
+	if err == nil {
 		t.Error("Should have failed because of 'c'")
 	}
 }
@@ -424,8 +422,8 @@ func TestSearchByPathInLargerSet(t *testing.T) {
 	}
 
 	arr := []interface{}{"a", "b"}
-	ok, err := SearchByPath(m, arr, "items.id")
-	if !ok || err != nil {
+	err = SearchByPath(m, arr, "items.id")
+	if err != nil {
 		t.Error(err)
 	}
 }
@@ -442,8 +440,8 @@ func TestSearchByPathHasOneElementArray(t *testing.T) {
 	}
 
 	arr := []interface{}{"a"}
-	ok, err := SearchByPath(m, arr, "items.id")
-	if !ok || err != nil {
+	err = SearchByPath(m, arr, "items.id")
+	if err != nil {
 		t.Error(err)
 	}
 }
@@ -476,9 +474,9 @@ func TestSearchByPathArrayOfPrimitives(t *testing.T) {
 	}
 
 	arr := []interface{}{"ONE", "TWO"}
-	ok, err := SearchByPath(m, arr, "items")
-	if !ok || err != nil {
-		t.Error(ok, err)
+	err = SearchByPath(m, arr, "items")
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -489,8 +487,8 @@ func TestSearchByPathArrayOfPrimitivesSingle(t *testing.T) {
 	}
 
 	arr := []interface{}{"ONE"}
-	ok, err := SearchByPath(m, arr, "items")
-	if !ok || err != nil {
+	err = SearchByPath(m, arr, "items")
+	if err != nil {
 		t.Error(err)
 	}
 }
@@ -507,8 +505,8 @@ func TestSearchByPathHasIntArr(t *testing.T) {
 	}
 
 	arr := []interface{}{1.0, 2.0}
-	ok, err := SearchByPath(m, arr, "items.id")
-	if !ok || err != nil {
+	err = SearchByPath(m, arr, "items.id")
+	if err != nil {
 		t.Error(err)
 	}
 }
@@ -523,8 +521,8 @@ func TestSearchByPathWithRootArray(t *testing.T) {
 	}
 
 	expected := []interface{}{2.0}
-	ok, err := SearchByPath(arr, expected, "id")
-	if !ok || err != nil {
+	err = SearchByPath(arr, expected, "id")
+	if err != nil {
 		t.Error(err)
 	}
 }
