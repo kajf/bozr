@@ -167,6 +167,153 @@ func TestSearchByPathDuplicates(t *testing.T) {
 	}
 }
 
+func TestSearchByPathWithObjectFieldsFromDifferentItems(t *testing.T) {
+	m, err := jsonAsMap(`{
+					"items": [
+						{
+							"id": 12,
+							"name": "foo",
+							"descr": "abc"
+						},
+						{
+							"id": 34,
+							"name": "bar",
+							"descr": "bbb"
+						}						
+					]
+			}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expect := map[string]interface{}{
+		"id":   12.0,
+		"name": "bar",
+	}
+
+	found, err := SearchByPath(m, expect, "items")
+
+	if found {
+		t.Error("unexpected", found, "name and id have to be from the same item")
+	}
+}
+
+func TestSearchByPathWithObject(t *testing.T) {
+	m, err := jsonAsMap(`{
+					"items": [
+						{
+							"id": 12,
+							"name": "foo",
+							"descr": "abc"
+						},
+						{
+							"id": 34,
+							"name": "bar",
+							"descr": "bbb"
+						}						
+					]
+			}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expect := map[string]interface{}{
+		"id":   34.0,
+		"name": "bar",
+	}
+
+	found, err := SearchByPath(m, expect, "items")
+
+	if !found || err != nil {
+		t.Error("unexpected", found, "err", err)
+	}
+}
+
+func TestSearchByPathWithMultiArraysObject(t *testing.T) {
+	m, err := jsonAsMap(`{
+				"lookups": [
+					{
+						"name": "first",
+						"items": [
+							{
+								"id": 12,
+								"name": "foo",
+								"descr": "abc"
+							},
+							{
+								"id": 34,
+								"name": "bar",
+								"descr": "bbb"
+							}						
+						]
+					},
+					{
+						"name": "second",
+						"items": [
+							{
+								"id": 56,
+								"name": "baz"
+							}						
+						]
+					}
+				]
+			}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expect := map[string]interface{}{
+		"id":   56.0,
+		"name": "baz",
+	}
+
+	found, err := SearchByPath(m, expect, "lookups.items")
+
+	if !found || err != nil {
+		t.Error("unexpected", found, "err", err)
+	}
+}
+
+func TestMatchesAllNonMap(t *testing.T) {
+
+	expect := map[string]interface{}{
+		"id":   34,
+		"name": "bar",
+	}
+
+	expectMore := map[string]interface{}{
+		"id":    34,
+		"name":  "bar",
+		"descr": "hey",
+	}
+
+	var flagtests = []struct {
+		in  interface{}
+		out bool
+	}{
+		{"", false},
+		{"ab", false},
+		{12, false},
+		{nil, false},
+		{[]interface{}{}, false},
+		{[]interface{}{34, 2}, false},
+		{expect, true},
+		{expectMore, true},
+	}
+
+	for _, tt := range flagtests {
+		t.Run("matchesAll", func(t *testing.T) {
+
+			matches := matchesAll(expect, tt.in)
+
+			if matches != tt.out {
+				t.Errorf("matchAll(&expect, %v) => %v, want %v",
+					tt.in, matches, tt.out)
+			}
+		})
+	}
+}
+
 func TestSearchByInvalidPathWithPathFunction(t *testing.T) {
 	m, err := jsonAsMap(`{
 		"root":[{},{}]

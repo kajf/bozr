@@ -40,15 +40,15 @@ func GetByPath(m interface{}, pathLine string) (interface{}, error) {
 func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bool, error) {
 	//fmt.Println("searchByPath", m, expectedValue, path, reflect.TypeOf(expectedValue))
 
-	res := Search(m, pathLine)
+	resArr := Search(m, pathLine)
 
 	if HasPathFunc(pathLine) {
 
-		if len(res) != 1 {
-			return false, fmt.Errorf("Required exactly one result to calculate, found %#v on path %#v", len(res), pathLine)
+		if len(resArr) != 1 {
+			return false, fmt.Errorf("Required exactly one result to calculate, found %#v on path %#v", len(resArr), pathLine)
 		}
 
-		funcRes, err := CallPathFunc(pathLine, res[0])
+		funcRes, err := CallPathFunc(pathLine, resArr[0])
 		if err == nil {
 			if funcRes == expectedValue {
 				return true, nil
@@ -59,12 +59,12 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 		return false, err
 	}
 
-	// case when single path should match multiple expectations, e.g. items.id : [12,34,56]
 	switch typedExpectedValue := expectedValue.(type) {
+	// single path have to match multiple expectations, e.g. items.id : [12,34,56]
 	case []interface{}:
 		for _, expectedItem := range typedExpectedValue {
 
-			found := findDeep(res, expectedItem)
+			found := findDeep(resArr, expectedItem)
 
 			if !found {
 				str := fmt.Sprintf("Value %#v not found on path %#v", expectedItem, pathLine)
@@ -73,14 +73,46 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) (bo
 		}
 
 		return true, nil
+
+	// single path have to match object, e.g. root.items : {id: 1, name: 'example'}
+	case map[string]interface{}:
+		for _, singleRes := range resArr { // each search result
+
+			switch typedSingleRes := singleRes.(type) {
+			case []interface{}:
+				for _, singleResItem := range typedSingleRes {
+					if matchesAll(typedExpectedValue, singleResItem) {
+						return true, nil
+					}
+				}
+			}
+		}
+
 	default:
-		if findDeep(res, expectedValue) {
+		if findDeep(resArr, expectedValue) {
 			return true, nil
 		}
 	}
 
 	str := fmt.Sprintf("Value %#v not found on path %#v", expectedValue, pathLine)
 	return false, errors.New(str)
+}
+
+func matchesAll(expectedMap map[string]interface{}, searchResult interface{}) bool {
+
+	switch typedSearchRes := searchResult.(type) {
+	case map[string]interface{}:
+
+		for field := range expectedMap {
+			if expectedMap[field] != typedSearchRes[field] {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	return false
 }
 
 // Search values represented by (pathLine) recursively at tree object (m)
