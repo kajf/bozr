@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Current timestamp",
+    "calls": [
+      {
+        "args": {
+          "username": "el_mask",
+          "key": "{{ .SHA1 `{username}` }}"
+        },
+        "on": {
+          "method": "GET",
+          "url": "https://postman-echo.com/get",
+          "params": {
+            "key": "{key}"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "body": {
+            "args.key": "2b0cc371b76f3ec6c1bebc52bcc44af69304dabf"
+          }
+        }
+      }
+    ]
+  }
+]

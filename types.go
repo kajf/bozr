@@ -147,10 +147,15 @@ func (e Expect) BodySchema(suitePath string) (string, error) {
 	return "", nil
 }
 
-func (e Expect) populateWith(vars Vars) {
+func (e Expect) populateWith(vars Vars) error {
+	ctx := NewTemplateContext(&vars)
 	//expect.Headers        map[string]string
-	for name, val := range e.Headers {
-		e.Headers[name] = vars.ApplyTo(val)
+	for name, valueTmpl := range e.Headers {
+		value, err := executeTemplate(ctx, valueTmpl)
+		if err != nil {
+			return fmt.Errorf("Cannot parse header value: %s", err.Error())
+		}
+		e.Headers[name] = value
 	}
 
 	//expect.Body           map[string]interface{} - string, array, num
@@ -159,14 +164,24 @@ func (e Expect) populateWith(vars Vars) {
 		switch typedExpect := val.(type) {
 		case []string:
 			for i, el := range typedExpect {
-				typedExpect[i] = vars.ApplyTo(el)
+				val, err := executeTemplate(ctx, el)
+				if err != nil {
+					return fmt.Errorf("Cannot parse value: %s", err.Error())
+				}
+				typedExpect[i] = val
 			}
 		case string:
-			e.Body[path] = vars.ApplyTo(typedExpect)
+			val, err := executeTemplate(ctx, typedExpect)
+			if err != nil {
+				return fmt.Errorf("Cannot parse value: %s", err.Error())
+			}
+			e.Body[path] = val
 		default:
 			// do nothing with values like numbers
 		}
 	}
+
+	return nil
 }
 
 func toAbsPath(suitePath string, assetPath string) (string, error) {
