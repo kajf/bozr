@@ -22,7 +22,7 @@ func NewTemplateContext(vars *Vars) *TemplateContext {
 }
 
 //
-func (ctx *TemplateContext) CurrentTimestampMS() int64 {
+func (ctx *TemplateContext) CurrentTimestampSec() int64 {
 	return time.Now().Unix()
 }
 
@@ -68,8 +68,8 @@ func (proc *TemplateProcessor) Error() error {
 	return errors.New(msg)
 }
 
-// Execute takes value template and evaluates all variables and functions inside it.
-func (proc *TemplateProcessor) Execute(tmpl string) string {
+// ApplyTo takes value template and evaluates all variables and functions inside it.
+func (proc *TemplateProcessor) ApplyTo(tmpl string) string {
 	// proc.vars.print(os.Stdout)
 
 	// variable's syntax could be used inside the template, evaluate vars first

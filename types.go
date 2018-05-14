@@ -153,7 +153,7 @@ func (e Expect) populateWith(vars *Vars) error {
 
 	//expect.Headers        map[string]string
 	for name, valueTmpl := range e.Headers {
-		e.Headers[name] = proc.Execute(valueTmpl)
+		e.Headers[name] = proc.ApplyTo(valueTmpl)
 	}
 
 	//expect.Body           map[string]interface{} - string, array, num
@@ -162,10 +162,10 @@ func (e Expect) populateWith(vars *Vars) error {
 		switch typedExpect := val.(type) {
 		case []string:
 			for i, el := range typedExpect {
-				typedExpect[i] = proc.Execute(el)
+				typedExpect[i] = proc.ApplyTo(el)
 			}
 		case string:
-			e.Body[path] = proc.Execute(typedExpect)
+			e.Body[path] = proc.ApplyTo(typedExpect)
 		default:
 			// do nothing with values like numbers
 		}
@@ -395,31 +395,56 @@ func (v *Vars) addEnv() {
 
 // Add is adding variable with name and value to map
 func (v *Vars) Add(name string, val interface{}) {
+	if str, ok := val.(string); ok {
+		proc := NewTemplateProcessor(v)
+		v.items[name] = proc.ApplyTo(v.ApplyTo(str))
+
+		debugf("Added value: %s\n", v.items[name])
+
+		return
+	}
+
 	v.items[name] = val
 }
 
 // AddAll is a shortcut for adding provided map of variables in for-loop
+//
+// Uses two-time-pass mechanism:
+// - First iteration adds all variables to the scope
+// - Second does processing of all new variable in the updated scope
 func (v *Vars) AddAll(src map[string]interface{}) {
+
 	for key, val := range src {
 		v.items[key] = val
 	}
+
+	for key, val := range src {
+		v.Add(key, val)
+	}
+
+}
+
+// ApplyTo updates input template with values correspondent to placeholders
+// according to current vars map
+func (v *Vars) ApplyTo(str string) string {
+	// for range v.items {
+	// pass N times to guarantee that even deeply nested variables will be evaluated
+	for varName, val := range v.items {
+		placeholder := "{" + varName + "}"
+		str = strings.Replace(str, placeholder, toString(val), -1)
+	}
+	for varName, val := range v.items {
+		placeholder := "{" + varName + "}"
+		str = strings.Replace(str, placeholder, toString(val), -1)
+	}
+	// }
+	return str
 }
 
 func (v *Vars) print(w io.Writer) {
 	for key, val := range v.items {
 		io.WriteString(w, fmt.Sprintf("%s: %s; ", key, val))
 	}
-}
-
-// ApplyTo updates input template with values correspondent to placeholders
-// according to current vars map
-func (v *Vars) ApplyTo(str string) string {
-	res := str
-	for varName, val := range v.items {
-		placeholder := "{" + varName + "}"
-		res = strings.Replace(res, placeholder, toString(val), -1)
-	}
-	return res
 }
 
 // toString returns value suitable to insert as an argument

@@ -299,7 +299,7 @@ func populateRequest(on On, bodyTmpl string, vars *Vars) (*http.Request, error) 
 
 	proc := NewTemplateProcessor(vars)
 
-	body := proc.Execute(bodyTmpl)
+	body := proc.ApplyTo(bodyTmpl)
 	if proc.HasErrors() {
 		return nil, proc.Error()
 	}
@@ -312,12 +312,12 @@ func populateRequest(on On, bodyTmpl string, vars *Vars) (*http.Request, error) 
 	}
 
 	for key, valueTmpl := range on.Headers {
-		req.Header.Add(key, proc.Execute(valueTmpl))
+		req.Header.Add(key, proc.ApplyTo(valueTmpl))
 	}
 
 	q := req.URL.Query()
 	for key, valueTmpl := range on.Params {
-		q.Add(key, proc.Execute(valueTmpl))
+		q.Add(key, proc.ApplyTo(valueTmpl))
 	}
 
 	req.URL.RawQuery = q.Encode()
@@ -437,4 +437,12 @@ func terminate(msgLines ...string) {
 	}
 
 	os.Exit(1)
+}
+
+func debugf(format string, v ...interface{}) {
+	if debug == nil {
+		return
+	}
+
+	debug.Printf(format, v)
 }

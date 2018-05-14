@@ -201,6 +201,34 @@ func TestVarsApplyToMultiple(t *testing.T) {
 	}
 }
 
+func TestVarsApplyToNestedReference(t *testing.T) {
+	vars := NewVars()
+	vars.AddAll(map[string]interface{}{"id": "4256", "username": "RU{id}", "key": "{username}"})
+
+	got := vars.ApplyTo("{key}")
+
+	if got != "RU4256" {
+		t.Error(
+			"expected", "RU4256",
+			"got", got,
+		)
+	}
+}
+
+func TestVarsApplyToNestedTemplate(t *testing.T) {
+	vars := NewVars()
+	vars.AddAll(map[string]interface{}{"id": "{{ .Base64 `BOZR` }}", "username": "RU{id}", "key": "{{ .SHA1 `{username}` }}"})
+
+	got := vars.ApplyTo("{key}")
+
+	if got != "5365cfcc94c3b65eda62adcc1d6b743d867a4625" {
+		t.Error(
+			"expected", "5365cfcc94c3b65eda62adcc1d6b743d867a4625",
+			"got", got,
+		)
+	}
+}
+
 func TestExpectPopulateWithNoChange(t *testing.T) {
 	path := "items.id"
 

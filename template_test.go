@@ -8,7 +8,7 @@ func TestPlainTextWithoutTemplate(t *testing.T) {
 	proc := NewTemplateProcessor(NewVars())
 
 	// when
-	output := proc.Execute(tmpl)
+	output := proc.ApplyTo(tmpl)
 
 	// then
 	expected := "text-value 123"
@@ -33,7 +33,7 @@ func TestPlainTextWithVars(t *testing.T) {
 	proc := NewTemplateProcessor(vars)
 
 	// when
-	output := proc.Execute(tmpl)
+	output := proc.ApplyTo(tmpl)
 
 	// then
 	expected := "Smith was successfully assigned to the Order #555"
@@ -54,7 +54,7 @@ func TestFuncBase64(t *testing.T) {
 	proc := NewTemplateProcessor(NewVars())
 
 	// when
-	output := proc.Execute(tmpl)
+	output := proc.ApplyTo(tmpl)
 
 	// then
 	expected := "RFBGRw=="
@@ -78,7 +78,7 @@ func TestFuncSHA1(t *testing.T) {
 	proc := NewTemplateProcessor(vars)
 
 	// when
-	output := proc.Execute(tmpl)
+	output := proc.ApplyTo(tmpl)
 
 	// then
 	expected := "2b0cc371b76f3ec6c1bebc52bcc44af69304dabf"

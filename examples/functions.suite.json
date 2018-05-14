@@ -1,6 +1,30 @@
 [
   {
     "name": "Current timestamp",
+    "ignore": "for debug purposes",
+    "calls": [
+      {
+        "args": {
+          "now": "{{ .CurrentTimestampSec }}"
+        },
+        "on": {
+          "method": "GET",
+          "url": "https://postman-echo.com/get",
+          "params": {
+            "from": "{now}"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "body": {
+            "args.from": "{now}"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "SHA1",
     "calls": [
       {
         "args": {
