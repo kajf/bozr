@@ -380,7 +380,7 @@ type Vars struct {
 func NewVars() *Vars {
 	v := &Vars{items: make(map[string]interface{})}
 
-	// v.addEnv()
+	v.addEnv()
 
 	return v
 }
