@@ -5,16 +5,16 @@ import "testing"
 func TestPlainTextWithoutTemplate(t *testing.T) {
 	// given
 	tmpl := "text-value 123"
-	ctx := NewTemplateContext(NewVars())
+	proc := NewTemplateProcessor(NewVars())
 
 	// when
-	output, err := executeTemplate(ctx, tmpl)
+	output := proc.Execute(tmpl)
 
 	// then
 	expected := "text-value 123"
 
-	if err != nil {
-		t.Error("Unexpected error", err.Error())
+	if proc.HasErrors() {
+		t.Error("Unexpected error", proc.Error())
 	}
 
 	if output != expected {
@@ -30,16 +30,16 @@ func TestPlainTextWithVars(t *testing.T) {
 	vars.Add("order-id", 555)
 	vars.Add("username", "Smith")
 
-	ctx := NewTemplateContext(vars)
+	proc := NewTemplateProcessor(vars)
 
 	// when
-	output, err := executeTemplate(ctx, tmpl)
+	output := proc.Execute(tmpl)
 
 	// then
 	expected := "Smith was successfully assigned to the Order #555"
 
-	if err != nil {
-		t.Error("Unexpected error", err.Error())
+	if proc.HasErrors() {
+		t.Error("Unexpected error", proc.Error())
 	}
 
 	if output != expected {
@@ -51,16 +51,16 @@ func TestFuncBase64(t *testing.T) {
 	// given
 	tmpl := "{{ .Base64 `DPFG` }}"
 
-	ctx := NewTemplateContext(NewVars())
+	proc := NewTemplateProcessor(NewVars())
 
 	// when
-	output, err := executeTemplate(ctx, tmpl)
+	output := proc.Execute(tmpl)
 
 	// then
 	expected := "RFBGRw=="
 
-	if err != nil {
-		t.Error("Unexpected error", err.Error())
+	if proc.HasErrors() {
+		t.Error("Unexpected error", proc.Error())
 	}
 
 	if output != expected {
@@ -73,18 +73,18 @@ func TestFuncSHA1(t *testing.T) {
 	tmpl := "{{ .SHA1 `{username}` }}"
 
 	vars := NewVars()
-	vars.Add("username", "DPFG")
+	vars.Add("username", "el_mask")
 
-	ctx := NewTemplateContext(vars)
+	proc := NewTemplateProcessor(vars)
 
 	// when
-	output, err := executeTemplate(ctx, tmpl)
+	output := proc.Execute(tmpl)
 
 	// then
-	expected := "f7ae86bd41671ad2e592ed38ab87a043d33e0b84"
+	expected := "2b0cc371b76f3ec6c1bebc52bcc44af69304dabf"
 
-	if err != nil {
-		t.Error("Unexpected error", err.Error())
+	if proc.HasErrors() {
+		t.Error("Unexpected error", proc.Error())
 	}
 
 	if output != expected {

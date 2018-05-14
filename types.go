@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
 	"mime"
@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/clbanning/mxj"
+	"github.com/pkg/errors"
 )
 
 // TestSuite represents file with test cases.
@@ -147,15 +148,12 @@ func (e Expect) BodySchema(suitePath string) (string, error) {
 	return "", nil
 }
 
-func (e Expect) populateWith(vars Vars) error {
-	ctx := NewTemplateContext(&vars)
+func (e Expect) populateWith(vars *Vars) error {
+	proc := NewTemplateProcessor(vars)
+
 	//expect.Headers        map[string]string
 	for name, valueTmpl := range e.Headers {
-		value, err := executeTemplate(ctx, valueTmpl)
-		if err != nil {
-			return fmt.Errorf("Cannot parse header value: %s", err.Error())
-		}
-		e.Headers[name] = value
+		e.Headers[name] = proc.Execute(valueTmpl)
 	}
 
 	//expect.Body           map[string]interface{} - string, array, num
@@ -164,21 +162,17 @@ func (e Expect) populateWith(vars Vars) error {
 		switch typedExpect := val.(type) {
 		case []string:
 			for i, el := range typedExpect {
-				val, err := executeTemplate(ctx, el)
-				if err != nil {
-					return fmt.Errorf("Cannot parse value: %s", err.Error())
-				}
-				typedExpect[i] = val
+				typedExpect[i] = proc.Execute(el)
 			}
 		case string:
-			val, err := executeTemplate(ctx, typedExpect)
-			if err != nil {
-				return fmt.Errorf("Cannot parse value: %s", err.Error())
-			}
-			e.Body[path] = val
+			e.Body[path] = proc.Execute(typedExpect)
 		default:
 			// do nothing with values like numbers
 		}
+	}
+
+	if proc.HasErrors() {
+		return proc.Error()
 	}
 
 	return nil
@@ -386,7 +380,7 @@ type Vars struct {
 func NewVars() *Vars {
 	v := &Vars{items: make(map[string]interface{})}
 
-	v.addEnv()
+	// v.addEnv()
 
 	return v
 }
@@ -408,6 +402,12 @@ func (v *Vars) Add(name string, val interface{}) {
 func (v *Vars) AddAll(src map[string]interface{}) {
 	for key, val := range src {
 		v.items[key] = val
+	}
+}
+
+func (v *Vars) print(w io.Writer) {
+	for key, val := range v.items {
+		io.WriteString(w, fmt.Sprintf("%s: %s; ", key, val))
 	}
 }
 
