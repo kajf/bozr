@@ -393,11 +393,20 @@ func (v *Vars) addEnv() {
 	}
 }
 
-// Add is adding variable with name and value to map
+// Add is adding variable with name and value to map.
+// References to other variables will be resolved upon add.
+// If variable is a template, it will executed.
 func (v *Vars) Add(name string, val interface{}) {
+
 	if str, ok := val.(string); ok {
 		proc := NewTemplateProcessor(v)
-		v.items[name] = proc.ApplyTo(v.ApplyTo(str))
+
+		for range v.items {
+			// pass N times to guarantee that even deeply nested variables will be evaluated
+			str = v.ApplyTo(str)
+		}
+
+		v.items[name] = proc.ApplyTo(str)
 
 		debugf("Added value: %s\n", v.items[name])
 
@@ -410,8 +419,8 @@ func (v *Vars) Add(name string, val interface{}) {
 // AddAll is a shortcut for adding provided map of variables in for-loop
 //
 // Uses two-time-pass mechanism:
-// - First iteration adds all variables to the scope
-// - Second does processing of all new variable in the updated scope
+// - first iteration adds all variables to the scope
+// - second iteration processes all new variable in the updated scope
 func (v *Vars) AddAll(src map[string]interface{}) {
 
 	for key, val := range src {
@@ -427,17 +436,11 @@ func (v *Vars) AddAll(src map[string]interface{}) {
 // ApplyTo updates input template with values correspondent to placeholders
 // according to current vars map
 func (v *Vars) ApplyTo(str string) string {
-	// for range v.items {
-	// pass N times to guarantee that even deeply nested variables will be evaluated
 	for varName, val := range v.items {
 		placeholder := "{" + varName + "}"
 		str = strings.Replace(str, placeholder, toString(val), -1)
 	}
-	for varName, val := range v.items {
-		placeholder := "{" + varName + "}"
-		str = strings.Replace(str, placeholder, toString(val), -1)
-	}
-	// }
+
 	return str
 }
 
