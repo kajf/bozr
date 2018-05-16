@@ -37,7 +37,7 @@ func (ctx *Funcs) CurrentTimestampISO() string {
 // https://www.oasis-open.org/committees/download.php/13392/wss-v1.1-spec-pr-UsernameTokenProfile-01.htm
 func (ctx *Funcs) WSSEPasswordDigest(nonce, created, password string) string {
 	h := sha1.New()
-	h.Write([]byte(nonce + created + password))
+	io.WriteString(h, nonce+created+password)
 
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
