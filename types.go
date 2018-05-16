@@ -149,11 +149,11 @@ func (e Expect) BodySchema(suitePath string) (string, error) {
 }
 
 func (e Expect) populateWith(vars *Vars) error {
-	proc := NewTemplateProcessor(vars)
+	tmplCtx := NewTemplateContext(vars)
 
 	//expect.Headers        map[string]string
 	for name, valueTmpl := range e.Headers {
-		e.Headers[name] = proc.ApplyTo(valueTmpl)
+		e.Headers[name] = tmplCtx.ApplyTo(valueTmpl)
 	}
 
 	//expect.Body           map[string]interface{} - string, array, num
@@ -162,17 +162,17 @@ func (e Expect) populateWith(vars *Vars) error {
 		switch typedExpect := val.(type) {
 		case []string:
 			for i, el := range typedExpect {
-				typedExpect[i] = proc.ApplyTo(el)
+				typedExpect[i] = tmplCtx.ApplyTo(el)
 			}
 		case string:
-			e.Body[path] = proc.ApplyTo(typedExpect)
+			e.Body[path] = tmplCtx.ApplyTo(typedExpect)
 		default:
 			// do nothing with values like numbers
 		}
 	}
 
-	if proc.HasErrors() {
-		return proc.Error()
+	if tmplCtx.HasErrors() {
+		return tmplCtx.Error()
 	}
 
 	return nil
@@ -399,14 +399,14 @@ func (v *Vars) addEnv() {
 func (v *Vars) Add(name string, val interface{}) {
 
 	if str, ok := val.(string); ok {
-		proc := NewTemplateProcessor(v)
+		tmplCtx := NewTemplateContext(v)
 
 		for range v.items {
 			// pass N times to guarantee that even deeply nested variables will be evaluated
 			str = v.ApplyTo(str)
 		}
 
-		v.items[name] = proc.ApplyTo(str)
+		v.items[name] = tmplCtx.ApplyTo(str)
 
 		debugf("Added value: %s\n", v.items[name])
 

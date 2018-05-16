@@ -1,7 +1,6 @@
 [
   {
     "name": "Current timestamp",
-    "ignore": "for debug purposes",
     "calls": [
       {
         "args": {

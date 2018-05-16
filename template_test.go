@@ -5,16 +5,16 @@ import "testing"
 func TestPlainTextWithoutTemplate(t *testing.T) {
 	// given
 	tmpl := "text-value 123"
-	proc := NewTemplateProcessor(NewVars())
+	tmplCtx := NewTemplateContext(NewVars())
 
 	// when
-	output := proc.ApplyTo(tmpl)
+	output := tmplCtx.ApplyTo(tmpl)
 
 	// then
 	expected := "text-value 123"
 
-	if proc.HasErrors() {
-		t.Error("Unexpected error", proc.Error())
+	if tmplCtx.HasErrors() {
+		t.Error("Unexpected error", tmplCtx.Error())
 	}
 
 	if output != expected {
@@ -30,16 +30,16 @@ func TestPlainTextWithVars(t *testing.T) {
 	vars.Add("order-id", 555)
 	vars.Add("username", "Smith")
 
-	proc := NewTemplateProcessor(vars)
+	tmplCtx := NewTemplateContext(vars)
 
 	// when
-	output := proc.ApplyTo(tmpl)
+	output := tmplCtx.ApplyTo(tmpl)
 
 	// then
 	expected := "Smith was successfully assigned to the Order #555"
 
-	if proc.HasErrors() {
-		t.Error("Unexpected error", proc.Error())
+	if tmplCtx.HasErrors() {
+		t.Error("Unexpected error", tmplCtx.Error())
 	}
 
 	if output != expected {
@@ -51,16 +51,16 @@ func TestFuncBase64(t *testing.T) {
 	// given
 	tmpl := "{{ .Base64 `DPFG` }}"
 
-	proc := NewTemplateProcessor(NewVars())
+	tmplCtx := NewTemplateContext(NewVars())
 
 	// when
-	output := proc.ApplyTo(tmpl)
+	output := tmplCtx.ApplyTo(tmpl)
 
 	// then
 	expected := "RFBGRw=="
 
-	if proc.HasErrors() {
-		t.Error("Unexpected error", proc.Error())
+	if tmplCtx.HasErrors() {
+		t.Error("Unexpected error", tmplCtx.Error())
 	}
 
 	if output != expected {
@@ -75,16 +75,42 @@ func TestFuncSHA1(t *testing.T) {
 	vars := NewVars()
 	vars.Add("username", "el_mask")
 
-	proc := NewTemplateProcessor(vars)
+	tmplCtx := NewTemplateContext(vars)
 
 	// when
-	output := proc.ApplyTo(tmpl)
+	output := tmplCtx.ApplyTo(tmpl)
 
 	// then
 	expected := "2b0cc371b76f3ec6c1bebc52bcc44af69304dabf"
 
-	if proc.HasErrors() {
-		t.Error("Unexpected error", proc.Error())
+	if tmplCtx.HasErrors() {
+		t.Error("Unexpected error", tmplCtx.Error())
+	}
+
+	if output != expected {
+		t.Errorf("Unexpected output. Expected: %s, Actual: %s", expected, output)
+	}
+}
+
+func TestFuncWSSEPasswordDigest(t *testing.T) {
+	// given
+	tmpl := "{{ .WSSEPasswordDigest `{nonce}` `{created}` `{password}` }}"
+
+	vars := NewVars()
+	vars.Add("nonce", "abc123")
+	vars.Add("created", "2012-06-09T18:41:03.640Z")
+	vars.Add("password", "password")
+
+	tmplCtx := NewTemplateContext(vars)
+
+	// when
+	output := tmplCtx.ApplyTo(tmpl)
+
+	// then
+	expected := "mh7Ix8Qe02z1FIr51zoRO5pDMJg="
+
+	if tmplCtx.HasErrors() {
+		t.Error("Unexpected error", tmplCtx.Error())
 	}
 
 	if output != expected {

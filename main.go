@@ -297,11 +297,11 @@ func populateRequest(on On, bodyTmpl string, vars *Vars) (*http.Request, error) 
 		return nil, errors.New("Cannot create request. Invalid url: " + on.URL)
 	}
 
-	proc := NewTemplateProcessor(vars)
+	tmplCtx := NewTemplateContext(vars)
 
-	body := proc.ApplyTo(bodyTmpl)
-	if proc.HasErrors() {
-		return nil, proc.Error()
+	body := tmplCtx.ApplyTo(bodyTmpl)
+	if tmplCtx.HasErrors() {
+		return nil, tmplCtx.Error()
 	}
 
 	dat := []byte(body)
@@ -312,18 +312,18 @@ func populateRequest(on On, bodyTmpl string, vars *Vars) (*http.Request, error) 
 	}
 
 	for key, valueTmpl := range on.Headers {
-		req.Header.Add(key, proc.ApplyTo(valueTmpl))
+		req.Header.Add(key, tmplCtx.ApplyTo(valueTmpl))
 	}
 
 	q := req.URL.Query()
 	for key, valueTmpl := range on.Params {
-		q.Add(key, proc.ApplyTo(valueTmpl))
+		q.Add(key, tmplCtx.ApplyTo(valueTmpl))
 	}
 
 	req.URL.RawQuery = q.Encode()
 
-	if proc.HasErrors() {
-		return nil, proc.Error()
+	if tmplCtx.HasErrors() {
+		return nil, tmplCtx.Error()
 	}
 
 	return req, nil
