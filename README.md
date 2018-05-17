@@ -4,6 +4,7 @@ Minimalistic tool to perform API tests based on JSON description
 
 [![Build Status](https://travis-ci.org/kajf/bozr.svg?branch=master)](https://travis-ci.org/kajf/bozr?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kajf/bozr)](https://goreportcard.com/report/github.com/kajf/bozr)
+
 ## Usage
 
 ```bash
@@ -28,9 +29,11 @@ Examples:
 Usage [demo](https://asciinema.org/a/85699)
 
 ## Installation
+
 Download the [latest binary release](https://github.com/kajf/bozr/releases) and unpack it.
 
 ## Test Suite Format
+
 Test suite (suite_name.suite.json)
 
     ├ Test A [test case]
@@ -54,12 +57,14 @@ Test suite (suite_name.suite.json)
             ├ expect
             └ remember
 
-## Suite file extension
+### Suite file extension
+
 All suites must have `.suite.json` extension.
 
 If you want to temporary disable suite, change extension to `.xsuite.json`. Bozr does not execute ignored suites, but reports all test cases as skipped.
 
 ### Section 'On'
+
 Represents http request parameters
 
 ```json
@@ -77,16 +82,17 @@ Represents http request parameters
 }
 ```
 
-Field | Description
------------- | -------------
-method | HTTP method
-url | HTTP request URL
-headers | HTTP request headers
-params | HTTP query params
-bodyFile | File to send as a request payload (path relative to test suite json)
-body | String or JSON object to send as a request payload
+| Field    | Description                                                          |
+| -------- | -------------------------------------------------------------------- |
+| method   | HTTP method                                                          |
+| url      | HTTP request URL                                                     |
+| headers  | HTTP request headers                                                 |
+| params   | HTTP query params                                                    |
+| bodyFile | File to send as a request payload (path relative to test suite json) |
+| body     | String or JSON object to send as a request payload                   |
 
 ### Section 'Expect'
+
 Represents assertions for http response of the call
 
 ```json
@@ -99,15 +105,15 @@ Represents assertions for http response of the call
 }
 ```
 
-Assertion | Description | Example
------------- | ------------- | --------------
-statusCode | Expected http response header 'Status Code' | 200
-contentType | Expected http response 'Content-Type' | application/json
-bodySchemaFile | Path to json schema to validate response body against (path relative to test suite file) | login-schema.json
-bodySchemaURI | URI to json schema to validate response body against (absolute or relative to the host) | http://example.com/api/scheme/login-schema.json
-body | Body matchers: equals, search, size |
-absent | Paths that are NOT expected to be in response | ['user.cardNumber', 'user.password']
-headers | Expected http headers, specified as a key-value pairs. |
+| Assertion      | Description                                                                              | Example                                         |
+| -------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| statusCode     | Expected http response header 'Status Code'                                              | 200                                             |
+| contentType    | Expected http response 'Content-Type'                                                    | application/json                                |
+| bodySchemaFile | Path to json schema to validate response body against (path relative to test suite file) | login-schema.json                               |
+| bodySchemaURI  | URI to json schema to validate response body against (absolute or relative to the host)  | http://example.com/api/scheme/login-schema.json |
+| body           | Body matchers: equals, search, size                                                      |
+| absent         | Paths that are NOT expected to be in response                                            | ['user.cardNumber', 'user.password']            |
+| headers        | Expected http headers, specified as a key-value pairs.                                   |
 
 ### 'Expect' body matchers
 
@@ -121,21 +127,24 @@ headers | Expected http headers, specified as a key-value pairs. |
 }
 ```
 
-Type | Assertion | Example
------- | ------------- | --------------
-equals | Root 'users' array zero element has value of 'id' equal to '123'  | "users.0.id" : "123"
-search | Root 'users' array contains element(s) with 'name' equal to 'Jack' or 'Dan' and 'Ron'  | "users.name" : "Jack" or "users.name" : ["Dan","Ron"]
-size | Root 'company' element has 'users' array with '22' elements within 'buildings' array | "company.buildings.users.size()" : 22
+| Type   | Assertion                                                                             | Example                                               |
+| ------ | ------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| equals | Root 'users' array zero element has value of 'id' equal to '123'                      | "users.0.id" : "123"                                  |
+| search | Root 'users' array contains element(s) with 'name' equal to 'Jack' or 'Dan' and 'Ron' | "users.name" : "Jack" or "users.name" : ["Dan","Ron"] |
+| size   | Root 'company' element has 'users' array with '22' elements within 'buildings' array  | "company.buildings.users.size()" : 22                 |
 
 XML:
-- To match attribute use `-` symbol before attribute name. E.g. `users.0.-id`
-- Namespaces are ignored
-- Only string matcher values are supported (since xml has no real data types, so everything is a string)
+
+* To match attribute use `-` symbol before attribute name. E.g. `users.0.-id`
+* Namespaces are ignored
+* Only string matcher values are supported (since xml has no real data types, so everything is a string)
 
 ### 'Expect absent' body matchers
+
 Represents paths not expected to be in response body.
 Mostly used for security checks (e.g. returned user object should not contain password or credit card number fields)
 Path fromat is the same as in 'Expect' body section
+
 ```json
 "expect": {
     "absent": ["user.cardNumber", "user.password"]
@@ -143,6 +152,7 @@ Path fromat is the same as in 'Expect' body section
 ```
 
 ### Section 'Args'
+
 Specifies placeholder values for future reference (within test scope)
 
 Placeholder values could be used inside `on.url`, `on.params`, `on.headers`, `on.body`, `on.bodyFile`, `expect.headers`, `expect.body` sections.
@@ -153,16 +163,17 @@ Placeholder values could be used inside `on.url`, `on.params`, `on.headers`, `on
   "magicNumber" : "12f"
 }
 ```
+
 Given `args` are defined like above, placeholders {currencyCode} and {magicNumber} may be used in correspondent test case.
 
 example_bodyfile.json
 
 ```json
 {
-  "bankAccount" : {
+  "bankAccount": {
     "currency": "{currencyCode}",
-    "amount" : 1000,
-    "secret" : "{magicNumber}"
+    "amount": 1000,
+    "secret": "{magicNumber}"
   }
 }
 ```
@@ -171,27 +182,28 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
 
 ```json
 {
-  "bankAccount" : {
+  "bankAccount": {
     "currency": "USD",
-    "amount" : 1000,
-    "secret" : "12f"
+    "amount": 1000,
+    "secret": "12f"
   }
 }
 ```
 
 ```json
 {
-    "on": {
-        "method": "GET",
-        "url": "{hateoas_reference}",
-        "headers": {
-            "X-Secret-Key": "{secret_key}"
-        }
+  "on": {
+    "method": "GET",
+    "url": "{hateoas_reference}",
+    "headers": {
+      "X-Secret-Key": "{secret_key}"
     }
+  }
 }
 ```
 
 ### Section 'Remember'
+
 Similar to `args` section, specifies plaseholder values for future reference (within test case scope).
 
 The difference is that values for placeholders are taken from response (syntax is similar to `expect` matchers).
@@ -213,10 +225,11 @@ There are two types of sources for values to remember: response body and headers
 
 This section allowes more complex test scenarios like:
 
-- 'request login token, remember, then use remembered {token} to request some data and verify'
-- 'create resource, remember resource id from response, then use remembered {id} to delete resource'
+* 'request login token, remember, then use remembered {token} to request some data and verify'
+* 'create resource, remember resource id from response, then use remembered {id} to delete resource'
 
 ### Using environment variables in tests
+
 Similar to `args` and `remember` sections, OS environment variables could be used as plaseholder values for future reference (within test case scope).
 
 Given `MY_FILTER` environment variable exists in terminal session, the following syntax enables its usage
@@ -234,15 +247,17 @@ Given `MY_FILTER` environment variable exists in terminal session, the following
 ```
 
 ## Editor integration
+
 To make work with test files convenient, we suggest to configure you text editors to use [this](./assets/test.schema.json) json schema. In this case editor will suggest what fields are available and highlight misspells.
 
-Editor | JSON Autocomplete
--------|------------------
-JetBrains Tools| [native support](https://www.jetbrains.com/help/webstorm/2016.1/json-schema.html?page=1)
-Visual Studio Code| [native support](https://code.visualstudio.com/docs/languages/json#_json-schemas-settings)
-Vim| [plugin](https://github.com/Quramy/vison)
+| Editor             | JSON Autocomplete                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------ |
+| JetBrains Tools    | [native support](https://www.jetbrains.com/help/webstorm/2016.1/json-schema.html?page=1)   |
+| Visual Studio Code | [native support](https://code.visualstudio.com/docs/languages/json#_json-schemas-settings) |
+| Vim                | [plugin](https://github.com/Quramy/vison)                                                  |
 
 ## Dependency management
+
 To build project you need a dependency management tool - https://glide.sh/
 After you installed it, you can run the following command to download all dependencies:
 
@@ -252,9 +267,10 @@ glide install
 ```
 
 Dependencies:
-- github.com/xeipuuv/gojsonschema
-- github.com/fatih/color
-- github.com/mattn/go-colorable
-- github.com/mattn/go-isatty
-- github.com/clbanning/mxj
-- github.com/fatih/structs
+
+* github.com/xeipuuv/gojsonschema
+* github.com/fatih/color
+* github.com/mattn/go-colorable
+* github.com/mattn/go-isatty
+* github.com/clbanning/mxj
+* github.com/fatih/structs
