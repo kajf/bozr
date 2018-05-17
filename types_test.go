@@ -201,11 +201,39 @@ func TestVarsApplyToMultiple(t *testing.T) {
 	}
 }
 
+func TestVarsApplyToNestedReference(t *testing.T) {
+	vars := NewVars()
+	vars.AddAll(map[string]interface{}{"id": "4256", "username": "RU{id}", "key": "{username}"})
+
+	got := vars.ApplyTo("{key}")
+
+	if got != "RU4256" {
+		t.Error(
+			"expected", "RU4256",
+			"got", got,
+		)
+	}
+}
+
+func TestVarsApplyToNestedTemplate(t *testing.T) {
+	vars := NewVars()
+	vars.AddAll(map[string]interface{}{"id": "{{ .Base64 `BOZR` }}", "username": "RU{id}", "key": "{{ .SHA1 `{username}` }}"})
+
+	got := vars.ApplyTo("{key}")
+
+	if got != "5365cfcc94c3b65eda62adcc1d6b743d867a4625" {
+		t.Error(
+			"expected", "5365cfcc94c3b65eda62adcc1d6b743d867a4625",
+			"got", got,
+		)
+	}
+}
+
 func TestExpectPopulateWithNoChange(t *testing.T) {
 	path := "items.id"
 
 	expect := &Expect{Body: map[string]interface{}{path: "xyz"}}
-	vars := Vars{items: map[string]interface{}{"savedId": "abc"}}
+	vars := &Vars{items: map[string]interface{}{"savedId": "abc"}}
 
 	expect.populateWith(vars)
 
@@ -220,7 +248,7 @@ func TestExpectPopulateWithHeaders(t *testing.T) {
 	val := "myId"
 
 	expect := &Expect{Headers: map[string]string{header: "{savedId}"}}
-	vars := Vars{items: map[string]interface{}{"savedId": val}}
+	vars := &Vars{items: map[string]interface{}{"savedId": val}}
 
 	expect.populateWith(vars)
 
@@ -235,7 +263,7 @@ func TestExpectPopulateWithBody(t *testing.T) {
 	expect := &Expect{Body: map[string]interface{}{path: "{savedId}"}}
 
 	val := "myId"
-	vars := Vars{items: map[string]interface{}{"savedId": val}}
+	vars := &Vars{items: map[string]interface{}{"savedId": val}}
 
 	expect.populateWith(vars)
 
@@ -250,7 +278,7 @@ func TestExpectPopulateWithBodyArray(t *testing.T) {
 	expect := &Expect{Body: map[string]interface{}{path: []string{"{savedId}", "abc", "{nextId}"}}}
 
 	val := "myId"
-	vars := Vars{items: map[string]interface{}{"savedId": val, "nextId": 3}}
+	vars := &Vars{items: map[string]interface{}{"savedId": val, "nextId": 3}}
 
 	expect.populateWith(vars)
 
@@ -262,7 +290,7 @@ func TestExpectPopulateWithBodyArray(t *testing.T) {
 
 func TestExpectPopulateWithBodyInt(t *testing.T) {
 	expect := &Expect{Body: map[string]interface{}{"items.id": 12}}
-	vars := Vars{items: map[string]interface{}{"savedId": "someId"}}
+	vars := &Vars{items: map[string]interface{}{"savedId": "someId"}}
 
 	expect.populateWith(vars)
 

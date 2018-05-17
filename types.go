@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
 	"mime"
@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/clbanning/mxj"
+	"github.com/pkg/errors"
 )
 
 // TestSuite represents file with test cases.
@@ -147,10 +148,12 @@ func (e Expect) BodySchema(suitePath string) (string, error) {
 	return "", nil
 }
 
-func (e Expect) populateWith(vars Vars) {
+func (e Expect) populateWith(vars *Vars) error {
+	tmplCtx := NewTemplateContext(vars)
+
 	//expect.Headers        map[string]string
-	for name, val := range e.Headers {
-		e.Headers[name] = vars.ApplyTo(val)
+	for name, valueTmpl := range e.Headers {
+		e.Headers[name] = tmplCtx.ApplyTo(valueTmpl)
 	}
 
 	//expect.Body           map[string]interface{} - string, array, num
@@ -159,14 +162,20 @@ func (e Expect) populateWith(vars Vars) {
 		switch typedExpect := val.(type) {
 		case []string:
 			for i, el := range typedExpect {
-				typedExpect[i] = vars.ApplyTo(el)
+				typedExpect[i] = tmplCtx.ApplyTo(el)
 			}
 		case string:
-			e.Body[path] = vars.ApplyTo(typedExpect)
+			e.Body[path] = tmplCtx.ApplyTo(typedExpect)
 		default:
 			// do nothing with values like numbers
 		}
 	}
+
+	if tmplCtx.HasErrors() {
+		return tmplCtx.Error()
+	}
+
+	return nil
 }
 
 func toAbsPath(suitePath string, assetPath string) (string, error) {
@@ -384,27 +393,61 @@ func (v *Vars) addEnv() {
 	}
 }
 
-// Add is adding variable with name and value to map
+// Add is adding variable with name and value to map.
+// References to other variables will be resolved upon add.
+// If variable is a template, it will executed.
 func (v *Vars) Add(name string, val interface{}) {
+
+	if str, ok := val.(string); ok {
+		tmplCtx := NewTemplateContext(v)
+
+		for range v.items {
+			// pass N times to guarantee that even deeply nested variables will be evaluated
+			str = v.ApplyTo(str)
+		}
+
+		v.items[name] = tmplCtx.ApplyTo(str)
+
+		debugf("Added value: %s\n", v.items[name])
+
+		return
+	}
+
 	v.items[name] = val
 }
 
 // AddAll is a shortcut for adding provided map of variables in for-loop
+//
+// Uses two-time-pass mechanism:
+// - first iteration adds all variables to the scope
+// - second iteration processes all new variable in the updated scope
 func (v *Vars) AddAll(src map[string]interface{}) {
+
 	for key, val := range src {
 		v.items[key] = val
 	}
+
+	for key, val := range src {
+		v.Add(key, val)
+	}
+
 }
 
 // ApplyTo updates input template with values correspondent to placeholders
 // according to current vars map
 func (v *Vars) ApplyTo(str string) string {
-	res := str
 	for varName, val := range v.items {
 		placeholder := "{" + varName + "}"
-		res = strings.Replace(res, placeholder, toString(val), -1)
+		str = strings.Replace(str, placeholder, toString(val), -1)
 	}
-	return res
+
+	return str
+}
+
+func (v *Vars) print(w io.Writer) {
+	for key, val := range v.items {
+		io.WriteString(w, fmt.Sprintf("%s: %s; ", key, val))
+	}
 }
 
 // toString returns value suitable to insert as an argument

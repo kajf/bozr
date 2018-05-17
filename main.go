@@ -255,7 +255,11 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 	testResp := Response{http: resp, body: body}
 	trace.ResponseDump = testResp.ToString()
 
-	call.Expect.populateWith(*vars)
+	if err = call.Expect.populateWith(vars); err != nil {
+		trace.ErrorCause = err
+		return trace
+	}
+
 	exps, err := expectations(call.Expect, suitePath)
 	if err != nil {
 		trace.ErrorCause = err
@@ -286,14 +290,20 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 	return trace
 }
 
-func populateRequest(on On, body string, vars *Vars) (*http.Request, error) {
+func populateRequest(on On, bodyTmpl string, vars *Vars) (*http.Request, error) {
 
 	urlStr, err := urlPrefix(vars.ApplyTo(on.URL))
 	if err != nil {
 		return nil, errors.New("Cannot create request. Invalid url: " + on.URL)
 	}
 
-	body = vars.ApplyTo(body)
+	tmplCtx := NewTemplateContext(vars)
+
+	body := tmplCtx.ApplyTo(bodyTmpl)
+	if tmplCtx.HasErrors() {
+		return nil, tmplCtx.Error()
+	}
+
 	dat := []byte(body)
 
 	req, err := http.NewRequest(on.Method, urlStr, bytes.NewBuffer(dat))
@@ -301,15 +311,20 @@ func populateRequest(on On, body string, vars *Vars) (*http.Request, error) {
 		return nil, err
 	}
 
-	for key, value := range on.Headers {
-		req.Header.Add(key, vars.ApplyTo(value))
+	for key, valueTmpl := range on.Headers {
+		req.Header.Add(key, tmplCtx.ApplyTo(valueTmpl))
 	}
 
 	q := req.URL.Query()
-	for key, value := range on.Params {
-		q.Add(key, vars.ApplyTo(value))
+	for key, valueTmpl := range on.Params {
+		q.Add(key, tmplCtx.ApplyTo(valueTmpl))
 	}
+
 	req.URL.RawQuery = q.Encode()
+
+	if tmplCtx.HasErrors() {
+		return nil, tmplCtx.Error()
+	}
 
 	return req, nil
 }
@@ -422,4 +437,12 @@ func terminate(msgLines ...string) {
 	}
 
 	os.Exit(1)
+}
+
+func debugf(format string, v ...interface{}) {
+	if debug == nil {
+		return
+	}
+
+	debug.Printf(format, v)
 }
