@@ -26,11 +26,6 @@ func (ctx *Funcs) CurrentTimestampSec() int64 {
 	return time.Now().Unix()
 }
 
-//
-func (ctx *Funcs) CurrentTimestampISO() string {
-	return time.Now().Format(time.RFC3339)
-}
-
 // WSSEPasswordDigest returns password digest according to Web Service Security specification.
 //
 // Password_Digest = Base64 ( SHA-1 ( nonce + created + password ) )
@@ -42,7 +37,7 @@ func (ctx *Funcs) WSSEPasswordDigest(nonce, created, password string) string {
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-//
+// Base64 transformation of provided string
 func (ctx *Funcs) Base64(value string) string {
 	return base64.StdEncoding.EncodeToString([]byte(value))
 }
@@ -53,6 +48,19 @@ func (ctx *Funcs) SHA1(value string) string {
 	h := sha1.New()
 	io.WriteString(h, value)
 	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// FormatDateTime presents time in string according to provided format
+func (ctx *Funcs) FormatDateTime(fmt string, t time.Time) string {
+	return t.Format(fmt)
+}
+
+// DaysFromNow adds/substracts days from provided time
+func (ctx *Funcs) DaysFromNow(days int) time.Time {
+	years := 0
+	months := 0
+
+	return time.Now().AddDate(years, months, days)
 }
 
 type TemplateContext struct {

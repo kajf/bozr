@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestPlainTextWithoutTemplate(t *testing.T) {
 	// given
@@ -115,5 +118,23 @@ func TestFuncWSSEPasswordDigest(t *testing.T) {
 
 	if output != expected {
 		t.Errorf("Unexpected output. Expected: %s, Actual: %s", expected, output)
+	}
+}
+
+func TestFuncDaysFromNow(t *testing.T) {
+	// given
+	const givenTemplate = `increment {{-3 | .DaysFromNow | .FormatDateTime "2006-01-02" }}`
+
+	vars := NewVars()
+	tmplCtx := NewTemplateContext(vars)
+	funcs := NewFuncs(vars)
+
+	expected := funcs.FormatDateTime("2006-01-02", funcs.DaysFromNow(-3))
+
+	// when
+	output := tmplCtx.ApplyTo(givenTemplate)
+
+	if output != fmt.Sprintf("increment %s", expected) {
+		t.Error(output, "is not equal to", expected)
 	}
 }
