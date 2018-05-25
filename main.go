@@ -215,19 +215,27 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 
 	on := call.On
 
-	bodyContent, err := on.BodyContent(suitePath)
+	bodyTmpl, err := on.BodyContent(suitePath)
 	if err != nil {
 		trace.ErrorCause = err
 		return trace
 	}
 
-	req, err := populateRequest(on, bodyContent, vars)
+	tmplCtx := NewTemplateContext(vars)
+
+	bodyToSend := tmplCtx.ApplyTo(bodyTmpl)
+	if tmplCtx.HasErrors() {
+		trace.ErrorCause = tmplCtx.Error()
+		return trace
+	}
+
+	req, err := populateRequest(on, bodyToSend, tmplCtx)
 	if err != nil {
 		trace.ErrorCause = err
 		return trace
 	}
 
-	trace.RequestDump = dumpRequest(req, bodyContent)
+	trace.RequestDump = dumpRequest(req, bodyToSend)
 	trace.RequestMethod = req.Method
 	trace.RequestURL = req.URL.String()
 
@@ -290,18 +298,11 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 	return trace
 }
 
-func populateRequest(on On, bodyTmpl string, vars *Vars) (*http.Request, error) {
+func populateRequest(on On, body string, tmplCtx *TemplateContext) (*http.Request, error) {
 
-	urlStr, err := urlPrefix(vars.ApplyTo(on.URL))
+	urlStr, err := urlPrefix(tmplCtx.ApplyTo(on.URL))
 	if err != nil {
 		return nil, errors.New("Cannot create request. Invalid url: " + on.URL)
-	}
-
-	tmplCtx := NewTemplateContext(vars)
-
-	body := tmplCtx.ApplyTo(bodyTmpl)
-	if tmplCtx.HasErrors() {
-		return nil, tmplCtx.Error()
 	}
 
 	dat := []byte(body)

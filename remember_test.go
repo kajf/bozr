@@ -10,9 +10,12 @@ func TestPopulateRequestBody(t *testing.T) {
 	//given
 	on := On{URL: "http://example.com"}
 	value := "abc"
+	vars := &Vars{items: map[string]interface{}{"var": value}}
+	tmplCtx := NewTemplateContext(vars)
+	body := tmplCtx.ApplyTo("pre {var} post")
 
 	// when
-	req, _ := populateRequest(on, "pre {var} post", &Vars{items: map[string]interface{}{"var": value}})
+	req, _ := populateRequest(on, body, tmplCtx)
 
 	//then
 	buf := new(bytes.Buffer)
@@ -20,8 +23,8 @@ func TestPopulateRequestBody(t *testing.T) {
 	got := buf.String()
 	if !strings.Contains(got, value) {
 		t.Error(
-			"body does not conatain value", value,
-			"got", got,
+			"body does not conatain value:", value,
+			"got:", got,
 		)
 	}
 }
