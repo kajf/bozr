@@ -373,12 +373,16 @@ func (resp *Response) ToString() string {
 
 // Vars defines map of test case level variables (e.g. args, remember, env)
 type Vars struct {
-	items map[string]interface{}
+	items      map[string]interface{}
+	scopeItems map[string]interface{}
 }
 
 // NewVars create new Vars object with default set of env variables
 func NewVars() *Vars {
-	v := &Vars{items: make(map[string]interface{})}
+	v := &Vars{
+		items:      make(map[string]interface{}),
+		scopeItems: make(map[string]interface{}),
+	}
 
 	v.addEnv()
 
@@ -391,24 +395,39 @@ func (v *Vars) addEnv() {
 		pair := strings.Split(e, "=")
 		v.items["env:"+pair[0]] = pair[1]
 	}
+
 }
 
 // Add is adding variable with name and value to map.
 // References to other variables will be resolved upon add.
 // If variable is a template, it will executed.
 func (v *Vars) Add(name string, val interface{}) {
+	debugf("Adding new var: %s - %v\n", name, val)
 
 	if str, ok := val.(string); ok {
 		tmplCtx := NewTemplateContext(v)
 
-		for range v.items {
-			// pass N times to guarantee that even deeply nested variables will be evaluated
-			str = v.ApplyTo(str)
+		for in, iv := range v.scopeItems {
+			arg := fmt.Sprintf("{%s}", in)
+
+			if !strings.Contains(str, arg) {
+				continue
+			}
+
+			delete(v.scopeItems, in)
+
+			v.Add(in, iv)
 		}
+
+		str = v.ApplyTo(str)
 
 		v.items[name] = tmplCtx.ApplyTo(str)
 
-		debugf("Added value: %s\n", v.items[name])
+		if tmplCtx.HasErrors() {
+			debugf("Cannot add new argument: %s\n", tmplCtx.Error())
+		}
+
+		debugf("Added value: %s - %s\n", name, v.items[name])
 
 		return
 	}
@@ -416,21 +435,31 @@ func (v *Vars) Add(name string, val interface{}) {
 	v.items[name] = val
 }
 
-// AddAll is a shortcut for adding provided map of variables in for-loop
-//
-// Uses two-time-pass mechanism:
-// - first iteration adds all variables to the scope
-// - second iteration processes all new variable in the updated scope
+// AddAll adds all passed arguments in a single scope. Means items can refer to each other.
 func (v *Vars) AddAll(src map[string]interface{}) {
-
-	for key, val := range src {
-		v.items[key] = val
+	if src == nil {
+		return
 	}
 
-	for key, val := range src {
-		v.Add(key, val)
+	v.resetScope()
+
+	for ik, iv := range src {
+		v.scopeItems[ik] = iv
 	}
 
+	for ik, iv := range src {
+		// Scope shall contain only non-processed items.
+		// By doing it before v.Add we avoid self-referencing.
+		delete(v.scopeItems, ik)
+
+		v.Add(ik, iv)
+	}
+
+	v.resetScope()
+}
+
+func (v *Vars) resetScope() {
+	v.scopeItems = make(map[string]interface{})
 }
 
 // ApplyTo updates input template with values correspondent to placeholders
