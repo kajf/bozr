@@ -373,7 +373,10 @@ func (resp *Response) ToString() string {
 
 // Vars defines map of test case level variables (e.g. args, remember, env)
 type Vars struct {
-	items      map[string]interface{}
+	// variables ready to be used
+	items map[string]interface{}
+
+	// current scope of not evaluated variables that can refer to each other
 	scopeItems map[string]interface{}
 }
 
