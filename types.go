@@ -375,16 +375,12 @@ func (resp *Response) ToString() string {
 type Vars struct {
 	// variables ready to be used
 	items map[string]interface{}
-
-	// current scope of not evaluated variables that can refer to each other
-	scopeItems map[string]interface{}
 }
 
 // NewVars create new Vars object with default set of env variables
 func NewVars() *Vars {
 	v := &Vars{
-		items:      make(map[string]interface{}),
-		scopeItems: make(map[string]interface{}),
+		items: make(map[string]interface{}),
 	}
 
 	v.addEnv()
@@ -405,21 +401,25 @@ func (v *Vars) addEnv() {
 // References to other variables will be resolved upon add.
 // If variable is a template, it will executed.
 func (v *Vars) Add(name string, val interface{}) error {
+	return v.addInScope(name, val, make(map[string]interface{}))
+}
+
+func (v *Vars) addInScope(name string, val interface{}, scope map[string]interface{}) error {
 	debugf("Adding new var: %s - %v\n", name, val)
 
 	if str, ok := val.(string); ok {
 		tmplCtx := NewTemplateContext(v)
 
-		for in, iv := range v.scopeItems {
+		for in, iv := range scope {
 			arg := fmt.Sprintf("{%s}", in)
 
 			if !strings.Contains(str, arg) {
 				continue
 			}
 
-			delete(v.scopeItems, in)
+			delete(scope, in)
 
-			v.Add(in, iv)
+			v.addInScope(in, iv, scope)
 		}
 
 		str = v.ApplyTo(str)
@@ -446,30 +446,23 @@ func (v *Vars) AddAll(src map[string]interface{}) error {
 		return nil
 	}
 
-	v.resetScope()
-
+	scope := make(map[string]interface{})
 	for ik, iv := range src {
-		v.scopeItems[ik] = iv
+		scope[ik] = iv
 	}
 
 	for ik, iv := range src {
 		// Scope shall contain only non-processed items.
 		// By doing it before v.Add we avoid self-referencing.
-		delete(v.scopeItems, ik)
+		delete(scope, ik)
 
-		err := v.Add(ik, iv)
+		err := v.addInScope(ik, iv, scope)
 		if err != nil {
 			return err
 		}
 	}
 
-	v.resetScope()
-
 	return nil
-}
-
-func (v *Vars) resetScope() {
-	v.scopeItems = make(map[string]interface{})
 }
 
 // ApplyTo updates input template with values correspondent to placeholders
