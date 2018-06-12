@@ -176,7 +176,11 @@ func runSuite(suite TestSuite) []TestResult {
 
 			throttle.RunOrPause()
 
-			vars.AddAll(c.Args)
+			err := vars.AddAll(c.Args)
+			if err != nil {
+				result.Traces = append(result.Traces, &CallTrace{ErrorCause: err, Num: i})
+				break
+			}
 
 			trace := call(suite.Dir, c, vars)
 			trace.Num = i

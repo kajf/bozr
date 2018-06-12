@@ -404,7 +404,7 @@ func (v *Vars) addEnv() {
 // Add is adding variable with name and value to map.
 // References to other variables will be resolved upon add.
 // If variable is a template, it will executed.
-func (v *Vars) Add(name string, val interface{}) {
+func (v *Vars) Add(name string, val interface{}) error {
 	debugf("Adding new var: %s - %v\n", name, val)
 
 	if str, ok := val.(string); ok {
@@ -428,20 +428,22 @@ func (v *Vars) Add(name string, val interface{}) {
 
 		if tmplCtx.HasErrors() {
 			debugf("Cannot add new argument: %s\n", tmplCtx.Error())
+			return errors.Wrapf(tmplCtx.Error(), "Cannot evaluate `"+name+"`")
 		}
 
 		debugf("Added value: %s - %s\n", name, v.items[name])
 
-		return
+		return nil
 	}
 
 	v.items[name] = val
+	return nil
 }
 
 // AddAll adds all passed arguments in a single scope. Means items can refer to each other.
-func (v *Vars) AddAll(src map[string]interface{}) {
+func (v *Vars) AddAll(src map[string]interface{}) error {
 	if src == nil {
-		return
+		return nil
 	}
 
 	v.resetScope()
@@ -455,10 +457,15 @@ func (v *Vars) AddAll(src map[string]interface{}) {
 		// By doing it before v.Add we avoid self-referencing.
 		delete(v.scopeItems, ik)
 
-		v.Add(ik, iv)
+		err := v.Add(ik, iv)
+		if err != nil {
+			return err
+		}
 	}
 
 	v.resetScope()
+
+	return nil
 }
 
 func (v *Vars) resetScope() {

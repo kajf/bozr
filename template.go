@@ -98,9 +98,9 @@ func (ctx *TemplateContext) ApplyTo(tmpl string) string {
 	// variable's syntax could be used inside the template, evaluate vars first
 	tmpl = ctx.vars.ApplyTo(tmpl)
 
-	t, err := template.New("value").Parse(tmpl)
+	t, err := template.New("").Parse(tmpl)
 	if err != nil {
-		ctx.errors = append(ctx.errors, errors.Wrapf(err, "cannot parse value template"))
+		ctx.errors = append(ctx.errors, err)
 		return ""
 	}
 
@@ -108,7 +108,7 @@ func (ctx *TemplateContext) ApplyTo(tmpl string) string {
 
 	err = t.Execute(output, ctx.funcs)
 	if err != nil {
-		ctx.errors = append(ctx.errors, errors.Wrapf(err, "cannot evaluate value template"))
+		ctx.errors = append(ctx.errors, err)
 		return ""
 	}
 
