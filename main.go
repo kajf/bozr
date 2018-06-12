@@ -446,6 +446,7 @@ func terminate(msgLines ...string) {
 
 func debugf(format string, v ...interface{}) {
 	if debug == nil {
+		// fmt.Printf(format, v...)
 		return
 	}
 

@@ -50,6 +50,30 @@ func TestPlainTextWithVars(t *testing.T) {
 	}
 }
 
+func TestPlainTextWithNotExistingFunc(t *testing.T) {
+	// given
+	tmpl := "{username} was successfully assigned to the Order {{ .SHA `9302945` }}"
+
+	vars := NewVars()
+	vars.Add("username", "Smith")
+
+	tmplCtx := NewTemplateContext(vars)
+
+	// when
+	output := tmplCtx.ApplyTo(tmpl)
+
+	// then
+	expected := ""
+
+	if !tmplCtx.HasErrors() {
+		t.Error("Expected error not found")
+	}
+
+	if output != "" {
+		t.Errorf("Unexpected output. Expected: %s, Actual: %s", expected, output)
+	}
+}
+
 func TestFuncBase64(t *testing.T) {
 	// given
 	tmpl := "{{ .Base64 `DPFG` }}"

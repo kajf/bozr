@@ -405,7 +405,7 @@ func (v *Vars) Add(name string, val interface{}) error {
 }
 
 func (v *Vars) addInScope(name string, val interface{}, scope map[string]interface{}) error {
-	debugf("Adding new var: %s - %v\n", name, val)
+	debugf("Adding new argument: %s - %+v\n", name, val)
 
 	if str, ok := val.(string); ok {
 		tmplCtx := NewTemplateContext(v)
@@ -431,7 +431,7 @@ func (v *Vars) addInScope(name string, val interface{}, scope map[string]interfa
 			return errors.Wrapf(tmplCtx.Error(), "Cannot evaluate `"+name+"`")
 		}
 
-		debugf("Added value: %s - %s\n", name, v.items[name])
+		debugf("Added argument: %s - %s\n", name, v.items[name])
 
 		return nil
 	}
