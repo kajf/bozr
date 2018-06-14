@@ -229,6 +229,42 @@ func TestVarsApplyToNestedTemplate(t *testing.T) {
 	}
 }
 
+func TestVarsNotInitializedWithRecoursiveReferences(t *testing.T) {
+	vars := NewVars()
+
+	err := vars.AddAll(map[string]interface{}{
+		"username": "RU{username}",
+	})
+
+	if err != nil {
+		t.Error("Unexpected error", err.Error())
+		return
+	}
+
+	got := vars.ApplyTo("{username}")
+
+	if got != "RU{username}" {
+		t.Error("Expected", "RU{username}", "got", got)
+	}
+}
+
+func TestVarsIgnoreAddedRecoursiveReference(t *testing.T) {
+	vars := NewVars()
+
+	err := vars.Add("username", "BY{username}")
+
+	if err != nil {
+		t.Error("Unexpected error", err.Error())
+		return
+	}
+
+	got := vars.ApplyTo("{username}")
+
+	if got != "BY{username}" {
+		t.Error("Expected", "BY{username}", "got", got)
+	}
+}
+
 func TestExpectPopulateWithNoChange(t *testing.T) {
 	path := "items.id"
 
