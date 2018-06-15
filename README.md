@@ -206,7 +206,7 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
 
 #### Hashes
 
-**.SHA1** calculates SHA-1 hash of it's argument
+_.SHA1_ calculates SHA-1 hash of it's argument
 
 ```json
 {
@@ -216,9 +216,11 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
 
 #### Date and time
 
+_._
+
 #### SOAP
 
-**.WSSEPasswordDigest** calculates password digest according to [Web Service Security specification](https://www.oasis-open.org/committees/download.php/13392/wss-v1.1-spec-pr-UsernameTokenProfile-01.htm)
+_.WSSEPasswordDigest_ calculates password digest according to [Web Service Security specification](https://www.oasis-open.org/committees/download.php/13392/wss-v1.1-spec-pr-UsernameTokenProfile-01.htm)
 
 ```json
 {
