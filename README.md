@@ -202,13 +202,15 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
 }
 ```
 
+### Functions and data generation
+
 #### Hashes
 
-**.SHA1** Calculates SHA-1 of it's argument
+**.SHA1** calculates SHA-1 hash of it's argument
 
 ```json
 {
-  "hash": "{{ .SHA1 `Username` }}"
+  "hash": "{{ .SHA1 `Username` }}" //=> 84c29015de33e5d22422382a372caba5c58f8c01
 }
 ```
 
@@ -216,7 +218,7 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
 
 #### SOAP
 
-**.WSSEPasswordDigest** Calculates password digest according to Web Service Security specification.
+**.WSSEPasswordDigest** calculates password digest according to [Web Service Security specification](https://www.oasis-open.org/committees/download.php/13392/wss-v1.1-spec-pr-UsernameTokenProfile-01.htm)
 
 ```json
 {
