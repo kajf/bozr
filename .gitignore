@@ -2,9 +2,6 @@
 .vscode
 .idea
 
-# vendoring
-vendor
-
 report
 bozr
 bozr.exe

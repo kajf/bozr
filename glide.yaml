@@ -1,9 +1,0 @@
-package: github.com/kajf/bozr
-import:
-- package: github.com/xeipuuv/gojsonschema
-- package: github.com/fatih/color
-- package: github.com/mattn/go-colorable
-- package: github.com/mattn/go-isatty
-- package: github.com/clbanning/mxj
-- package: github.com/fatih/structs
-- package: github.com/pkg/errors
