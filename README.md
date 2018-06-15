@@ -210,7 +210,7 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
 
 ```json
 {
-  "hash": "{{ .SHA1 `Username` }}" //=> 84c29015de33e5d22422382a372caba5c58f8c01
+  "hash": "{{ .SHA1 `Username` }}"
 }
 ```
 
