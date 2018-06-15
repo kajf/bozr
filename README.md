@@ -135,9 +135,9 @@ Represents assertions for http response of the call
 
 XML:
 
-* To match attribute use `-` symbol before attribute name. E.g. `users.0.-id`
-* Namespaces are ignored
-* Only string matcher values are supported (since xml has no real data types, so everything is a string)
+- To match attribute use `-` symbol before attribute name. E.g. `users.0.-id`
+- Namespaces are ignored
+- Only string matcher values are supported (since xml has no real data types, so everything is a string)
 
 ### 'Expect absent' body matchers
 
@@ -202,6 +202,28 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
 }
 ```
 
+#### Hashes
+
+**.SHA1** Calculates SHA-1 of it's argument
+
+```json
+{
+  "hash": "{{ .SHA1 `Username` }}"
+}
+```
+
+#### Date and time
+
+#### SOAP
+
+**.WSSEPasswordDigest** Calculates password digest according to Web Service Security specification.
+
+```json
+{
+  "digest": "{{ .WSSEPasswordDigest `{nonce}` `{created}` `{password}` }}"
+}
+```
+
 ### Section 'Remember'
 
 Similar to `args` section, specifies plaseholder values for future reference (within test case scope).
@@ -225,8 +247,8 @@ There are two types of sources for values to remember: response body and headers
 
 This section allowes more complex test scenarios like:
 
-* 'request login token, remember, then use remembered {token} to request some data and verify'
-* 'create resource, remember resource id from response, then use remembered {id} to delete resource'
+- 'request login token, remember, then use remembered {token} to request some data and verify'
+- 'create resource, remember resource id from response, then use remembered {id} to delete resource'
 
 ### Using environment variables in tests
 
@@ -255,22 +277,3 @@ To make work with test files convenient, we suggest to configure you text editor
 | JetBrains Tools    | [native support](https://www.jetbrains.com/help/webstorm/2016.1/json-schema.html?page=1)   |
 | Visual Studio Code | [native support](https://code.visualstudio.com/docs/languages/json#_json-schemas-settings) |
 | Vim                | [plugin](https://github.com/Quramy/vison)                                                  |
-
-## Dependency management
-
-To build project you need a dependency management tool - https://glide.sh/
-After you installed it, you can run the following command to download all dependencies:
-
-```bash
-cd bozr
-glide install
-```
-
-Dependencies:
-
-* github.com/xeipuuv/gojsonschema
-* github.com/fatih/color
-* github.com/mattn/go-colorable
-* github.com/mattn/go-isatty
-* github.com/clbanning/mxj
-* github.com/fatih/structs
