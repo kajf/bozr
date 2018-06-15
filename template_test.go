@@ -52,7 +52,7 @@ func TestPlainTextWithVars(t *testing.T) {
 
 func TestPlainTextWithNotExistingFunc(t *testing.T) {
 	// given
-	tmpl := "{username} was successfully assigned to the Order {{ .SHA `9302945` }}"
+	tmpl := "{username} was successfully assigned to the Order {{ .NotExists `9302945` }}"
 
 	vars := NewVars()
 	vars.Add("username", "Smith")
