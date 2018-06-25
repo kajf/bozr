@@ -93,7 +93,8 @@ Represents http request parameters
 
 ### Section 'Expect'
 
-Represents assertions for http response of the call
+Represents assertions for http response of the call.
+
 Response:
 ```json
 {
