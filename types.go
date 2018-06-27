@@ -290,7 +290,7 @@ type Response struct {
 	parsedBody interface{}
 }
 
-// Body retruns parsed response (array or map) depending on provided 'Content-Type'
+// Body returns parsed response (array or map) depending on provided 'Content-Type'
 // supported content types are 'application/json', 'application/xml', 'text/xml'
 func (resp *Response) Body() (interface{}, error) {
 	if resp.parsedBody != nil {
@@ -337,6 +337,14 @@ func (resp Response) parseBody() (interface{}, error) {
 		return nil, err
 	}
 
+	if contentType == "text/html" {
+		m, err := mxj.NewMapXmlSeq(resp.body)
+		if err == nil {
+			return m.Old(), nil
+		}
+		return nil, err
+	}
+
 	return nil, errors.New("Cannot parse body. Unsupported content type")
 }
 
@@ -360,6 +368,12 @@ func (resp *Response) ToString() string {
 	if contentType == "application/xml" || contentType == "text/xml" {
 		resp.Body()
 		mp, _ := mxj.NewMapXml(resp.body, false)
+		body, _ = mp.XmlIndent("", "  ")
+	}
+
+	if contentType == "text/html" {
+		resp.Body()
+		mp, _ := mxj.NewMapXmlSeq(resp.body, false)
 		body, _ = mp.XmlIndent("", "  ")
 	}
 
