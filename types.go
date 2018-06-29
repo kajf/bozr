@@ -373,8 +373,7 @@ func (resp *Response) ToString() string {
 
 	if contentType == "text/html" {
 		resp.Body()
-		mp, _ := mxj.NewMapXmlSeq(resp.body, false)
-		body, _ = mp.XmlIndent("", "  ")
+		body = resp.body
 	}
 
 	if body == nil {
