@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Funcs keep all functions and vars available for template
 type Funcs struct {
 	vars *Vars
 }
@@ -68,6 +69,7 @@ func (ctx *Funcs) Now() time.Time {
 	return time.Now()
 }
 
+// TemplateContext backs and executes template
 type TemplateContext struct {
 	funcs  *Funcs
 	vars   *Vars
