@@ -21,11 +21,6 @@ func NewFuncs(vars *Vars) *Funcs {
 	return &Funcs{vars: vars}
 }
 
-//
-func (ctx *Funcs) CurrentTimestampSec() int64 {
-	return time.Now().Unix()
-}
-
 // WSSEPasswordDigest returns password digest according to Web Service Security specification.
 //
 // Password_Digest = Base64 ( SHA-1 ( nonce + created + password ) )
@@ -61,6 +56,16 @@ func (ctx *Funcs) DaysFromNow(days int) time.Time {
 	months := 0
 
 	return time.Now().AddDate(years, months, days)
+}
+
+// CurrentTimestampSec returns current time in Unix format
+func (ctx *Funcs) CurrentTimestampSec() int64 {
+	return time.Now().Unix()
+}
+
+// Now returns current time
+func (ctx *Funcs) Now() time.Time {
+	return time.Now()
 }
 
 type TemplateContext struct {
