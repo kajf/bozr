@@ -8,8 +8,10 @@ import (
 
 var (
 	pathFuncs = map[string]pathFunc{
-		"size()":   size,
-		"string()": str}
+		"size()":         size,
+		"string()":       str,
+		"sizeAsString()": sizeAsStr,
+	}
 )
 
 // HasPathFunc checks whether path contains a function or not
@@ -56,4 +58,13 @@ func size(arg interface{}) (interface{}, error) {
 
 func str(arg interface{}) (interface{}, error) {
 	return toString(arg), nil
+}
+
+func sizeAsStr(arg interface{}) (interface{}, error) {
+	numSize, err := size(arg)
+	if err != nil {
+		return nil, err
+	}
+
+	return toString(numSize), nil
 }
