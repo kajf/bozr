@@ -392,7 +392,7 @@ const suiteDetailedSchema = `
 				  "patternProperties": {
 					".+": {
 						"type": [
-							"string", "boolean", "null", "number"
+							"string", "boolean", "null", "number", "array"
 						]
 					}
 				  },
