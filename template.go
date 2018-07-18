@@ -37,11 +37,6 @@ func (ctx *Funcs) WSSEPasswordDigest(nonce, created, password string) string {
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-// Base64 transformation of provided string
-func (ctx *Funcs) Base64(value string) string {
-	return base64.StdEncoding.EncodeToString([]byte(value))
-}
-
 // SHA1 returns string representation of SHA1 hash bytes
 func (ctx *Funcs) SHA1(value string) string {
 	// fmt.Println("Calculating SHA1: " + value)
