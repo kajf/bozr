@@ -93,14 +93,23 @@ Represents http request parameters
 
 ### Section 'Expect'
 
-Represents assertions for http response of the call
+Represents assertions for http response of the call.
 
+Response:
+```json
+{
+  "errors": [
+     {"code": "FOO"}  
+  ]
+}
+```
+Passing Test:
 ```json
 "expect": {
     "statusCode": 200,
     "contentType": "application/json",
     "body": {
-        "errors.size()": 0
+        "errors.size()": 1
     }
 }
 ```
@@ -116,12 +125,22 @@ Represents assertions for http response of the call
 | headers        | Expected http headers, specified as a key-value pairs.                                   |
 
 ### 'Expect' body matchers
-
+Response:
+```json
+{
+  "users": [
+    {"name":"John", "surname":"Wayne"}
+    {"name":"John", "surname":"Doe"}
+  ],
+  "errors": []
+}
+```
+Passing Test:
 ```json
 "expect": {
     "body": {
         "users.1.surname" : "Doe",
-        "users.name":"Joe",
+        "users.name":"John",
         "errors.size()": 0
     }
 }

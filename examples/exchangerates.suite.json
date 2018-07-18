@@ -1,71 +1,65 @@
-[
-  {
+[{
     "name": "Example of the successful test",
-    "calls": [
-      {
-        "args": {
-          "currency": "USD"
+    "calls": [{
+      "args": {
+        "currency": "USD"
+      },
+      "on": {
+        "url": "http://exchangeratesapi.io/api/latest",
+        "method": "GET",
+        "params": {
+          "base": "{currency}",
+          "symbols": "GBP,JPY,RUB,USD"
         },
-        "on": {
-          "url": "http://exchangeratesapi.io/api/latest",
-          "method": "GET",
-          "params": {
-            "base": "{currency}"
-          },
-          "headers": {
-            "accept": "application/json"
-          }
-        },
-        "expect": {
-          "statusCode": 200,
-          "contentType": "application/json",
-          "body": {
-            "base": "{currency}"
-          },
-          "absent": [
-            "rates.ZZZ"
-          ]
+        "headers": {
+          "accept": "application/json"
         }
+      },
+      "expect": {
+        "statusCode": 200,
+        "contentType": "application/json",
+        "body": {
+          "base": "{currency}"
+        },
+        "absent": [
+          "rates.ZZZ"
+        ]
       }
-    ]
+    }]
   },
   {
     "name": "Check Image is loaded",
-    "calls": [
-      {
-        "on": {
-          "url": "https://www.w3schools.com/html/html5.gif",
-          "method": "GET"
-        },
-        "expect": {
-          "statusCode": 200,
-          "contentType": "image/gif"
-        }
+    "calls": [{
+      "on": {
+        "url": "https://www.w3schools.com/html/html5.gif",
+        "method": "GET"
+      },
+      "expect": {
+        "statusCode": 200,
+        "contentType": "image/gif"
       }
-    ]
+    }]
   },
   {
     "name": "Example of the failed test",
-    "calls": [
-      {
-        "on": {
-          "url": "http://exchangeratesapi.io/api/latest",
-          "method": "GET",
-          "params": {
-            "base": "USD"
-          },
-          "headers": {
-            "accept": "application/json"
-          }
+    "calls": [{
+      "on": {
+        "url": "http://exchangeratesapi.io/api/latest",
+        "method": "GET",
+        "params": {
+          "base": "USD"
         },
-        "expect": {
-          "statusCode": 200,
-          "contentType": "application/json",
-          "body": {
-            "base": "EUR"
-          }
+        "headers": {
+          "accept": "application/json"
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "contentType": "application/json",
+        "body": {
+          "base": "EUR"
         }
       }
-    ]
+    }]
   }
 ]

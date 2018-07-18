@@ -1,49 +1,93 @@
-[
-  {
+[{
     "name": "Current timestamp",
-    "calls": [
-      {
-        "args": {
-          "now": "{{ .CurrentTimestampSec }}"
-        },
-        "on": {
-          "method": "GET",
-          "url": "https://postman-echo.com/get",
-          "params": {
-            "from": "{now}"
-          }
-        },
-        "expect": {
-          "statusCode": 200,
-          "body": {
-            "args.from": "{now}"
-          }
+    "calls": [{
+      "args": {
+        "now": "{{ .CurrentTimestampSec }}"
+      },
+      "on": {
+        "method": "GET",
+        "url": "https://postman-echo.com/get",
+        "params": {
+          "from": "{now}"
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "body": {
+          "args.from": "{now}"
         }
       }
-    ]
+    }]
   },
   {
     "name": "SHA1",
-    "calls": [
-      {
-        "args": {
-          "username": "el_mask",
-          "key": "{{ .SHA1 `{username}` }}"
-        },
-        "on": {
-          "method": "GET",
-          "url": "https://postman-echo.com/get",
-          "params": {
-            "key": "{key}"
-          }
-        },
-        "expect": {
-          "statusCode": 200,
-          "body": {
-            "args.key": "2b0cc371b76f3ec6c1bebc52bcc44af69304dabf"
-          }
+    "calls": [{
+      "args": {
+        "username": "el_mask",
+        "key": "{{ .SHA1 `{username}` }}"
+      },
+      "on": {
+        "method": "GET",
+        "url": "https://postman-echo.com/get",
+        "params": {
+          "key": "{key}"
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "body": {
+          "args.key": "2b0cc371b76f3ec6c1bebc52bcc44af69304dabf"
         }
       }
-    ]
+    }]
+  },
+  {
+    "name": "wsse post",
+    "calls": [{
+      "args": {
+        "key": "{{ .WSSEPasswordDigest `nonce` `2003-07-16T01:24:32Z` `password` }}"
+      },
+      "on": {
+        "method": "POST",
+        "url": "https://postman-echo.com/post",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "WSSEPasswordDigest": "{key}"
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "body": {
+          "json.WSSEPasswordDigest": "+XUanLmUnd2Dp//esmL7ifPasd4="
+        }
+      }
+    }]
+  },
+  {
+    "name": "array functions",
+    "calls": [{
+      "args": {
+        "sizeFromArg": 2
+      },
+      "on": {
+        "method": "POST",
+        "url": "https://postman-echo.com/post",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "arr": [{}, {}]
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "body": {
+          "json.arr.size()": 2,
+          "json.arr.sizeAsString()": "{sizeFromArg}"
+        }
+      }
+    }]
   }
 ]

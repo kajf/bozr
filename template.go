@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Funcs keep all functions and vars available for template
 type Funcs struct {
 	vars *Vars
 }
@@ -19,11 +20,6 @@ type Funcs struct {
 // NewFuncs creates new Funcs struct that includes initialized Vars.
 func NewFuncs(vars *Vars) *Funcs {
 	return &Funcs{vars: vars}
-}
-
-//
-func (ctx *Funcs) CurrentTimestampSec() int64 {
-	return time.Now().Unix()
 }
 
 // WSSEPasswordDigest returns password digest according to Web Service Security specification.
@@ -58,6 +54,17 @@ func (ctx *Funcs) DaysFromNow(days int) time.Time {
 	return time.Now().AddDate(years, months, days)
 }
 
+// CurrentTimestampSec returns current time in Unix format
+func (ctx *Funcs) CurrentTimestampSec() int64 {
+	return time.Now().Unix()
+}
+
+// Now returns current time
+func (ctx *Funcs) Now() time.Time {
+	return time.Now()
+}
+
+// TemplateContext backs and executes template
 type TemplateContext struct {
 	funcs  *Funcs
 	vars   *Vars

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 func TestPlainTextWithoutTemplate(t *testing.T) {
@@ -147,18 +148,30 @@ func TestFuncWSSEPasswordDigest(t *testing.T) {
 
 func TestFuncDaysFromNow(t *testing.T) {
 	// given
-	const givenTemplate = `increment {{-3 | .DaysFromNow | .FormatDateTime "2006-01-02" }}`
-
 	vars := NewVars()
 	tmplCtx := NewTemplateContext(vars)
-	funcs := NewFuncs(vars)
-
-	expected := funcs.FormatDateTime("2006-01-02", funcs.DaysFromNow(-3))
 
 	// when
-	output := tmplCtx.ApplyTo(givenTemplate)
+	output := tmplCtx.ApplyTo(`increment {{-3 | .DaysFromNow | .FormatDateTime "2006-01-02" }}`)
 
+	// then
+	expected := time.Now().AddDate(0, 0, -3).Format("2006-01-02")
 	if output != fmt.Sprintf("increment %s", expected) {
+		t.Error(output, "is not equal to", expected)
+	}
+}
+
+func TestFuncNow(t *testing.T) {
+	// given
+	vars := NewVars()
+	tmplCtx := NewTemplateContext(vars)
+
+	// when
+	output := tmplCtx.ApplyTo(`now is {{.Now | .FormatDateTime "2006-01-02" }}`)
+
+	// then
+	expected := time.Now().Format("2006-01-02")
+	if output != fmt.Sprintf("now is %s", expected) {
 		t.Error(output, "is not equal to", expected)
 	}
 }

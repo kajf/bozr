@@ -15,6 +15,8 @@ var hasPathFuncTests = []hasPathFuncTest{
 	{"items.1.path", false},
 	{"items.1.path.size()", true},
 	{"items.path.xyz()", false},
+	{"items.path.custom().string()", true},
+	{"items.path.sizeAsString()", true},
 }
 
 func TestHasPathFunc(t *testing.T) {
@@ -55,6 +57,17 @@ func TestCallPathFuncStrArr(t *testing.T) {
 	}
 }
 
+func TestCallPathFuncSizeNonArr(t *testing.T) {
+
+	pathLine := "items.id.size()"
+	arg := 99.0
+	res, err := CallPathFunc(pathLine, arg)
+
+	if res != nil || err == nil {
+		t.Errorf("Expected nil, error. Got %#v, %#v = CallPathFunc(%#v, %#v)", res, err, pathLine, arg)
+	}
+}
+
 func TestCallPathFuncSizeArr(t *testing.T) {
 
 	pathLine := "items.size()"
@@ -63,6 +76,19 @@ func TestCallPathFuncSizeArr(t *testing.T) {
 	res, err := CallPathFunc(pathLine, arg)
 
 	var expected float64 = 2 // float (not int) for json parser always return it for numbers
+	if res != expected || err != nil {
+		t.Errorf("Expected %#v Got %#v, %#v = CallPathFunc(%#v, %#v)", expected, res, err, pathLine, arg)
+	}
+}
+
+func TestCallPathFuncSizeAsString(t *testing.T) {
+
+	pathLine := "items.sizeAsString()"
+	arg := []interface{}{5, 2, 1}
+
+	res, err := CallPathFunc(pathLine, arg)
+
+	var expected = "3"
 	if res != expected || err != nil {
 		t.Errorf("Expected %#v Got %#v, %#v = CallPathFunc(%#v, %#v)", expected, res, err, pathLine, arg)
 	}

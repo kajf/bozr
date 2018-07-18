@@ -1,23 +1,43 @@
-[
-  {
+[{
     "name": "Example of a test from nested folder",
-    "calls": [
-      {
-        "on": {
-          "url": "http://api.worldbank.org/countries/all/indicators/SP.POP.TOTL",
-          "method": "GET",
-          "params": {
-            "date": "2000:2001"
-          }
-        },
-        "expect": {
-          "statusCode": 200,
-          "contentType": "text/xml",
-          "body": {
-            "data.data.0.date": "2001"
-          }
+    "calls": [{
+      "on": {
+        "url": "http://api.worldbank.org/countries/all/indicators/SP.POP.TOTL",
+        "method": "GET",
+        "params": {
+          "date": "2000:2001"
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "contentType": "text/xml",
+        "body": {
+          "data.data.0.date": "2001"
         }
       }
-    ]
+    }]
+  },
+  {
+    "name": "XML example. Checking attributes in the response",
+    "calls": [{
+      "args": {
+        "indicatorId": "SP.POP.TOTL"
+      },
+      "on": {
+        "url": "http://api.worldbank.org/countries/all/indicators/{indicatorId}",
+        "method": "GET",
+        "params": {
+          "date": "2000:2001"
+        }
+      },
+      "expect": {
+        "statusCode": 200,
+        "contentType": "text/xml",
+        "body": {
+          "data.data.0.date": "2001",
+          "data.data.indicator.-id": "{indicatorId}"
+        }
+      }
+    }]
   }
 ]

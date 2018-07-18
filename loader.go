@@ -210,6 +210,7 @@ func ValidateSuites(rootDir, suiteExt, xsuiteExt string) error {
 	return SuitesValidationError{errors: errs}
 }
 
+// SuiteFileError desctibes issue during loading of single test suite file
 type SuiteFileError struct {
 	SuiteFile *SuiteFile
 	err       error
@@ -223,6 +224,7 @@ func (e SuiteFileError) Error() string {
 	return fmt.Sprintf("%s: %s", e.SuiteFile.Path, e.err.Error())
 }
 
+// SuitesValidationError groups all errors for individual test suites
 type SuitesValidationError struct {
 	errors []*SuiteFileError
 }
