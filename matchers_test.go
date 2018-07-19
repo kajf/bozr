@@ -229,6 +229,79 @@ func TestSearchByPathWithObject(t *testing.T) {
 	}
 }
 
+func TestSearchByPathWithObjectByIndex(t *testing.T) {
+	m, err := jsonAsMap(`{
+					"items": [
+						{
+							"id": 12,
+							"name": "foo",
+							"descr": "abc"
+						},
+						{
+							"id": 34,
+							"name": "bar",
+							"descr": "bbb"
+						}						
+					]
+			}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expect := map[string]interface{}{
+		"id":   34.0,
+		"name": "bar",
+	}
+
+	err = SearchByPath(m, expect, "items.1")
+
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestSearchByPathWithArrayOfObjects(t *testing.T) {
+	m, err := jsonAsMap(`{
+					"items": [
+						{
+							"id": 12,
+							"name": "foo"
+						},
+						{
+							"id": 34,
+							"name": "bar"
+						},
+						{
+							"id": 56,
+							"name": "baz"
+						}
+											
+					]
+			}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	expect := []interface{}{
+
+		map[string]interface{}{
+			"id":   34.0,
+			"name": "bar",
+		},
+
+		map[string]interface{}{
+			"id":   12.0,
+			"name": "foo",
+		},
+	}
+
+	err = SearchByPath(m, expect, "items")
+
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestSearchByPathWithMultiArraysObject(t *testing.T) {
 	m, err := jsonAsMap(`{
 				"lookups": [

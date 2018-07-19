@@ -74,20 +74,6 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) err
 
 		return nil
 
-	// single path have to match object, e.g. root.items : {id: 1, name: 'example'}
-	case map[string]interface{}:
-		for _, singleRes := range resArr { // each search result
-
-			switch typedSingleRes := singleRes.(type) {
-			case []interface{}:
-				for _, singleResItem := range typedSingleRes {
-					if matchesAll(typedExpectedValue, singleResItem) {
-						return nil
-					}
-				}
-			}
-		}
-
 	default:
 		if findDeep(resArr, expectedValue) {
 			return nil
@@ -170,6 +156,16 @@ func findDeep(items []interface{}, expected interface{}) bool {
 			if found {
 				return true
 			}
+
+		// single path have to match object, e.g. root.items : {id: 1, name: 'example'}
+		case map[string]interface{}:
+			switch typedExpected := expected.(type) {
+			case map[string]interface{}:
+				if matchesAll(typedExpected, typedItem) {
+					return true
+				}
+			}
+
 		default:
 			if expected == item {
 				return true
