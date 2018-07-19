@@ -93,7 +93,7 @@ Represents http request parameters
 
 ### Section 'Expect'
 
-Represents assertions for http response of the call.
+Represents assertions for http response of the test call.
 
 Response:
 ```json
@@ -129,8 +129,8 @@ Response:
 ```json
 {
   "users": [
-    {"name":"John", "surname":"Wayne"}
-    {"name":"John", "surname":"Doe"}
+    {"name":"John", "surname":"Wayne", "age": 38}
+    {"name":"John", "surname":"Doe", "age": 12}
   ],
   "errors": []
 }
@@ -141,6 +141,10 @@ Passing Test:
     "body": {
         "users.1.surname" : "Doe",
         "users.name":"John",
+        "users": {
+          "name":"John", 
+          "age": 12
+        },
         "errors.size()": 0
     }
 }
