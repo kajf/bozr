@@ -96,14 +96,15 @@ Represents http request parameters
 Represents assertions for http response of the test call.
 
 Response:
+
 ```json
 {
-  "errors": [
-     {"code": "FOO"}  
-  ]
+  "errors": [{ "code": "FOO" }]
 }
 ```
+
 Passing Test:
+
 ```json
 "expect": {
     "statusCode": 200,
@@ -125,7 +126,9 @@ Passing Test:
 | headers        | Expected http headers, specified as a key-value pairs.                                   |
 
 ### 'Expect' body matchers
+
 Response:
+
 ```json
 {
   "users": [
@@ -135,14 +138,16 @@ Response:
   "errors": []
 }
 ```
+
 Passing Test:
+
 ```json
 "expect": {
     "body": {
         "users.1.surname" : "Doe",
         "users.name":"John",
         "users": {
-          "name":"John", 
+          "name":"John",
           "age": 12
         },
         "errors.size()": 0
@@ -237,9 +242,41 @@ _.SHA1_ calculates SHA-1 hash of it's argument
 }
 ```
 
+_.Base64_ does [Base64](https://en.wikipedia.org/wiki/Base64) transformation on provided string
+
+```json
+{
+  "encoded": "{{ .Base64 `some value` }}"
+}
+```
+
 #### Date and time
 
-_._
+_.Now_ returns current date/time
+
+```json
+{
+  "currentDate": "{{ .Now | .FormatDateTime `2006-01-02` }}"
+}
+```
+
+In example above 'currentDate' argument will have value of current date in yyyy-mm-dd format
+
+_.DaysFromNow_ returns date/time that is N days from now
+
+```json
+{
+  "yesterday": "{{-1 | .DaysFromNow | .FormatDateTime `2006-01-02` }}"
+}
+```
+
+In example above 'yesterday' argument will have value of yesterday's date in yyyy-mm-dd format
+
+_.FormatDateTime_ returns string representation of date/time (useful in combination with _.Now_ or _.DaysFromNow_)
+
+Function uses example-based format (constant date '2006-01-02T15:04:05Z07:00' used as example instead of pattern)
+
+_.CurrentTimestampSec_ returns number representing current date/time in [Unix format](https://en.wikipedia.org/wiki/Unix_time)
 
 #### SOAP
 
