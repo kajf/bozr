@@ -89,5 +89,60 @@
         }
       }
     }]
+  },
+  {
+    "name": "body array check",
+    "calls": [{
+      "on": {
+        "method": "POST",
+        "url": "https://postman-echo.com/post",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "users": [{
+            "name": "Mike"
+          }, {
+            "name": "Bob"
+          }]
+        }
+      },
+      "expect": {
+        "body": {
+          "json.users.name": ["Mike", "Bob"]
+        }
+      }
+    }]
+  },
+  {
+    "name": "body multimatch",
+    "calls": [{
+      "on": {
+        "method": "POST",
+        "url": "https://postman-echo.com/post",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "users": [{
+            "name": "John",
+            "surname": "Wayne",
+            "age": 38
+          }, {
+            "name": "John",
+            "surname": "Doe",
+            "age": 12
+          }]
+        }
+      },
+      "expect": {
+        "body": {
+          "json.users": {
+            "name": "John",
+            "age": 12
+          }
+        }
+      }
+    }]
   }
 ]

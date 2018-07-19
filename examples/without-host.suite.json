@@ -1,30 +1,26 @@
-[
-  {
-    "name": "Test without host",
-    "calls": [
-      {
-        "args": {
-          "currency": "USD"
-        },
-        "on": {
-          "url": "/latest",
-          "method": "GET",
-          "params": {
-            "base": "{currency}"
-          },
-          "headers": {
-            "accept": "application/json"
-          }
-        },
-        "expect": {
-          "statusCode": 200,
-          "contentType": "application/json",
-          "body": {
-            "base": "{currency}"
-          },
-          "absent": ["rates.ZZZ"]
-        }
+[{
+  "name": "Test that fails because of invalid url",
+  "calls": [{
+    "args": {
+      "currency": "USD"
+    },
+    "on": {
+      "url": "/latest",
+      "method": "GET",
+      "params": {
+        "base": "{currency}"
+      },
+      "headers": {
+        "accept": "application/json"
       }
-    ]
-  }
-]
+    },
+    "expect": {
+      "statusCode": 200,
+      "contentType": "application/json",
+      "body": {
+        "base": "{currency}"
+      },
+      "absent": ["rates.ZZZ"]
+    }
+  }]
+}]
