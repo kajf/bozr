@@ -129,8 +129,8 @@ Response:
 ```json
 {
   "users": [
-    {"name":"John", "surname":"Wayne", age: 38}
-    {"name":"John", "surname":"Doe", age: 12}
+    {"name":"John", "surname":"Wayne", "age": 38}
+    {"name":"John", "surname":"Doe", "age": 12}
   ],
   "errors": []
 }
