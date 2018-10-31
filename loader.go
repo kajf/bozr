@@ -256,7 +256,7 @@ func validateSuite(path string) error {
 	schemaLoader := gojsonschema.NewStringLoader(suiteDetailedSchema)
 
 	path, _ = filepath.Abs(path)
-	documentLoader := gojsonschema.NewReferenceLoader("file:///" + path)
+	documentLoader := gojsonschema.NewReferenceLoader("file:///" + filepath.ToSlash(path))
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 	if err != nil {

@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	version = "0.8.12"
+	version = "0.8.13"
 )
 
 func init() {
@@ -450,5 +450,5 @@ func debugf(format string, v ...interface{}) {
 		return
 	}
 
-	debug.Printf(format, v)
+	debug.Printf(format, v...)
 }
