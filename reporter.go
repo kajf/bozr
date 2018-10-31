@@ -366,7 +366,7 @@ func (r *JUnitXMLReporter) Report(results []TestResult) {
 				}
 			}
 
-			errDetails := fmt.Sprintf("On Call %d - %s\n\n%s", errIndex, errMsg, errRespDump)
+			errDetails := fmt.Sprintf("On Call #%d - %s\n\n%s", errIndex+1, errMsg, errRespDump)
 
 			testCase.Failure = &failure{
 				Type:    errType,
