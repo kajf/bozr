@@ -14,7 +14,8 @@
           "statusCode": 200,
           "body": {
             "login": "kajf"
-          }
+          },
+          "bodySchemaFile": "schemas/github-user.schema.json"
         },
         "remember": {
           "body": {

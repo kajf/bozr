@@ -1,0 +1,144 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "login",
+    "id",
+    "node_id",
+    "avatar_url",
+    "gravatar_id",
+    "url",
+    "html_url",
+    "followers_url",
+    "following_url",
+    "gists_url",
+    "starred_url",
+    "subscriptions_url",
+    "organizations_url",
+    "repos_url",
+    "events_url",
+    "received_events_url",
+    "type",
+    "site_admin",
+    "company",
+    "blog",
+    "hireable",
+    "public_repos",
+    "public_gists",
+    "followers",
+    "following",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "login": {
+      "$id": "#/properties/login",
+      "type": "string"
+    },
+    "id": {
+      "$id": "#/properties/id",
+      "type": "integer"
+    },
+    "node_id": {
+      "$id": "#/properties/node_id",
+      "type": "string"
+    },
+    "avatar_url": {
+      "$id": "#/properties/avatar_url",
+      "type": "string"
+    },
+    "gravatar_id": {
+      "$id": "#/properties/gravatar_id",
+      "type": "string"
+    },
+    "url": {
+      "$id": "#/properties/url",
+      "type": "string"
+    },
+    "html_url": {
+      "$id": "#/properties/html_url",
+      "type": "string"
+    },
+    "followers_url": {
+      "$id": "#/properties/followers_url",
+      "type": "string"
+    },
+    "following_url": {
+      "$id": "#/properties/following_url",
+      "type": "string"
+    },
+    "gists_url": {
+      "$id": "#/properties/gists_url",
+      "type": "string"
+    },
+    "starred_url": {
+      "$id": "#/properties/starred_url",
+      "type": "string"
+    },
+    "subscriptions_url": {
+      "$id": "#/properties/subscriptions_url",
+      "type": "string"
+    },
+    "organizations_url": {
+      "$id": "#/properties/organizations_url",
+      "type": "string"
+    },
+    "repos_url": {
+      "$id": "#/properties/repos_url",
+      "type": "string"
+    },
+    "events_url": {
+      "$id": "#/properties/events_url",
+      "type": "string"
+    },
+    "received_events_url": {
+      "$id": "#/properties/received_events_url",
+      "type": "string"
+    },
+    "type": {
+      "$id": "#/properties/type",
+      "type": "string"
+    },
+    "site_admin": {
+      "$id": "#/properties/site_admin",
+      "type": "boolean"
+    },
+    "company": {
+      "$id": "#/properties/company",
+      "type": "null"
+    },
+    "blog": {
+      "$id": "#/properties/blog",
+      "type": "string"
+    },
+    "hireable": {
+      "$id": "#/properties/hireable",
+      "type": "null"
+    },
+    "public_repos": {
+      "$id": "#/properties/public_repos",
+      "type": "integer"
+    },
+    "public_gists": {
+      "$id": "#/properties/public_gists",
+      "type": "integer"
+    },
+    "followers": {
+      "$id": "#/properties/followers",
+      "type": "integer"
+    },
+    "following": {
+      "$id": "#/properties/following",
+      "type": "integer"
+    },
+    "created_at": {
+      "$id": "#/properties/created_at",
+      "type": "string"
+    },
+    "updated_at": {
+      "$id": "#/properties/updated_at",
+      "type": "string"
+    }
+  }
+}

@@ -127,12 +127,10 @@ func (e Expect) loadSchemaFromFile(suitePath string) ([]byte, error) {
 		return nil, nil
 	}
 
-	schemeURI, err := toAbsPath(suitePath, e.BodySchemaFile)
+	uri, err := toAbsPath(suitePath, e.BodySchemaFile)
 	if err != nil {
 		return nil, err
 	}
-
-	uri := "file:///" + schemeURI
 
 	var cached, ok = jsonSchemaCache.Load(uri)
 	if ok {
