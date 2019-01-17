@@ -138,6 +138,8 @@ func (e Expect) loadSchemaFromFile(suitePath string) ([]byte, error) {
 		return v, nil
 	}
 
+	debugf("loading json schema: %s", uri)
+
 	schema, err := ioutil.ReadFile(uri)
 	if err != nil {
 		return nil, err
@@ -167,6 +169,8 @@ func (e Expect) loadSchemaFromURI() ([]byte, error) {
 	if !(isHTTP || isHTTPS) {
 		uri = hostFlag + e.BodySchemaURI
 	}
+
+	debugf("loading json schema: %s", uri)
 
 	resp, err := http.Get(uri)
 	if err != nil {

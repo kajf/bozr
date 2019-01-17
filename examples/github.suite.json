@@ -53,6 +53,7 @@
         },
         "expect": {
           "statusCode": 200,
+          "bodySchemaFile": "schemas/github-user.schema.json",
           "body": {
             "login": "kajf"
           }
