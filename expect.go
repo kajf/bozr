@@ -38,7 +38,8 @@ func (e StatusCodeExpectation) desc() string {
 // BodySchemaExpectation validates response body against schema.
 // Content-Type header is used to identify either json schema or xsd is applied.
 type BodySchemaExpectation struct {
-	schema []byte
+	schema      []byte
+	displayName string
 }
 
 func (e BodySchemaExpectation) check(resp *Response) error {
@@ -52,7 +53,12 @@ func (e BodySchemaExpectation) check(resp *Response) error {
 }
 
 func (e BodySchemaExpectation) desc() string {
-	return fmt.Sprintf("Body matches the schema (%s)", e.schema)
+	tmpl := "Body matches the schema"
+	if e.displayName == "" {
+		return tmpl
+	}
+
+	return fmt.Sprintf(tmpl+" (%s)", e.displayName)
 }
 
 func (e BodySchemaExpectation) checkJSON(resp *Response) error {

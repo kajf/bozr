@@ -16,8 +16,7 @@
             "type": "object",
             "required": [
               "bio",
-              "created_at",
-              "demo"
+              "created_at"
             ]
           }
         }

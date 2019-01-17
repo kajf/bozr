@@ -361,7 +361,11 @@ func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error
 		if err != nil {
 			return nil, err
 		}
-		exps = append(exps, BodySchemaExpectation{schema: schema})
+
+		exps = append(exps, BodySchemaExpectation{
+			schema:      schema,
+			displayName: expect.BodySchemaURI,
+		})
 	}
 
 	if expect.BodySchemaFile != "" {
@@ -369,11 +373,17 @@ func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error
 		if err != nil {
 			return nil, err
 		}
-		exps = append(exps, BodySchemaExpectation{schema: schema})
+		exps = append(exps, BodySchemaExpectation{
+			schema:      schema,
+			displayName: expect.BodySchemaFile,
+		})
 	}
 
 	if expect.BodySchemaRaw != nil {
-		exps = append(exps, BodySchemaExpectation{schema: expect.BodySchemaRaw})
+		exps = append(exps, BodySchemaExpectation{
+			schema:      expect.BodySchemaRaw,
+			displayName: "",
+		})
 	}
 
 	if len(expect.Body) > 0 {
