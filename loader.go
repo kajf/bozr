@@ -391,6 +391,9 @@ const suiteDetailedSchema = `
 				  "type": "object",
                   "minProperties": 1
                 },
+				"bodySchema": {
+				  "type": "object"
+				},
                 "bodySchemaFile": {
                   "type": "string"
                 },

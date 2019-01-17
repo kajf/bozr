@@ -4,17 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/xeipuuv/gojsonschema"
 	"mime"
 	"strings"
-	"sync"
-
-	"github.com/xeipuuv/gojsonschema"
 )
 
 // ResponseExpectation is an interface to any validation
 // that needs to be performed on response.
 type ResponseExpectation interface {
-
 	// check does the response meet expectation
 	check(resp *Response) error
 
@@ -41,7 +38,7 @@ func (e StatusCodeExpectation) desc() string {
 // BodySchemaExpectation validates response body against schema.
 // Content-Type header is used to identify either json schema or xsd is applied.
 type BodySchemaExpectation struct {
-	schemaURI string
+	schema []byte
 }
 
 func (e BodySchemaExpectation) check(resp *Response) error {
@@ -55,29 +52,11 @@ func (e BodySchemaExpectation) check(resp *Response) error {
 }
 
 func (e BodySchemaExpectation) desc() string {
-	return fmt.Sprintf("Body matches the schema (%s)", e.schemaURI)
+	return fmt.Sprintf("Body matches the schema (%s)", e.schema)
 }
 
-var jsonSchemaCache sync.Map
-
 func (e BodySchemaExpectation) checkJSON(resp *Response) error {
-	var safeSchema, ok = jsonSchemaCache.Load(e.schemaURI)
-
-	if !ok {
-		debug.Printf("Loading schema %s", e.schemaURI)
-
-		schemaLoader := gojsonschema.NewReferenceLoader(e.schemaURI)
-		schema, err := schemaLoader.LoadJSON()
-
-		if err != nil {
-			return fmt.Errorf("failed to load schema: %s", err)
-		}
-
-		jsonSchemaCache.Store(e.schemaURI, schema)
-		safeSchema = schema
-	}
-
-	schemaLoader := gojsonschema.NewGoLoader(safeSchema)
+	schemaLoader := gojsonschema.NewBytesLoader(e.schema)
 	documentLoader := gojsonschema.NewStringLoader(string(resp.body))
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
