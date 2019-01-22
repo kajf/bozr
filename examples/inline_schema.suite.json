@@ -1,0 +1,26 @@
+[
+  {
+    "name": "SimpleInlineBodySchema",
+    "calls": [
+      {
+        "on": {
+          "method": "GET",
+          "url": "https://api.github.com/users/kajf",
+          "headers": {
+            "Accept": "application/json"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "bodySchema": {
+            "type": "object",
+            "required": [
+              "bio",
+              "created_at"
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

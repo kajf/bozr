@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/clbanning/mxj"
@@ -113,39 +114,78 @@ type Expect struct {
 	Headers        map[string]string      `json:"headers"`
 	Body           map[string]interface{} `json:"body"`
 	Absent         []string               `json:"absent"`
+	BodySchemaRaw  json.RawMessage        `json:"bodySchema"`
 	BodySchemaFile string                 `json:"bodySchemaFile"`
 	BodySchemaURI  string                 `json:"bodySchemaURI"`
 }
 
-// HasSchema tests whether the Expect contains scheme verification part
-func (e Expect) HasSchema() bool {
-	return e.BodySchemaFile != "" || e.BodySchemaURI != ""
+var jsonSchemaCache sync.Map
+
+func (e Expect) loadSchemaFromFile(suitePath string) ([]byte, error) {
+
+	if e.BodySchemaFile == "" {
+		return nil, nil
+	}
+
+	uri, err := toAbsPath(suitePath, e.BodySchemaFile)
+	if err != nil {
+		return nil, err
+	}
+
+	var cached, ok = jsonSchemaCache.Load(uri)
+	if ok {
+		v, _ := cached.([]byte)
+		return v, nil
+	}
+
+	debugf("loading json schema: %s", uri)
+
+	schema, err := ioutil.ReadFile(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonSchemaCache.Store(uri, schema)
+
+	return schema, nil
 }
 
-// BodySchema returns scheme URI regardless of its source
-// e.g. provided from URI or fetched from file
-func (e Expect) BodySchema(suitePath string) (string, error) {
+func (e Expect) loadSchemaFromURI() ([]byte, error) {
 
-	if e.BodySchemaFile != "" {
-		schemeURI, err := toAbsPath(suitePath, e.BodySchemaFile)
-		if err != nil {
-			return "", err
-		}
-
-		return "file:///" + schemeURI, nil
+	if e.BodySchemaURI == "" {
+		return nil, nil
 	}
 
-	if e.BodySchemaURI != "" {
-		isHTTP := strings.HasPrefix(e.BodySchemaURI, "http://")
-		isHTTPS := strings.HasPrefix(e.BodySchemaURI, "https://")
-		if !(isHTTP || isHTTPS) {
-			return hostFlag + e.BodySchemaURI, nil
-		}
+	uri := e.BodySchemaURI
 
-		return e.BodySchemaURI, nil
+	var cached, ok = jsonSchemaCache.Load(uri)
+	if ok {
+		v, _ := cached.([]byte)
+		return v, nil
 	}
 
-	return "", nil
+	isHTTP := strings.HasPrefix(e.BodySchemaURI, "http://")
+	isHTTPS := strings.HasPrefix(e.BodySchemaURI, "https://")
+	if !(isHTTP || isHTTPS) {
+		uri = hostFlag + e.BodySchemaURI
+	}
+
+	debugf("loading json schema: %s", uri)
+
+	resp, err := http.Get(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	var schema []byte
+	_, err = io.ReadFull(resp.Body, schema)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonSchemaCache.Store(uri, schema)
+
+	return schema, nil
 }
 
 func (e Expect) populateWith(vars *Vars) error {

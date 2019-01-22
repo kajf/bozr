@@ -14,7 +14,8 @@
           "statusCode": 200,
           "body": {
             "login": "kajf"
-          }
+          },
+          "bodySchemaFile": "schemas/github-user.schema.json"
         },
         "remember": {
           "body": {
@@ -52,6 +53,7 @@
         },
         "expect": {
           "statusCode": 200,
+          "bodySchemaFile": "schemas/github-user.schema.json",
           "body": {
             "login": "kajf"
           }

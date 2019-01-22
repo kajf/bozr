@@ -356,14 +356,34 @@ func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error
 		exps = append(exps, StatusCodeExpectation{statusCode: expect.StatusCode})
 	}
 
-	if expect.HasSchema() {
-
-		schemeURI, err := expect.BodySchema(suitePath)
+	if expect.BodySchemaURI != "" {
+		schema, err := expect.loadSchemaFromURI()
 		if err != nil {
 			return nil, err
 		}
 
-		exps = append(exps, BodySchemaExpectation{schemaURI: schemeURI})
+		exps = append(exps, BodySchemaExpectation{
+			schema:      schema,
+			displayName: expect.BodySchemaURI,
+		})
+	}
+
+	if expect.BodySchemaFile != "" {
+		schema, err := expect.loadSchemaFromFile(suitePath)
+		if err != nil {
+			return nil, err
+		}
+		exps = append(exps, BodySchemaExpectation{
+			schema:      schema,
+			displayName: expect.BodySchemaFile,
+		})
+	}
+
+	if expect.BodySchemaRaw != nil {
+		exps = append(exps, BodySchemaExpectation{
+			schema:      expect.BodySchemaRaw,
+			displayName: "",
+		})
 	}
 
 	if len(expect.Body) > 0 {
