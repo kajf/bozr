@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
-	"github.com/xeipuuv/gojsonschema"
 	"mime"
 	"reflect"
 	"strings"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 // ResponseExpectation is an interface to any validation
@@ -83,15 +84,15 @@ func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 	return nil
 }
 
-// NewBodyExpections validates that expected object is presented in the response.
+// NewBodyExpectation validates that expected object is presented in the response.
 // The expected body reflect required part of the response object.
 type NewBodyExpectation struct {
-	Body interface{}
+	ExpectedBody interface{}
 }
 
 func (e NewBodyExpectation) check(resp *Response) error {
 	fmt.Println("Checking new body")
-	body, err := resp.Body() // cached
+	actualBody, err := resp.Body() // cached
 	if err != nil {
 		str := "Can't parse response body."
 		str += " " + err.Error()
@@ -99,17 +100,17 @@ func (e NewBodyExpectation) check(resp *Response) error {
 		return errors.New(str)
 	}
 
-	r := new(CustomReporter)
+	r := new(bodyDiffReporter)
 
 	opts := cmp.Options{r}
-	eq := cmp.Equal(body, e.Body, opts...)
+	eq := cmp.Equal(e.ExpectedBody, actualBody, opts...)
 	diff := r.String()
 	if (diff == "") != eq {
 		panic("inconsistent difference and equality results")
 	}
 
-	//diff := cmp.Diff(body, e.Body, CustomReporter{})
-	if diff != "" {
+	// diff := cmp.Diff(body, e.Body, CustomReporter{})
+	if r.IsDiff() {
 		return errors.New(diff)
 	}
 
@@ -120,15 +121,41 @@ func (e NewBodyExpectation) desc() string {
 	return ""
 }
 
-type CustomReporter struct {
+type bodyDiffReporter struct {
 	cmp.Option
+
+	strict bool
+	diff   bool
 }
 
-func (r CustomReporter) Report(x, y reflect.Value, eq bool, p cmp.Path) {
+func newBodyDiffReporter() bodyDiffReporter {
+	return bodyDiffReporter{strict: false}
+}
+
+func (r *bodyDiffReporter) Report(x, y reflect.Value, eq bool, p cmp.Path) {
+	if !x.IsValid() {
+		return
+	}
+
+	if !eq {
+		r.diff = true
+	}
+
+	last := p.Last()
+	switch last := last.(type) {
+	case cmp.SliceIndex:
+		// key -1 indicates changes in index -> fail in strict mode
+		fmt.Printf("Index part: %v \n", last.Key())
+	}
+
 	fmt.Printf("%#v [%v]: %v  -  %v \n", p, eq, x, y)
 }
 
-func (r CustomReporter) String() string {
+func (r bodyDiffReporter) IsDiff() bool {
+	return r.diff
+}
+
+func (r bodyDiffReporter) String() string {
 	return "1"
 }
 

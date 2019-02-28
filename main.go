@@ -391,7 +391,7 @@ func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error
 	}
 
 	if expect.NewBody != nil {
-		exps = append(exps, NewBodyExpectation{Body: expect.NewBody})
+		exps = append(exps, NewBodyExpectation{ExpectedBody: expect.NewBody})
 	}
 
 	if len(expect.Absent) > 0 {
