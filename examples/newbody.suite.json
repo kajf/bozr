@@ -1,0 +1,28 @@
+[
+  {
+    "name": "SimpleNewBody",
+    "calls": [
+      {
+        "on": {
+          "method": "POST",
+          "url": "https://postman-echo.com/post",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "index": 1,
+            "name": "Example #1"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "newBody": {
+            "data": {
+              "index": 1
+            }
+          }
+        }
+      }
+    ]
+  }
+]

@@ -113,6 +113,7 @@ type Expect struct {
 	ContentType    string                 `json:"contentType"`
 	Headers        map[string]string      `json:"headers"`
 	Body           map[string]interface{} `json:"body"`
+	NewBody        interface{}            `json:"newBody"` // temp name
 	Absent         []string               `json:"absent"`
 	BodySchemaRaw  json.RawMessage        `json:"bodySchema"`
 	BodySchemaFile string                 `json:"bodySchemaFile"`
@@ -195,6 +196,8 @@ func (e Expect) populateWith(vars *Vars) error {
 	for name, valueTmpl := range e.Headers {
 		e.Headers[name] = tmplCtx.ApplyTo(valueTmpl)
 	}
+
+	// TODO: New body expectation
 
 	//expect.Body           map[string]interface{} - string, array, num
 	for path, val := range e.Body {

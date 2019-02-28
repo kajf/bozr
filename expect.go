@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"github.com/xeipuuv/gojsonschema"
 	"mime"
+	"reflect"
 	"strings"
 )
 
@@ -79,6 +81,55 @@ func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 	}
 
 	return nil
+}
+
+// NewBodyExpections validates that expected object is presented in the response.
+// The expected body reflect required part of the response object.
+type NewBodyExpectation struct {
+	Body interface{}
+}
+
+func (e NewBodyExpectation) check(resp *Response) error {
+	fmt.Println("Checking new body")
+	body, err := resp.Body() // cached
+	if err != nil {
+		str := "Can't parse response body."
+		str += " " + err.Error()
+
+		return errors.New(str)
+	}
+
+	r := new(CustomReporter)
+
+	opts := cmp.Options{r}
+	eq := cmp.Equal(body, e.Body, opts...)
+	diff := r.String()
+	if (diff == "") != eq {
+		panic("inconsistent difference and equality results")
+	}
+
+	//diff := cmp.Diff(body, e.Body, CustomReporter{})
+	if diff != "" {
+		return errors.New(diff)
+	}
+
+	return nil
+}
+
+func (e NewBodyExpectation) desc() string {
+	return ""
+}
+
+type CustomReporter struct {
+	cmp.Option
+}
+
+func (r CustomReporter) Report(x, y reflect.Value, eq bool, p cmp.Path) {
+	fmt.Printf("%#v [%v]: %v  -  %v \n", p, eq, x, y)
+}
+
+func (r CustomReporter) String() string {
+	return "1"
 }
 
 // BodyExpectation validates values under a certain path in a body.

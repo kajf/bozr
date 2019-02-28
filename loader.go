@@ -387,6 +387,7 @@ const suiteDetailedSchema = `
                   "type": "object",
                   "minProperties": 1
                 },
+				"newBody": {},
                 "body": {
 				  "type": "object",
                   "minProperties": 1
