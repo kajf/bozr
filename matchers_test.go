@@ -852,3 +852,99 @@ func jsonAsMap(s string) (map[string]interface{}, error) {
 
 	return m, err
 }
+
+func _jsonAsMap(s string) map[string]interface{} {
+	v, _ := jsonAsMap(s)
+	return v
+}
+
+func TestBodyMatch(t *testing.T) {
+
+	data := []struct {
+		name         string
+		body         interface{}
+		matcher      interface{}
+		strict       bool
+		expectToFail bool
+	}{
+		{
+			name:    "Object/Partial/Matches",
+			strict:  false,
+			body:    _jsonAsMap(`{ "profile": { "name": "Jack", "age": 31 } }`),
+			matcher: _jsonAsMap(`{ "profile": { "name": "Jack" } }`),
+		},
+		{
+			name:         "Object/Partial/FailIfAtLeastOneDoesntMatch",
+			strict:       false,
+			body:         _jsonAsMap(`{ "profile": { "name": "Jack", "age": 31 } }`),
+			matcher:      _jsonAsMap(`{ "profile": { "name": "John" } }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Object/Partial/FailIfAtLeastOneIsMissing",
+			strict:       false,
+			body:         _jsonAsMap(`{ "profile": { "name": "Jack", "age": 31 } }`),
+			matcher:      _jsonAsMap(`{ "profile": { "name": "Jack", "sex": "male" } }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Object/Exact/FailIfAtLeastOneDoesntMatch",
+			strict:       true,
+			body:         _jsonAsMap(`{ "profile": { "name": "Jack", "age": 31 } }`),
+			matcher:      _jsonAsMap(`{ "profile": { "name": "John", "age": 31 } }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Object/Exact/FailIfAtLeastOneIsMissing",
+			strict:       true,
+			body:         _jsonAsMap(`{ "profile": { "name": "Jack", "age": 31 } }`),
+			matcher:      _jsonAsMap(`{ "profile": { "name": "Jack" } }`),
+			expectToFail: true,
+		},
+
+		{
+			name:         "Array/Partial/IntegersMatchesInAnyOrder",
+			strict:       false,
+			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsMap(`{ "items": [2,1,3,5] }`),
+			expectToFail: false,
+		},
+
+		{
+			name:         "Array/Exact/IntegersMatchesIfOrdered",
+			strict:       true,
+			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
+			expectToFail: false,
+		},
+		{
+			name:         "Array/Exact/IntegersFailsIfAtLeastOnIsMissing",
+			strict:       true,
+			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsMap(`{ "items": [1,2,3,4] }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Array/Exact/IntegersFailsIfAtLeastOneIsOutOfOrder",
+			strict:       true,
+			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsMap(`{ "items": [1,2,4,3,5] }`),
+			expectToFail: true,
+		},
+	}
+
+	for _, tt := range data {
+		t.Run(tt.name, func(t *testing.T) {
+			expectation := NewBodyMatcher{ExpectedBody: tt.matcher, Strict: tt.strict}
+			err := expectation.check(tt.body)
+
+			if tt.expectToFail && err == nil {
+				t.Error("Expected to dont match")
+			}
+
+			if !tt.expectToFail && err != nil {
+				t.Error("Expected to match")
+			}
+		})
+	}
+}

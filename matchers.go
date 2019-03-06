@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/google/go-cmp/cmp"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -188,4 +190,64 @@ func cleanPath(pathLine string) []string {
 	} // remove functions
 
 	return path
+}
+
+// NewBodyMatcher validates that expected object is presented in the response.
+// The expected body reflect required part of the response object.
+type NewBodyMatcher struct {
+	Strict       bool
+	ExpectedBody interface{}
+}
+
+func (e NewBodyMatcher) check(body interface{}) error {
+	// it is important to instantiate using new to avoid internal check of cmp library
+	r := new(bodyDiffReporter)
+
+	opts := cmp.Options{r}
+	eq := cmp.Equal(e.ExpectedBody, body, opts...)
+	diff := r.String()
+	if (diff == "") != eq {
+		panic("inconsistent difference and equality results")
+	}
+
+	// diff := cmp.Diff(body, e.Body, CustomReporter{})
+	if r.IsDiff() {
+		return errors.New(diff)
+	}
+
+	return nil
+}
+
+type bodyDiffReporter struct {
+	cmp.Option
+
+	strict bool
+	diff   bool
+}
+
+func (r *bodyDiffReporter) Report(x, y reflect.Value, eq bool, p cmp.Path) {
+	if !x.IsValid() {
+		return
+	}
+
+	if !eq {
+		r.diff = true
+	}
+
+	last := p.Last()
+	switch last := last.(type) {
+	case cmp.SliceIndex:
+		// key -1 indicates changes in index -> fail in strict mode
+		fmt.Printf("Index part: %v \n", last.Key())
+	}
+
+	fmt.Printf("%#v [%v]: %v  -  %v \n", p, eq, x, y)
+}
+
+func (r bodyDiffReporter) IsDiff() bool {
+	return r.diff
+}
+
+func (r bodyDiffReporter) String() string {
+	return "1"
 }

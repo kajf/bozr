@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"mime"
-	"reflect"
 	"strings"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -87,6 +85,7 @@ func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 // NewBodyExpectation validates that expected object is presented in the response.
 // The expected body reflect required part of the response object.
 type NewBodyExpectation struct {
+	Strict       bool
 	ExpectedBody interface{}
 }
 
@@ -100,63 +99,12 @@ func (e NewBodyExpectation) check(resp *Response) error {
 		return errors.New(str)
 	}
 
-	r := new(bodyDiffReporter)
-
-	opts := cmp.Options{r}
-	eq := cmp.Equal(e.ExpectedBody, actualBody, opts...)
-	diff := r.String()
-	if (diff == "") != eq {
-		panic("inconsistent difference and equality results")
-	}
-
-	// diff := cmp.Diff(body, e.Body, CustomReporter{})
-	if r.IsDiff() {
-		return errors.New(diff)
-	}
-
-	return nil
+	matcher := NewBodyMatcher{Strict: e.Strict}
+	return matcher.check(actualBody)
 }
 
 func (e NewBodyExpectation) desc() string {
 	return ""
-}
-
-type bodyDiffReporter struct {
-	cmp.Option
-
-	strict bool
-	diff   bool
-}
-
-func newBodyDiffReporter() bodyDiffReporter {
-	return bodyDiffReporter{strict: false}
-}
-
-func (r *bodyDiffReporter) Report(x, y reflect.Value, eq bool, p cmp.Path) {
-	if !x.IsValid() {
-		return
-	}
-
-	if !eq {
-		r.diff = true
-	}
-
-	last := p.Last()
-	switch last := last.(type) {
-	case cmp.SliceIndex:
-		// key -1 indicates changes in index -> fail in strict mode
-		fmt.Printf("Index part: %v \n", last.Key())
-	}
-
-	fmt.Printf("%#v [%v]: %v  -  %v \n", p, eq, x, y)
-}
-
-func (r bodyDiffReporter) IsDiff() bool {
-	return r.diff
-}
-
-func (r bodyDiffReporter) String() string {
-	return "1"
 }
 
 // BodyExpectation validates values under a certain path in a body.
