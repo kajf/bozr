@@ -968,7 +968,7 @@ func TestBodyMatch(t *testing.T) {
 			name:         "Array/Exact/IntegersFailsIfAtLeastOnIsMissing",
 			strict:       true,
 			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
-			matcher:      _jsonAsMap(`{ "items": [1,2,3,4] }`),
+			matcher:      _jsonAsMap(`{ "items": [1,2,4,5] }`),
 			expectToFail: true,
 		},
 		{
