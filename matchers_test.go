@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 )
 
@@ -858,6 +859,36 @@ func _jsonAsMap(s string) map[string]interface{} {
 	return v
 }
 
+func TestDebug(t *testing.T) {
+	data := struct {
+		name         string
+		body         interface{}
+		matcher      interface{}
+		strict       bool
+		expectToFail bool
+	}{
+		name:         "Array/Partial/IntegersMatchesInAnyOrder",
+		strict:       false,
+		body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
+		matcher:      _jsonAsMap(`{ "items": [2,5] }`),
+		expectToFail: false,
+	}
+
+	fmt.Printf("Actual: %v\n", data.body)
+	fmt.Printf("Expected: %v\n", data.matcher)
+
+	expectation := NewBodyMatcher{ExpectedBody: data.matcher, Strict: data.strict}
+	err := expectation.check(data.body)
+
+	if data.expectToFail && err == nil {
+		t.Error("Expected to dont match")
+	}
+
+	if !data.expectToFail && err != nil {
+		t.Error("Expected to match")
+	}
+}
+
 func TestBodyMatch(t *testing.T) {
 
 	data := []struct {
@@ -906,7 +937,15 @@ func TestBodyMatch(t *testing.T) {
 			name:         "Array/Partial/IntegersMatchesInAnyOrder",
 			strict:       false,
 			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
-			matcher:      _jsonAsMap(`{ "items": [2,1,3,5] }`),
+			matcher:      _jsonAsMap(`{ "items": [2,1,3,5,4,5] }`),
+			expectToFail: false,
+		},
+
+		{
+			name:         "Array/Partial/IntegersMatchesInAnyOrderWhenSomeAreMissing",
+			strict:       false,
+			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsMap(`{ "items": [2,1,3] }`),
 			expectToFail: false,
 		},
 

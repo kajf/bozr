@@ -204,11 +204,11 @@ func (e NewBodyMatcher) check(body interface{}) error {
 	r := new(bodyDiffReporter)
 
 	opts := cmp.Options{r}
-	eq := cmp.Equal(e.ExpectedBody, body, opts...)
+	_ = cmp.Equal(e.ExpectedBody, body, opts...)
 	diff := r.String()
-	if (diff == "") != eq {
-		panic("inconsistent difference and equality results")
-	}
+	//if (diff == "") != eq {
+	//	panic("inconsistent difference and equality results")
+	//}
 
 	// diff := cmp.Diff(body, e.Body, CustomReporter{})
 	if r.IsDiff() {
@@ -225,9 +225,13 @@ type bodyDiffReporter struct {
 	diff   bool
 }
 
-func (r *bodyDiffReporter) Report(x, y reflect.Value, eq bool, p cmp.Path) {
-	if !x.IsValid() {
-		return
+func (r *bodyDiffReporter) Report(expected, actual reflect.Value, eq bool, p cmp.Path) {
+
+	if !expected.IsValid() {
+		// no corresponding expected value
+		if !r.strict {
+			return
+		}
 	}
 
 	if !eq {
@@ -237,11 +241,14 @@ func (r *bodyDiffReporter) Report(x, y reflect.Value, eq bool, p cmp.Path) {
 	last := p.Last()
 	switch last := last.(type) {
 	case cmp.SliceIndex:
+		if last.Key() == -1 && r.strict {
+			r.diff = true
+		}
 		// key -1 indicates changes in index -> fail in strict mode
 		fmt.Printf("Index part: %v \n", last.Key())
 	}
 
-	fmt.Printf("%#v [%v]: %v  -  %v \n", p, eq, x, y)
+	fmt.Printf("Path: %#v Equal: %v   Expected: %v  Actual: %v \n", p, eq, expected, actual)
 }
 
 func (r bodyDiffReporter) IsDiff() bool {
