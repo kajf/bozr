@@ -180,7 +180,7 @@ func TestSearchByPathWithObjectFieldsFromDifferentItems(t *testing.T) {
 							"id": 34,
 							"name": "bar",
 							"descr": "bbb"
-						}						
+						}
 					]
 			}`)
 	if err != nil {
@@ -211,7 +211,7 @@ func TestSearchByPathWithObject(t *testing.T) {
 							"id": 34,
 							"name": "bar",
 							"descr": "bbb"
-						}						
+						}
 					]
 			}`)
 	if err != nil {
@@ -242,7 +242,7 @@ func TestSearchByPathWithObjectByIndex(t *testing.T) {
 							"id": 34,
 							"name": "bar",
 							"descr": "bbb"
-						}						
+						}
 					]
 			}`)
 	if err != nil {
@@ -276,7 +276,7 @@ func TestSearchByPathWithArrayOfObjects(t *testing.T) {
 							"id": 56,
 							"name": "baz"
 						}
-											
+
 					]
 			}`)
 	if err != nil {
@@ -318,7 +318,7 @@ func TestSearchByPathWithMultiArraysObject(t *testing.T) {
 								"id": 34,
 								"name": "bar",
 								"descr": "bbb"
-							}						
+							}
 						]
 					},
 					{
@@ -327,7 +327,7 @@ func TestSearchByPathWithMultiArraysObject(t *testing.T) {
 							{
 								"id": 56,
 								"name": "baz"
-							}						
+							}
 						]
 					}
 				]
@@ -934,19 +934,27 @@ func TestBodyMatch(t *testing.T) {
 		},
 
 		{
-			name:         "Array/Partial/IntegersMatchesInAnyOrder",
+			name:         "Array/Partial/IntegersMatchesIfOrderedButSomeMissing",
 			strict:       false,
 			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
-			matcher:      _jsonAsMap(`{ "items": [2,1,3,5,4,5] }`),
+			matcher:      _jsonAsMap(`{ "items": [1,3,5] }`),
 			expectToFail: false,
 		},
 
 		{
-			name:         "Array/Partial/IntegersMatchesInAnyOrderWhenSomeAreMissing",
+			name:         "Array/Partial/IntegersMatchesIfOrdered",
+			strict:       false,
+			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
+			expectToFail: false,
+		},
+
+		{
+			name:         "Array/Partial/IntegersDoesntMatchesIfAtLeastOneOutOfOrder",
 			strict:       false,
 			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
 			matcher:      _jsonAsMap(`{ "items": [2,1,3] }`),
-			expectToFail: false,
+			expectToFail: true,
 		},
 
 		{
