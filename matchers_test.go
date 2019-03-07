@@ -1045,11 +1045,11 @@ func TestBodyMatch(t *testing.T) {
 			err := expectation.check(tt.body)
 
 			if tt.expectToFail && err == nil {
-				t.Error("Expected to dont match")
+				t.Errorf("\nBody: %s\nMatcher: %s\nExpected to have diff, but reported as equal.", toJSON(tt.body), toJSON(tt.matcher))
 			}
 
 			if !tt.expectToFail && err != nil {
-				t.Error("Expected to match")
+				t.Errorf("\nBody: %s\nMatcher: %s\nExpected to be equals, but diff is reported.", toJSON(tt.body), toJSON(tt.matcher))
 			}
 		})
 	}

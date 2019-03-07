@@ -541,7 +541,7 @@ func (v *Vars) print(w io.Writer) {
 // toString returns value suitable to insert as an argument
 // if value if a float where decimal part is zero - convert to int
 func toString(rw interface{}) string {
-	var sv interface{} = rw
+	var sv = rw
 	if fv, ok := rw.(float64); ok {
 		_, frac := math.Modf(fv)
 		if frac == 0 {
@@ -550,6 +550,11 @@ func toString(rw interface{}) string {
 	}
 
 	return fmt.Sprintf("%v", sv)
+}
+
+func toJSON(v interface{}) string {
+	bytes, _ := json.Marshal(v)
+	return string(bytes)
 }
 
 // Throttle implements rate limiting based on sliding time window
@@ -590,7 +595,7 @@ func (t *Throttle) RunOrPause() {
 	t.cleanOld()
 
 	totalCallsInFrame := len(t.queue)
-	limitExceeded := (totalCallsInFrame == t.limit)
+	limitExceeded := totalCallsInFrame == t.limit
 
 	if limitExceeded {
 		eldestCallInFrame := t.queue[0]
