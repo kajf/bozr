@@ -867,11 +867,11 @@ func TestDebug(t *testing.T) {
 		strict       bool
 		expectToFail bool
 	}{
-		name:         "Array/Partial/IntegersMatchesInAnyOrder",
-		strict:       false,
-		body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
-		matcher:      _jsonAsMap(`{ "items": [2,5] }`),
-		expectToFail: false,
+		name:         "Object/Exact/FailIfAtLeastOneIsMissing",
+		strict:       true,
+		body:         _jsonAsMap(`{ "profile": { "name": "Jack", "age": 31 } }`),
+		matcher:      _jsonAsMap(`{ "profile": { "name": "Jack" } }`),
+		expectToFail: true,
 	}
 
 	fmt.Printf("Actual: %v\n", data.body)

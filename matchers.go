@@ -202,6 +202,7 @@ type NewBodyMatcher struct {
 func (e NewBodyMatcher) check(body interface{}) error {
 	// it is important to instantiate using new to avoid internal check of cmp library
 	r := new(bodyDiffReporter)
+	r.strict = e.Strict
 
 	opts := cmp.Options{r}
 	_ = cmp.Equal(e.ExpectedBody, body, opts...)
@@ -227,15 +228,23 @@ type bodyDiffReporter struct {
 
 func (r *bodyDiffReporter) Report(expected, actual reflect.Value, eq bool, p cmp.Path) {
 
-	if !expected.IsValid() {
-		// no corresponding expected value
-		if !r.strict {
-			return
-		}
+	missing := func(v reflect.Value) bool {
+		return !v.IsValid()
+	}
+
+	if missing(expected) && !r.strict {
+		// no corresponding expected value in partial match mode is ok
+		return
+	}
+
+	if missing(actual) && r.strict {
+		r.diff = true
+		return
 	}
 
 	if !eq {
 		r.diff = true
+		return
 	}
 
 	last := p.Last()
