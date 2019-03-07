@@ -932,7 +932,6 @@ func TestBodyMatch(t *testing.T) {
 			matcher:      _jsonAsMap(`{ "profile": { "name": "Jack" } }`),
 			expectToFail: true,
 		},
-
 		{
 			name:         "Array/Partial/IntegersMatchesIfOrderedButSomeMissing",
 			strict:       false,
@@ -940,7 +939,20 @@ func TestBodyMatch(t *testing.T) {
 			matcher:      _jsonAsMap(`{ "items": [1,3,5] }`),
 			expectToFail: false,
 		},
-
+		{
+			name:         "Array/Partial/ObjectMatchesIfOrderedButSomeNestedFieldsAreMissing",
+			strict:       false,
+			body:         _jsonAsMap(`{ "items": [{ "id": 1, "name": "test1" }, { "id": 2, "name": "test2" }] }`),
+			matcher:      _jsonAsMap(`{ "items": [{ "id": 2 }] }`),
+			expectToFail: false,
+		},
+		{
+			name:         "Array/Partial/ObjectsDontMatchIfAtLeastOneNestedFieldDoesntMatch",
+			strict:       false,
+			body:         _jsonAsMap(`{ "items": [{ "id": 1, "name": "test1" }, { "id": 2, "name": "test2" }] }`),
+			matcher:      _jsonAsMap(`{ "items": [{ "id": 2, "name": "myName" }] }`),
+			expectToFail: true,
+		},
 		{
 			name:         "Array/Partial/IntegersMatchesIfOrdered",
 			strict:       false,
@@ -948,7 +960,6 @@ func TestBodyMatch(t *testing.T) {
 			matcher:      _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
 			expectToFail: false,
 		},
-
 		{
 			name:         "Array/Partial/IntegersDoesntMatchesIfAtLeastOneOutOfOrder",
 			strict:       false,
@@ -956,7 +967,6 @@ func TestBodyMatch(t *testing.T) {
 			matcher:      _jsonAsMap(`{ "items": [2,1,3] }`),
 			expectToFail: true,
 		},
-
 		{
 			name:         "Array/Exact/IntegersMatchesIfOrdered",
 			strict:       true,
@@ -976,6 +986,20 @@ func TestBodyMatch(t *testing.T) {
 			strict:       true,
 			body:         _jsonAsMap(`{ "items": [1,2,3,4,5] }`),
 			matcher:      _jsonAsMap(`{ "items": [1,2,4,3,5] }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Array/Exact/ObjectsDontMatchIfAtLeastOneIsMissing",
+			strict:       true,
+			body:         _jsonAsMap(`{ "items": [{ "id": 1, "name": "test1" }, { "id": 2, "name": "test2" }] }`),
+			matcher:      _jsonAsMap(`{ "items": [{ "id": 1, "name": "test1" }] }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Array/Exact/ObjectsDontMatchIfAtLeastOneNestedFieldIsMissing",
+			strict:       true,
+			body:         _jsonAsMap(`{ "items": [{ "id": 1, "name": "test1" }, { "id": 2, "name": "test2" }] }`),
+			matcher:      _jsonAsMap(`{ "items": [{ "id": 1 }, { "id": 2, "name": "test2" }] }`),
 			expectToFail: true,
 		},
 	}
