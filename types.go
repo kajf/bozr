@@ -136,6 +136,7 @@ func (e Expect) loadSchemaFromFile(suitePath string) ([]byte, error) {
 
 	var cached, ok = jsonSchemaCache.Load(uri)
 	if ok {
+		debugf("loading json schema from the cache: %s", uri)
 		v, _ := cached.([]byte)
 		return v, nil
 	}
@@ -160,16 +161,17 @@ func (e Expect) loadSchemaFromURI() ([]byte, error) {
 
 	uri := e.BodySchemaURI
 
-	var cached, ok = jsonSchemaCache.Load(uri)
-	if ok {
-		v, _ := cached.([]byte)
-		return v, nil
-	}
-
 	isHTTP := strings.HasPrefix(e.BodySchemaURI, "http://")
 	isHTTPS := strings.HasPrefix(e.BodySchemaURI, "https://")
 	if !(isHTTP || isHTTPS) {
 		uri = hostFlag + e.BodySchemaURI
+	}
+
+	var cached, ok = jsonSchemaCache.Load(uri)
+	if ok {
+		debugf("loading json schema from the cache: %s", uri)
+		v, _ := cached.([]byte)
+		return v, nil
 	}
 
 	debugf("loading json schema: %s", uri)
@@ -179,8 +181,7 @@ func (e Expect) loadSchemaFromURI() ([]byte, error) {
 		return nil, err
 	}
 
-	var schema []byte
-	_, err = io.ReadFull(resp.Body, schema)
+	schema, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
