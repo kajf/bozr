@@ -210,7 +210,7 @@ func (e NewBodyMatcher) check(body interface{}) error {
 
 	if diff != "" {
 		msg := strings.Join(strings.Split(diff, "\n"), "\n\t")
-		return fmt.Errorf("The body doesn't match expectations: \n\t%s", msg)
+		return fmt.Errorf("The body does not match expectations: \n\t%s", msg)
 	}
 
 	return nil
