@@ -388,6 +388,7 @@ const suiteDetailedSchema = `
                   "minProperties": 1
                 },
 				"newBody": {},
+				"newExactBody": {},
                 "body": {
 				  "type": "object",
                   "minProperties": 1

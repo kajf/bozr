@@ -861,40 +861,44 @@ func _jsonAsMap(s string) map[string]interface{} {
 
 func _jsonAsObject(s string) interface{} {
 	m := new(interface{})
-	_ = json.Unmarshal([]byte(s), m)
+	err := json.Unmarshal([]byte(s), m)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	return m
 }
 
-func TestDebug(t *testing.T) {
-	data := struct {
-		name         string
-		body         interface{}
-		matcher      interface{}
-		strict       bool
-		expectToFail bool
-	}{
-		name:         "ArrayRoot/Exact/IntegersFailsIfAtLeastOnIsMissing",
-		strict:       true,
-		body:         _jsonAsObject(`[1,2,3,4,5]`),
-		matcher:      _jsonAsObject(`[1,2,4,5]`),
-		expectToFail: true,
-	}
-
-	fmt.Printf("Actual: %v\n", data.body)
-	fmt.Printf("Expected: %v\n", data.matcher)
-
-	expectation := NewBodyMatcher{ExpectedBody: data.matcher, Strict: data.strict}
-	err := expectation.check(data.body)
-
-	if data.expectToFail && err == nil {
-		t.Error("Expected to dont match")
-	}
-
-	if !data.expectToFail && err != nil {
-		t.Error("Expected to match")
-	}
-}
+//
+//func TestDebug(t *testing.T) {
+//	data := struct {
+//		name         string
+//		body         interface{}
+//		matcher      interface{}
+//		strict       bool
+//		expectToFail bool
+//	}{
+//		name:         "ArrayRoot/Exact/IntegersFailsIfAtLeastOnIsMissing",
+//		strict:       false,
+//		body:         _jsonAsObject(`{"data": {"index": 1}}`),
+//		matcher:      _jsonAsObject(`{"data": {"index": 2}}`),
+//		expectToFail: true,
+//	}
+//
+//	fmt.Printf("Actual: %v\n", data.body)
+//	fmt.Printf("Expected: %v\n", data.matcher)
+//
+//	expectation := NewBodyMatcher{ExpectedBody: data.matcher, Strict: data.strict}
+//	err := expectation.check(data.body)
+//
+//	if data.expectToFail && err == nil {
+//		t.Error("Expected to dont match")
+//	}
+//
+//	if !data.expectToFail && err != nil {
+//		t.Error("Expected to match")
+//	}
+//}
 
 func TestBodyMatch(t *testing.T) {
 
@@ -1045,11 +1049,11 @@ func TestBodyMatch(t *testing.T) {
 			err := expectation.check(tt.body)
 
 			if tt.expectToFail && err == nil {
-				t.Errorf("\nBody: %s\nMatcher: %s\nExpected to have diff, but reported as equal.", toJSON(tt.body), toJSON(tt.matcher))
+				t.Errorf("\nBody: %s\nMatcher: %s\nOutput:\n%s\nExpected to have diff, but reported as equal.", toJSON(tt.body), toJSON(tt.matcher), err)
 			}
 
 			if !tt.expectToFail && err != nil {
-				t.Errorf("\nBody: %s\nMatcher: %s\nExpected to be equals, but diff is reported.", toJSON(tt.body), toJSON(tt.matcher))
+				t.Errorf("\nBody: %s\nMatcher: %s\nOutput:\n%s\nExpected to be equals, but diff is reported.", toJSON(tt.body), toJSON(tt.matcher), err)
 			}
 		})
 	}

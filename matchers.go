@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/google/go-cmp/cmp"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -205,65 +204,14 @@ func (e NewBodyMatcher) check(body interface{}) error {
 	r.strict = e.Strict
 
 	opts := cmp.Options{r}
+
 	_ = cmp.Equal(e.ExpectedBody, body, opts...)
 	diff := r.String()
-	//if (diff == "") != eq {
-	//	panic("inconsistent difference and equality results")
-	//}
 
-	// diff := cmp.Diff(body, e.Body, CustomReporter{})
-	if r.IsDiff() {
-		return errors.New(diff)
+	if diff != "" {
+		msg := strings.Join(strings.Split(diff, "\n"), "\n\t")
+		return fmt.Errorf("The body doesn't match expectations: \n\t%s", msg)
 	}
 
 	return nil
-}
-
-type bodyDiffReporter struct {
-	cmp.Option
-
-	strict bool
-	diff   bool
-}
-
-func (r *bodyDiffReporter) Report(expected, actual reflect.Value, eq bool, p cmp.Path) {
-
-	missing := func(v reflect.Value) bool {
-		return !v.IsValid()
-	}
-
-	if missing(expected) && !r.strict {
-		// no corresponding expected value in partial match mode is ok
-		return
-	}
-
-	if missing(actual) && r.strict {
-		r.diff = true
-		return
-	}
-
-	if !eq {
-		r.diff = true
-		return
-	}
-
-	last := p.Last()
-	switch last := last.(type) {
-	case cmp.SliceIndex:
-		if last.Key() == -1 && r.strict {
-			r.diff = true
-		}
-		// key -1 indicates changes in index -> fail in strict mode
-		fmt.Printf("Index part: %v \n", last.Key())
-	}
-
-	fmt.Printf("Path: %#v Equal: %v   Expected: %v  Actual: %v \n", p, eq, expected, actual)
-}
-
-func (r bodyDiffReporter) IsDiff() bool {
-	return r.diff
-}
-
-func (r bodyDiffReporter) String() string {
-	return "1"
 }

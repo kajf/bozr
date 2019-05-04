@@ -90,7 +90,7 @@ type NewBodyExpectation struct {
 }
 
 func (e NewBodyExpectation) check(resp *Response) error {
-	fmt.Println("Checking new body")
+
 	actualBody, err := resp.Body() // cached
 	if err != nil {
 		str := "Can't parse response body."
@@ -99,12 +99,12 @@ func (e NewBodyExpectation) check(resp *Response) error {
 		return errors.New(str)
 	}
 
-	matcher := NewBodyMatcher{Strict: e.Strict}
+	matcher := NewBodyMatcher{Strict: e.Strict, ExpectedBody: e.ExpectedBody}
 	return matcher.check(actualBody)
 }
 
 func (e NewBodyExpectation) desc() string {
-	return ""
+	return fmt.Sprint("Expected body's structure / values")
 }
 
 // BodyExpectation validates values under a certain path in a body.

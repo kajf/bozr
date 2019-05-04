@@ -113,7 +113,8 @@ type Expect struct {
 	ContentType    string                 `json:"contentType"`
 	Headers        map[string]string      `json:"headers"`
 	Body           map[string]interface{} `json:"body"`
-	NewBody        interface{}            `json:"newBody"` // temp name
+	NewBody        interface{}            `json:"newBody"`      // temp name
+	NewExactBody   interface{}            `json:"newExactBody"` // temp name
 	Absent         []string               `json:"absent"`
 	BodySchemaRaw  json.RawMessage        `json:"bodySchema"`
 	BodySchemaFile string                 `json:"bodySchemaFile"`
