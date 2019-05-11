@@ -386,16 +386,16 @@ func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error
 		})
 	}
 
-	if len(expect.Body) > 0 {
-		exps = append(exps, BodyExpectation{pathExpectations: expect.Body})
+	if len(expect.BodyPath()) > 0 {
+		exps = append(exps, BodyPathExpectation{pathExpectations: expect.BodyPath()})
 	}
 
-	if expect.NewBody != nil {
-		exps = append(exps, NewBodyExpectation{ExpectedBody: expect.NewBody, Strict: false})
+	if expect.Body != nil {
+		exps = append(exps, BodyExpectation{ExpectedBody: expect.Body, Strict: false})
 	}
 
-	if expect.NewExactBody != nil {
-		exps = append(exps, NewBodyExpectation{ExpectedBody: expect.NewExactBody, Strict: true})
+	if expect.ExactBody != nil {
+		exps = append(exps, BodyExpectation{ExpectedBody: expect.ExactBody, Strict: true})
 	}
 
 	if len(expect.Absent) > 0 {

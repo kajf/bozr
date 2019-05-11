@@ -387,9 +387,19 @@ const suiteDetailedSchema = `
                   "type": "object",
                   "minProperties": 1
                 },
-				"newBody": {},
-				"newExactBody": {},
+				"_body": {
+				  "type": "object",
+                  "minProperties": 1
+				},
+				"_exactBody": {
+				  "type": "object",
+                  "minProperties": 1
+				},
                 "body": {
+				  "type": "object",
+                  "minProperties": 1
+                },
+				"bodyPath": {
 				  "type": "object",
                   "minProperties": 1
                 },

@@ -112,13 +112,22 @@ type Expect struct {
 	// shortcut for content-type header
 	ContentType    string                 `json:"contentType"`
 	Headers        map[string]string      `json:"headers"`
-	Body           map[string]interface{} `json:"body"`
-	NewBody        interface{}            `json:"newBody"`      // temp name
-	NewExactBody   interface{}            `json:"newExactBody"` // temp name
+	BPathFallback  map[string]interface{} `json:"body"` // to be 'bodyPath'
+	BPath          map[string]interface{} `json:"bodyPath"`
+	Body           interface{}            `json:"_body"`      // temp name.  to be 'body'
+	ExactBody      interface{}            `json:"_exactBody"` // temp name
 	Absent         []string               `json:"absent"`
 	BodySchemaRaw  json.RawMessage        `json:"bodySchema"`
 	BodySchemaFile string                 `json:"bodySchemaFile"`
 	BodySchemaURI  string                 `json:"bodySchemaURI"`
+}
+
+func (e Expect) BodyPath() map[string]interface{} {
+	if e.BPathFallback != nil {
+		return e.BPathFallback
+	}
+	return e.BPath
+
 }
 
 var jsonSchemaCache sync.Map
@@ -201,8 +210,9 @@ func (e Expect) populateWith(vars *Vars) error {
 
 	// TODO: New body expectation
 
-	//expect.Body           map[string]interface{} - string, array, num
-	for path, val := range e.Body {
+	//expect.BodyPath           map[string]interface{} - string, array, num
+	bodyPath := e.BodyPath()
+	for path, val := range bodyPath {
 
 		switch typedExpect := val.(type) {
 		case []string:
@@ -210,7 +220,7 @@ func (e Expect) populateWith(vars *Vars) error {
 				typedExpect[i] = tmplCtx.ApplyTo(el)
 			}
 		case string:
-			e.Body[path] = tmplCtx.ApplyTo(typedExpect)
+			bodyPath[path] = tmplCtx.ApplyTo(typedExpect)
 		default:
 			// do nothing with values like numbers
 		}
@@ -335,7 +345,7 @@ type Response struct {
 	parsedBody interface{}
 }
 
-// Body returns parsed response (array or map) depending on provided 'Content-Type'
+// BodyPath returns parsed response (array or map) depending on provided 'Content-Type'
 // supported content types are 'application/json', 'application/xml', 'text/xml'
 func (resp *Response) Body() (interface{}, error) {
 	if resp.parsedBody != nil {

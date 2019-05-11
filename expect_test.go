@@ -120,7 +120,7 @@ func TestBodyExpectationBool(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations: m}
+	exp := BodyPathExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
 		http: &http.Response{
@@ -142,7 +142,7 @@ func TestBodyExpectationInt(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations: m}
+	exp := BodyPathExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
 		http: &http.Response{
@@ -164,7 +164,7 @@ func TestBodyExpectationSize(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations: m}
+	exp := BodyPathExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
 		http: &http.Response{
@@ -186,7 +186,7 @@ func TestBodyExpectationSearchBool(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations: m}
+	exp := BodyPathExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
 		http: &http.Response{
@@ -208,7 +208,7 @@ func TestBodyExpectationSearchInt(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations: m}
+	exp := BodyPathExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
 		http: &http.Response{
@@ -230,7 +230,7 @@ func TestBodyExpectationSearchArray(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations: m}
+	exp := BodyPathExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
 		http: &http.Response{
@@ -252,7 +252,7 @@ func TestBodyExpectationBoolFMT(t *testing.T) {
 		t.Error(err)
 	}
 
-	exp := BodyExpectation{pathExpectations: m}
+	exp := BodyPathExpectation{pathExpectations: m}
 
 	err = exp.check(&Response{
 		http: &http.Response{

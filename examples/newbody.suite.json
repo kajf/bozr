@@ -1,6 +1,6 @@
 [
   {
-    "name": "SparseObjectMatches",
+    "name": "SparseMatcher - Matches",
     "calls": [
       {
         "on": {
@@ -16,7 +16,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "newBody": {
+          "_body": {
             "data": {
               "index": 1
             }
@@ -26,7 +26,7 @@
     ]
   },
   {
-    "name": "SparseObjectDoesntMatch",
+    "name": "SparseMatcher - Fails if at least one property doesn't match",
     "calls": [
       {
         "on": {
@@ -42,7 +42,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "newBody": {
+          "_body": {
             "data": {
               "index": 1,
               "position": "LEFT"
@@ -73,12 +73,12 @@
         },
         "expect": {
           "statusCode": 200,
-          "newBody": {
+          "_body": {
             "data": {
-              "id": 10,
+              "id": 9,
               "items": [
                 "Weekly",
-                "Monthly"
+                "Yearly"
               ]
             }
           }
@@ -107,13 +107,46 @@
         },
         "expect": {
           "statusCode": 200,
-          "newExactBody": {
+          "_exactBody": {
             "data": {
               "id": 9,
               "items": [
                 "Weekly",
                 "Monthly"
               ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "VariablesInTheBodyWorks",
+    "calls": [
+      {
+        "args": {
+          "username": "JohnDoe"
+        },
+        "on": {
+          "method": "POST",
+          "url": "https://postman-echo.com/post",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "id": 9,
+            "username": "{username}"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "bodyPath": {
+            "data.username": "{username}"
+          },
+          "_body": {
+            "data": {
+              "id": 9,
+              "username": "{username}"
             }
           }
         }
