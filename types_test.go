@@ -366,3 +366,52 @@ func TestOnBodyContentKeepsSingleQuotes(t *testing.T) {
 		t.Error(s, err)
 	}
 }
+
+func TestPopulateProperty_Map(t *testing.T) {
+	vars := NewVars()
+	_ = vars.Add("username", "dpfg")
+
+	tmpl := NewTemplateContext(vars)
+	body := map[string]interface{}{
+		"username": "{username}",
+	}
+
+	result := populateProperty(tmpl, body).(map[string]interface{})["username"]
+
+	if result != "dpfg" {
+		t.Errorf("Unexpected populated value: %s", result)
+	}
+}
+
+func TestPopulateProperty_ArrayOfStrings(t *testing.T) {
+	vars := NewVars()
+	_ = vars.Add("username", "dpfg")
+
+	tmpl := NewTemplateContext(vars)
+	body := []string{"{username}", "abc123"}
+
+	result := populateProperty(tmpl, body).([]string)
+
+	if result[0] != "dpfg" {
+		t.Errorf("Unexpected populated value: %s", result[0])
+	}
+
+	if result[1] != "abc123" {
+		t.Errorf("Unexpected populated value: %s", result[1])
+	}
+}
+
+func TestPopulateProperty_ArrayOfInt(t *testing.T) {
+	vars := NewVars()
+	_ = vars.Add("username", "dpfg")
+
+	tmpl := NewTemplateContext(vars)
+	body := []int{12, 3}
+
+	result := populateProperty(tmpl, body).([]int)
+
+	if result[0] != 12 || result[1] != 3 {
+		t.Errorf("Unexpected populated value: %d", result[0])
+	}
+
+}

@@ -123,10 +123,10 @@ type Expect struct {
 }
 
 func (e Expect) BodyPath() map[string]interface{} {
-	if e.BPathFallback != nil {
-		return e.BPathFallback
+	if e.BPath != nil {
+		return e.BPath
 	}
-	return e.BPath
+	return e.BPathFallback
 
 }
 
@@ -200,7 +200,7 @@ func (e Expect) loadSchemaFromURI() ([]byte, error) {
 	return schema, nil
 }
 
-func (e Expect) populateWith(vars *Vars) error {
+func (e *Expect) populateWith(vars *Vars) error {
 	tmplCtx := NewTemplateContext(vars)
 
 	//expect.Headers        map[string]string
@@ -208,29 +208,44 @@ func (e Expect) populateWith(vars *Vars) error {
 		e.Headers[name] = tmplCtx.ApplyTo(valueTmpl)
 	}
 
-	// TODO: New body expectation
-
-	//expect.BodyPath           map[string]interface{} - string, array, num
-	bodyPath := e.BodyPath()
-	for path, val := range bodyPath {
-
-		switch typedExpect := val.(type) {
-		case []string:
-			for i, el := range typedExpect {
-				typedExpect[i] = tmplCtx.ApplyTo(el)
-			}
-		case string:
-			bodyPath[path] = tmplCtx.ApplyTo(typedExpect)
-		default:
-			// do nothing with values like numbers
-		}
-	}
+	e.Body = populateProperty(tmplCtx, e.Body)
+	e.ExactBody = populateProperty(tmplCtx, e.ExactBody)
+	e.BPath = populateProperty(tmplCtx, e.BodyPath()).(map[string]interface{})
 
 	if tmplCtx.HasErrors() {
 		return tmplCtx.Error()
 	}
 
 	return nil
+}
+
+func populateProperty(tmpl *TemplateContext, prop interface{}) interface{} {
+
+	switch typedProp := prop.(type) {
+	case string:
+		r := tmpl.ApplyTo(typedProp)
+		debugf("Populated template: %v -> %v", typedProp, r)
+		return r
+
+	case []string:
+		var result = make([]string, 0)
+		for _, item := range typedProp {
+			result = append(result, populateProperty(tmpl, item).(string))
+		}
+		return result
+
+	case map[string]interface{}:
+		result := make(map[string]interface{})
+		for pk, pv := range typedProp {
+			result[pk] = populateProperty(tmpl, pv)
+		}
+		return result
+
+	default:
+		// no transformation are required
+		return prop
+	}
+
 }
 
 func toAbsPath(suitePath string, assetPath string) (string, error) {
