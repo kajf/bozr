@@ -112,10 +112,9 @@ type Expect struct {
 	// shortcut for content-type header
 	ContentType    string                 `json:"contentType"`
 	Headers        map[string]string      `json:"headers"`
-	BPathFallback  map[string]interface{} `json:"body"` // to be 'bodyPath'
 	BPath          map[string]interface{} `json:"bodyPath"`
-	Body           interface{}            `json:"_body"`      // temp name.  to be 'body'
-	ExactBody      interface{}            `json:"_exactBody"` // temp name
+	Body           interface{}            `json:"body"`
+	ExactBody      interface{}            `json:"exactBody"`
 	Absent         []string               `json:"absent"`
 	BodySchemaRaw  json.RawMessage        `json:"bodySchema"`
 	BodySchemaFile string                 `json:"bodySchemaFile"`
@@ -123,11 +122,7 @@ type Expect struct {
 }
 
 func (e Expect) BodyPath() map[string]interface{} {
-	if e.BPath != nil {
-		return e.BPath
-	}
-	return e.BPathFallback
-
+	return e.BPath
 }
 
 var jsonSchemaCache sync.Map
