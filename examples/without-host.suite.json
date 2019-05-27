@@ -17,7 +17,7 @@
     "expect": {
       "statusCode": 200,
       "contentType": "application/json",
-      "body": {
+      "bodyPath": {
         "base": "{currency}"
       },
       "absent": ["rates.ZZZ"]

@@ -16,7 +16,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "_body": {
+          "bodyPath": {
             "data": {
               "index": 1
             }
@@ -42,7 +42,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "_body": {
+          "bodyPath": {
             "data": {
               "index": 1,
               "position": "LEFT"
@@ -73,7 +73,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "_body": {
+          "bodyPath": {
             "data": {
               "id": 9,
               "items": [
@@ -107,7 +107,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "_exactBody": {
+          "exactBody": {
             "data": {
               "id": 9,
               "items": [
@@ -143,7 +143,7 @@
           "bodyPath": {
             "data.username": "{username}"
           },
-          "_body": {
+          "bodyPath": {
             "data": {
               "id": 9,
               "username": "{username}"

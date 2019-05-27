@@ -12,7 +12,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "body": {
+          "bodyPath": {
             "login": "kajf"
           },
           "bodySchemaFile": "schemas/github-user.schema.json"
@@ -33,7 +33,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "body": {
+          "bodyPath": {
             "name": "bozr"
           }
         }
@@ -54,7 +54,7 @@
         "expect": {
           "statusCode": 200,
           "bodySchemaFile": "schemas/github-user.schema.json",
-          "body": {
+          "bodyPath": {
             "login": "kajf"
           }
         },

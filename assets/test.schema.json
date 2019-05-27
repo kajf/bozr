@@ -176,6 +176,14 @@
                   "type": "object",
                   "minProperties": 1
                 },
+                "exactBody": {
+                  "type": "object",
+                  "minProperties": 1
+                },
+                "bodyPath": {
+                  "type": "object",
+                  "minProperties": 1
+                },
                 "bodySchemaFile": {
                   "type": "string"
                 },
