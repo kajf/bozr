@@ -268,13 +268,13 @@ func TestVarsIgnoreAddedRecoursiveReference(t *testing.T) {
 func TestExpectPopulateWithNoChange(t *testing.T) {
 	path := "items.id"
 
-	expect := &Expect{Body: map[string]interface{}{path: "xyz"}}
+	expect := &Expect{BPath: map[string]interface{}{path: "xyz"}}
 	vars := &Vars{items: map[string]interface{}{"savedId": "abc"}}
 
 	expect.populateWith(vars)
 
-	if expect.Body[path] != "xyz" || len(expect.Body) != 1 {
-		t.Errorf("body was modified, body %v", expect.Body)
+	if expect.BodyPath()[path] != "xyz" || len(expect.BodyPath()) != 1 {
+		t.Errorf("body was modified, body %v", expect.BodyPath())
 	}
 }
 
@@ -296,42 +296,42 @@ func TestExpectPopulateWithHeaders(t *testing.T) {
 func TestExpectPopulateWithBody(t *testing.T) {
 
 	path := "items.id"
-	expect := &Expect{Body: map[string]interface{}{path: "{savedId}"}}
+	expect := &Expect{BPath: map[string]interface{}{path: "{savedId}"}}
 
 	val := "myId"
 	vars := &Vars{items: map[string]interface{}{"savedId": val}}
 
 	expect.populateWith(vars)
 
-	if expect.Body[path] != val {
-		t.Errorf("body does not contain var '%s', body %v", val, expect.Body)
+	if expect.BodyPath()[path] != val {
+		t.Errorf("body does not contain var '%s', body %v", val, expect.BodyPath())
 	}
 }
 
 func TestExpectPopulateWithBodyArray(t *testing.T) {
 
 	path := "items.id"
-	expect := &Expect{Body: map[string]interface{}{path: []string{"{savedId}", "abc", "{nextId}"}}}
+	expect := &Expect{BPath: map[string]interface{}{path: []string{"{savedId}", "abc", "{nextId}"}}}
 
 	val := "myId"
 	vars := &Vars{items: map[string]interface{}{"savedId": val, "nextId": 3}}
 
 	expect.populateWith(vars)
 
-	arr := expect.Body[path].([]string)
+	arr := expect.BodyPath()[path].([]string)
 	if arr[0] != "myId" || arr[1] != "abc" || arr[2] != "3" {
-		t.Errorf("body does not contain var '%s', body %v", val, expect.Body)
+		t.Errorf("body does not contain var '%s', body %v", val, expect.BodyPath())
 	}
 }
 
 func TestExpectPopulateWithBodyInt(t *testing.T) {
-	expect := &Expect{Body: map[string]interface{}{"items.id": 12}}
+	expect := &Expect{BPath: map[string]interface{}{"items.id": 12}}
 	vars := &Vars{items: map[string]interface{}{"savedId": "someId"}}
 
 	expect.populateWith(vars)
 
-	if expect.Body["items.id"] != 12 || len(expect.Body) != 1 {
-		t.Errorf("body was modified, body %v", expect.Body)
+	if expect.BodyPath()["items.id"] != 12 || len(expect.BodyPath()) != 1 {
+		t.Errorf("body was modified, body %v", expect.BodyPath())
 	}
 }
 
@@ -365,4 +365,53 @@ func TestOnBodyContentKeepsSingleQuotes(t *testing.T) {
 	if err != nil || s != initialString {
 		t.Error(s, err)
 	}
+}
+
+func TestPopulateProperty_Map(t *testing.T) {
+	vars := NewVars()
+	_ = vars.Add("username", "dpfg")
+
+	tmpl := NewTemplateContext(vars)
+	body := map[string]interface{}{
+		"username": "{username}",
+	}
+
+	result := populateProperty(tmpl, body).(map[string]interface{})["username"]
+
+	if result != "dpfg" {
+		t.Errorf("Unexpected populated value: %s", result)
+	}
+}
+
+func TestPopulateProperty_ArrayOfStrings(t *testing.T) {
+	vars := NewVars()
+	_ = vars.Add("username", "dpfg")
+
+	tmpl := NewTemplateContext(vars)
+	body := []string{"{username}", "abc123"}
+
+	result := populateProperty(tmpl, body).([]string)
+
+	if result[0] != "dpfg" {
+		t.Errorf("Unexpected populated value: %s", result[0])
+	}
+
+	if result[1] != "abc123" {
+		t.Errorf("Unexpected populated value: %s", result[1])
+	}
+}
+
+func TestPopulateProperty_ArrayOfInt(t *testing.T) {
+	vars := NewVars()
+	_ = vars.Add("username", "dpfg")
+
+	tmpl := NewTemplateContext(vars)
+	body := []int{12, 3}
+
+	result := populateProperty(tmpl, body).([]int)
+
+	if result[0] != 12 || result[1] != 3 {
+		t.Errorf("Unexpected populated value: %d", result[0])
+	}
+
 }

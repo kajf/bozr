@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"strconv"
 	"strings"
 
@@ -188,4 +189,29 @@ func cleanPath(pathLine string) []string {
 	} // remove functions
 
 	return path
+}
+
+// NewBodyMatcher validates that expected object is presented in the response.
+// The expected body reflect required part of the response object.
+type NewBodyMatcher struct {
+	Strict       bool
+	ExpectedBody interface{}
+}
+
+func (e NewBodyMatcher) check(body interface{}) error {
+	// it is important to instantiate using new to avoid internal check of cmp library
+	r := new(bodyDiffReporter)
+	r.strict = e.Strict
+
+	opts := cmp.Options{r}
+
+	_ = cmp.Equal(e.ExpectedBody, body, opts...)
+	diff := r.String()
+
+	if diff != "" {
+		msg := strings.Join(strings.Split(diff, "\n"), "\n\t")
+		return fmt.Errorf("The body does not match expectations: \n\t%s", msg)
+	}
+
+	return nil
 }

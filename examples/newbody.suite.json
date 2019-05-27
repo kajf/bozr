@@ -1,0 +1,156 @@
+[
+  {
+    "name": "SparseMatcher - Matches",
+    "calls": [
+      {
+        "on": {
+          "method": "POST",
+          "url": "https://postman-echo.com/post",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "index": 1,
+            "name": "Example #1"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "bodyPath": {
+            "data": {
+              "index": 1
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "SparseMatcher - Fails if at least one property doesn't match",
+    "calls": [
+      {
+        "on": {
+          "method": "POST",
+          "url": "https://postman-echo.com/post",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "index": 1,
+            "name": "Example #1"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "bodyPath": {
+            "data": {
+              "index": 1,
+              "position": "LEFT"
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "SparseArrayMatchWhenNotExactExpectation",
+    "calls": [
+      {
+        "on": {
+          "method": "POST",
+          "url": "https://postman-echo.com/post",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "id": 9,
+            "items": [
+              "Weekly",
+              "Monthly",
+              "Yearly"
+            ]
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "bodyPath": {
+            "data": {
+              "id": 9,
+              "items": [
+                "Weekly",
+                "Yearly"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "SparseArrayDoesntMatchWhenExactExpectation",
+    "calls": [
+      {
+        "on": {
+          "method": "POST",
+          "url": "https://postman-echo.com/post",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "id": 9,
+            "items": [
+              "Weekly",
+              "Monthly",
+              "Yearly"
+            ]
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "exactBody": {
+            "data": {
+              "id": 9,
+              "items": [
+                "Weekly",
+                "Monthly"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "VariablesInTheBodyWorks",
+    "calls": [
+      {
+        "args": {
+          "username": "JohnDoe"
+        },
+        "on": {
+          "method": "POST",
+          "url": "https://postman-echo.com/post",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "id": 9,
+            "username": "{username}"
+          }
+        },
+        "expect": {
+          "statusCode": 200,
+          "bodyPath": {
+            "data.username": "{username}"
+          },
+          "bodyPath": {
+            "data": {
+              "id": 9,
+              "username": "{username}"
+            }
+          }
+        }
+      }
+    ]
+  }
+]

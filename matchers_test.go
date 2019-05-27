@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 )
 
@@ -179,7 +180,7 @@ func TestSearchByPathWithObjectFieldsFromDifferentItems(t *testing.T) {
 							"id": 34,
 							"name": "bar",
 							"descr": "bbb"
-						}						
+						}
 					]
 			}`)
 	if err != nil {
@@ -210,7 +211,7 @@ func TestSearchByPathWithObject(t *testing.T) {
 							"id": 34,
 							"name": "bar",
 							"descr": "bbb"
-						}						
+						}
 					]
 			}`)
 	if err != nil {
@@ -241,7 +242,7 @@ func TestSearchByPathWithObjectByIndex(t *testing.T) {
 							"id": 34,
 							"name": "bar",
 							"descr": "bbb"
-						}						
+						}
 					]
 			}`)
 	if err != nil {
@@ -275,7 +276,7 @@ func TestSearchByPathWithArrayOfObjects(t *testing.T) {
 							"id": 56,
 							"name": "baz"
 						}
-											
+
 					]
 			}`)
 	if err != nil {
@@ -317,7 +318,7 @@ func TestSearchByPathWithMultiArraysObject(t *testing.T) {
 								"id": 34,
 								"name": "bar",
 								"descr": "bbb"
-							}						
+							}
 						]
 					},
 					{
@@ -326,7 +327,7 @@ func TestSearchByPathWithMultiArraysObject(t *testing.T) {
 							{
 								"id": 56,
 								"name": "baz"
-							}						
+							}
 						]
 					}
 				]
@@ -851,4 +852,209 @@ func jsonAsMap(s string) (map[string]interface{}, error) {
 	err := json.Unmarshal([]byte(s), &m)
 
 	return m, err
+}
+
+func _jsonAsMap(s string) map[string]interface{} {
+	v, _ := jsonAsMap(s)
+	return v
+}
+
+func _jsonAsObject(s string) interface{} {
+	m := new(interface{})
+	err := json.Unmarshal([]byte(s), m)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	return m
+}
+
+//
+//func TestDebug(t *testing.T) {
+//	data := struct {
+//		name         string
+//		body         interface{}
+//		matcher      interface{}
+//		strict       bool
+//		expectToFail bool
+//	}{
+//		name:         "ArrayRoot/Exact/IntegersFailsIfAtLeastOnIsMissing",
+//		strict:       false,
+//		body:         _jsonAsObject(`{"data": {"index": 1}}`),
+//		matcher:      _jsonAsObject(`{"data": {"index": 2}}`),
+//		expectToFail: true,
+//	}
+//
+//	fmt.Printf("Actual: %v\n", data.body)
+//	fmt.Printf("Expected: %v\n", data.matcher)
+//
+//	expectation := NewBodyMatcher{ExpectedBody: data.matcher, Strict: data.strict}
+//	err := expectation.check(data.body)
+//
+//	if data.expectToFail && err == nil {
+//		t.Error("Expected to dont match")
+//	}
+//
+//	if !data.expectToFail && err != nil {
+//		t.Error("Expected to match")
+//	}
+//}
+
+func TestBodyMatch(t *testing.T) {
+
+	data := []struct {
+		name         string
+		body         interface{}
+		matcher      interface{}
+		strict       bool
+		expectToFail bool
+	}{
+		{
+			name:    "Object/Partial/Matches",
+			strict:  false,
+			body:    _jsonAsObject(`{ "profile": { "name": "Jack", "age": 31 } }`),
+			matcher: _jsonAsObject(`{ "profile": { "name": "Jack" } }`),
+		},
+		{
+			name:         "Object/Partial/FailIfAtLeastOneDoesntMatch",
+			strict:       false,
+			body:         _jsonAsObject(`{ "profile": { "name": "Jack", "age": 31 } }`),
+			matcher:      _jsonAsObject(`{ "profile": { "name": "John" } }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Object/Partial/FailIfAtLeastOneIsMissing",
+			strict:       false,
+			body:         _jsonAsObject(`{ "profile": { "name": "Jack", "age": 31 } }`),
+			matcher:      _jsonAsObject(`{ "profile": { "name": "Jack", "sex": "male" } }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Object/Exact/FailIfAtLeastOneDoesntMatch",
+			strict:       true,
+			body:         _jsonAsObject(`{ "profile": { "name": "Jack", "age": 31 } }`),
+			matcher:      _jsonAsObject(`{ "profile": { "name": "John", "age": 31 } }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Object/Exact/FailIfAtLeastOneIsMissing",
+			strict:       true,
+			body:         _jsonAsObject(`{ "profile": { "name": "Jack", "age": 31 } }`),
+			matcher:      _jsonAsObject(`{ "profile": { "name": "Jack" } }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Array/Partial/IntegersMatchesIfOrderedButSomeMissing",
+			strict:       false,
+			body:         _jsonAsObject(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsObject(`{ "items": [1,3,5] }`),
+			expectToFail: false,
+		},
+		{
+			name:         "Array/Partial/ObjectMatchesIfOrderedButSomeNestedFieldsAreMissing",
+			strict:       false,
+			body:         _jsonAsObject(`{ "items": [{ "id": 1, "name": "test1" }, { "id": 2, "name": "test2" }] }`),
+			matcher:      _jsonAsObject(`{ "items": [{ "id": 2 }] }`),
+			expectToFail: false,
+		},
+		{
+			name:         "Array/Partial/ObjectsDontMatchIfAtLeastOneNestedFieldDoesntMatch",
+			strict:       false,
+			body:         _jsonAsObject(`{ "items": [{ "id": 1, "name": "test1" }, { "id": 2, "name": "test2" }] }`),
+			matcher:      _jsonAsObject(`{ "items": [{ "id": 2, "name": "myName" }] }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Array/Partial/IntegersMatchesIfOrdered",
+			strict:       false,
+			body:         _jsonAsObject(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsObject(`{ "items": [1,2,3,4,5] }`),
+			expectToFail: false,
+		},
+		{
+			name:         "Array/Partial/IntegersDoesntMatchesIfAtLeastOneOutOfOrder",
+			strict:       false,
+			body:         _jsonAsObject(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsObject(`{ "items": [2,1,3] }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Array/Exact/IntegersMatchesIfOrdered",
+			strict:       true,
+			body:         _jsonAsObject(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsObject(`{ "items": [1,2,3,4,5] }`),
+			expectToFail: false,
+		},
+		{
+			name:         "Array/Exact/IntegersFailsIfAtLeastOnIsMissing",
+			strict:       true,
+			body:         _jsonAsObject(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsObject(`{ "items": [1,2,4,5] }`),
+			expectToFail: true,
+		},
+		{
+			name:         "ArrayRoot/Exact/IntegersFailsIfAtLeastOnIsMissing",
+			strict:       true,
+			body:         _jsonAsObject(`[1,2,3,4,5]`),
+			matcher:      _jsonAsObject(`[1,2,4,5]`),
+			expectToFail: true,
+		},
+		{
+			name:         "ArrayRoot/Exact/IntegersMatchesIfOrdered",
+			strict:       true,
+			body:         _jsonAsObject(`[1,2,3,4,5]`),
+			matcher:      _jsonAsObject(`[1,2,3,4,5]`),
+			expectToFail: false,
+		},
+		{
+			name:         "Array/Exact/IntegersFailsIfAtLeastOneIsOutOfOrder",
+			strict:       true,
+			body:         _jsonAsObject(`{ "items": [1,2,3,4,5] }`),
+			matcher:      _jsonAsObject(`{ "items": [1,2,4,3,5] }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Array/Exact/ObjectsDontMatchIfAtLeastOneIsMissing",
+			strict:       true,
+			body:         _jsonAsObject(`{ "items": [{ "id": 1, "name": "test1" }, { "id": 2, "name": "test2" }] }`),
+			matcher:      _jsonAsObject(`{ "items": [{ "id": 1, "name": "test1" }] }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Array/Exact/ObjectsDontMatchIfAtLeastOneNestedFieldIsMissing",
+			strict:       true,
+			body:         _jsonAsObject(`{ "items": [{ "id": 1, "name": "test1" }, { "id": 2, "name": "test2" }] }`),
+			matcher:      _jsonAsObject(`{ "items": [{ "id": 1 }, { "id": 2, "name": "test2" }] }`),
+			expectToFail: true,
+		},
+		{
+			name:         "Primitive/Exact/IntegersMatch",
+			strict:       true,
+			body:         _jsonAsObject(`2`),
+			matcher:      _jsonAsObject(`2`),
+			expectToFail: false,
+		},
+		{
+			name:         "Primitive/Exact/IntegersDontMatch",
+			strict:       true,
+			body:         _jsonAsObject(`2`),
+			matcher:      _jsonAsObject(`3`),
+			expectToFail: true,
+		},
+	}
+
+	for _, tt := range data {
+		t.Run(tt.name, func(t *testing.T) {
+			expectation := NewBodyMatcher{ExpectedBody: tt.matcher, Strict: tt.strict}
+			err := expectation.check(tt.body)
+
+			if tt.expectToFail && err == nil {
+				t.Errorf("\nBody: %s\nMatcher: %s\nOutput:\n%s\nExpected to have diff, but reported as equal.", toJSON(tt.body), toJSON(tt.matcher), err)
+			}
+
+			if !tt.expectToFail && err != nil {
+				t.Errorf("\nBody: %s\nMatcher: %s\nOutput:\n%s\nExpected to be equals, but diff is reported.", toJSON(tt.body), toJSON(tt.matcher), err)
+			}
+		})
+	}
 }

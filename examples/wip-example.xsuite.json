@@ -19,7 +19,7 @@
         "expect": {
           "statusCode": 200,
           "contentType": "application/json",
-          "body": {
+          "bodyPath": {
             "base": "USD"
           },
           "absent": [
@@ -61,7 +61,7 @@
         "expect": {
           "statusCode": 200,
           "contentType": "application/json",
-          "body": {
+          "bodyPath": {
             "base": "EUR"
           }
         }

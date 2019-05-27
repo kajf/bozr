@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	version = "0.8.13"
+	version = "0.8.13a"
 )
 
 func init() {
@@ -386,8 +386,16 @@ func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error
 		})
 	}
 
-	if len(expect.Body) > 0 {
-		exps = append(exps, BodyExpectation{pathExpectations: expect.Body})
+	if len(expect.BodyPath()) > 0 {
+		exps = append(exps, BodyPathExpectation{pathExpectations: expect.BodyPath()})
+	}
+
+	if expect.Body != nil {
+		exps = append(exps, BodyExpectation{ExpectedBody: expect.Body, Strict: false})
+	}
+
+	if expect.ExactBody != nil {
+		exps = append(exps, BodyExpectation{ExpectedBody: expect.ExactBody, Strict: true})
 	}
 
 	if len(expect.Absent) > 0 {

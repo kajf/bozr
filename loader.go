@@ -387,7 +387,15 @@ const suiteDetailedSchema = `
                   "type": "object",
                   "minProperties": 1
                 },
-                "body": {
+				"body": {
+				  "type": "object",
+                  "minProperties": 1
+				},
+				"exactBody": {
+				  "type": "object",
+                  "minProperties": 1
+				},
+				"bodyPath": {
 				  "type": "object",
                   "minProperties": 1
                 },

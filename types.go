@@ -112,11 +112,17 @@ type Expect struct {
 	// shortcut for content-type header
 	ContentType    string                 `json:"contentType"`
 	Headers        map[string]string      `json:"headers"`
-	Body           map[string]interface{} `json:"body"`
+	BPath          map[string]interface{} `json:"bodyPath"`
+	Body           interface{}            `json:"body"`
+	ExactBody      interface{}            `json:"exactBody"`
 	Absent         []string               `json:"absent"`
 	BodySchemaRaw  json.RawMessage        `json:"bodySchema"`
 	BodySchemaFile string                 `json:"bodySchemaFile"`
 	BodySchemaURI  string                 `json:"bodySchemaURI"`
+}
+
+func (e Expect) BodyPath() map[string]interface{} {
+	return e.BPath
 }
 
 var jsonSchemaCache sync.Map
@@ -189,7 +195,7 @@ func (e Expect) loadSchemaFromURI() ([]byte, error) {
 	return schema, nil
 }
 
-func (e Expect) populateWith(vars *Vars) error {
+func (e *Expect) populateWith(vars *Vars) error {
 	tmplCtx := NewTemplateContext(vars)
 
 	//expect.Headers        map[string]string
@@ -197,26 +203,44 @@ func (e Expect) populateWith(vars *Vars) error {
 		e.Headers[name] = tmplCtx.ApplyTo(valueTmpl)
 	}
 
-	//expect.Body           map[string]interface{} - string, array, num
-	for path, val := range e.Body {
-
-		switch typedExpect := val.(type) {
-		case []string:
-			for i, el := range typedExpect {
-				typedExpect[i] = tmplCtx.ApplyTo(el)
-			}
-		case string:
-			e.Body[path] = tmplCtx.ApplyTo(typedExpect)
-		default:
-			// do nothing with values like numbers
-		}
-	}
+	e.Body = populateProperty(tmplCtx, e.Body)
+	e.ExactBody = populateProperty(tmplCtx, e.ExactBody)
+	e.BPath = populateProperty(tmplCtx, e.BodyPath()).(map[string]interface{})
 
 	if tmplCtx.HasErrors() {
 		return tmplCtx.Error()
 	}
 
 	return nil
+}
+
+func populateProperty(tmpl *TemplateContext, prop interface{}) interface{} {
+
+	switch typedProp := prop.(type) {
+	case string:
+		r := tmpl.ApplyTo(typedProp)
+		debugf("Populated template: %v -> %v", typedProp, r)
+		return r
+
+	case []string:
+		var result = make([]string, 0)
+		for _, item := range typedProp {
+			result = append(result, populateProperty(tmpl, item).(string))
+		}
+		return result
+
+	case map[string]interface{}:
+		result := make(map[string]interface{})
+		for pk, pv := range typedProp {
+			result[pk] = populateProperty(tmpl, pv)
+		}
+		return result
+
+	default:
+		// no transformation are required
+		return prop
+	}
+
 }
 
 func toAbsPath(suitePath string, assetPath string) (string, error) {
@@ -331,7 +355,7 @@ type Response struct {
 	parsedBody interface{}
 }
 
-// Body returns parsed response (array or map) depending on provided 'Content-Type'
+// BodyPath returns parsed response (array or map) depending on provided 'Content-Type'
 // supported content types are 'application/json', 'application/xml', 'text/xml'
 func (resp *Response) Body() (interface{}, error) {
 	if resp.parsedBody != nil {
@@ -539,7 +563,7 @@ func (v *Vars) print(w io.Writer) {
 // toString returns value suitable to insert as an argument
 // if value if a float where decimal part is zero - convert to int
 func toString(rw interface{}) string {
-	var sv interface{} = rw
+	var sv = rw
 	if fv, ok := rw.(float64); ok {
 		_, frac := math.Modf(fv)
 		if frac == 0 {
@@ -548,6 +572,11 @@ func toString(rw interface{}) string {
 	}
 
 	return fmt.Sprintf("%v", sv)
+}
+
+func toJSON(v interface{}) string {
+	bytes, _ := json.Marshal(v)
+	return string(bytes)
 }
 
 // Throttle implements rate limiting based on sliding time window
@@ -588,7 +617,7 @@ func (t *Throttle) RunOrPause() {
 	t.cleanOld()
 
 	totalCallsInFrame := len(t.queue)
-	limitExceeded := (totalCallsInFrame == t.limit)
+	limitExceeded := totalCallsInFrame == t.limit
 
 	if limitExceeded {
 		eldestCallInFrame := t.queue[0]

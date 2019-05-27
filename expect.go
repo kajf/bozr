@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/xeipuuv/gojsonschema"
 	"mime"
 	"strings"
+
+	"github.com/xeipuuv/gojsonschema"
 )
 
 // ResponseExpectation is an interface to any validation
@@ -53,7 +54,7 @@ func (e BodySchemaExpectation) check(resp *Response) error {
 }
 
 func (e BodySchemaExpectation) desc() string {
-	tmpl := "Body matches the schema"
+	tmpl := "BodyPath matches the schema"
 	if e.displayName == "" {
 		return tmpl
 	}
@@ -71,7 +72,7 @@ func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 	}
 
 	if !result.Valid() {
-		msg := "Unexpected Body Schema:"
+		msg := "Unexpected BodyPath Schema:"
 		for _, desc := range result.Errors() {
 			msg = fmt.Sprintf(msg+"\n\t%s", desc)
 		}
@@ -81,13 +82,38 @@ func (e BodySchemaExpectation) checkJSON(resp *Response) error {
 	return nil
 }
 
-// BodyExpectation validates values under a certain path in a body.
-// Applies to json and xml.
+// BodyExpectation validates that expected object is presented in the response.
+// The expected body reflect required part of the response object.
 type BodyExpectation struct {
-	pathExpectations map[string]interface{}
+	Strict       bool
+	ExpectedBody interface{}
 }
 
 func (e BodyExpectation) check(resp *Response) error {
+
+	actualBody, err := resp.Body() // cached
+	if err != nil {
+		str := "Can't parse response body."
+		str += " " + err.Error()
+
+		return errors.New(str)
+	}
+
+	matcher := NewBodyMatcher{Strict: e.Strict, ExpectedBody: e.ExpectedBody}
+	return matcher.check(actualBody)
+}
+
+func (e BodyExpectation) desc() string {
+	return fmt.Sprint("Expected body's structure / values")
+}
+
+// BodyPathExpectation validates values under a certain path in a body.
+// Applies to json and xml.
+type BodyPathExpectation struct {
+	pathExpectations map[string]interface{}
+}
+
+func (e BodyPathExpectation) check(resp *Response) error {
 
 	for pathStr, expectedValue := range e.pathExpectations {
 
@@ -100,7 +126,7 @@ func (e BodyExpectation) check(resp *Response) error {
 	return nil
 }
 
-func (e BodyExpectation) desc() string {
+func (e BodyPathExpectation) desc() string {
 	return fmt.Sprintf("Expected body's structure / values (%d checks)", len(e.pathExpectations))
 }
 

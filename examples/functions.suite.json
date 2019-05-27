@@ -13,7 +13,7 @@
       },
       "expect": {
         "statusCode": 200,
-        "body": {
+        "bodyPath": {
           "args.from": "{now}"
         }
       }
@@ -35,7 +35,7 @@
       },
       "expect": {
         "statusCode": 200,
-        "body": {
+        "bodyPath": {
           "args.key": "2b0cc371b76f3ec6c1bebc52bcc44af69304dabf"
         }
       }
@@ -59,7 +59,7 @@
       },
       "expect": {
         "statusCode": 200,
-        "body": {
+        "bodyPath": {
           "json.WSSEPasswordDigest": "+XUanLmUnd2Dp//esmL7ifPasd4="
         }
       }
@@ -83,7 +83,7 @@
       },
       "expect": {
         "statusCode": 200,
-        "body": {
+        "bodyPath": {
           "json.arr.size()": 2,
           "json.arr.sizeAsString()": "{sizeFromArg}"
         }
@@ -108,7 +108,7 @@
         }
       },
       "expect": {
-        "body": {
+        "bodyPath": {
           "json.users.name": ["Mike", "Bob"]
         }
       }
@@ -136,7 +136,7 @@
         }
       },
       "expect": {
-        "body": {
+        "bodyPath": {
           "json.users": {
             "name": "John",
             "age": 12
