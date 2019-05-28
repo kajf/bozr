@@ -371,7 +371,8 @@ const suiteDetailedSchema = `
               "required": [
                 "method",
                 "url"
-              ]
+              ],
+              "additionalProperties": false
             },
             "expect": {
               "type": "object",
@@ -387,21 +388,21 @@ const suiteDetailedSchema = `
                   "type": "object",
                   "minProperties": 1
                 },
-				"body": {
-				  "type": "object",
-                  "minProperties": 1
-				},
-				"exactBody": {
-				  "type": "object",
-                  "minProperties": 1
-				},
-				"bodyPath": {
-				  "type": "object",
-                  "minProperties": 1
-                },
-				"bodySchema": {
-				  "type": "object"
-				},
+								"body": {
+									"type": "object",
+													"minProperties": 1
+								},
+								"exactBody": {
+									"type": "object",
+													"minProperties": 1
+								},
+								"bodyPath": {
+									"type": "object",
+													"minProperties": 1
+												},
+								"bodySchema": {
+									"type": "object"
+								},
                 "bodySchemaFile": {
                   "type": "string"
                 },
@@ -434,7 +435,8 @@ const suiteDetailedSchema = `
           "required": [
             "on",
             "expect"
-          ]
+					],
+					"additionalProperties": false
         }
       }
     },
