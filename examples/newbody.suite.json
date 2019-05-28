@@ -16,7 +16,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "bodyPath": {
+          "body": {
             "data": {
               "index": 1
             }
@@ -42,7 +42,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "bodyPath": {
+          "body": {
             "data": {
               "index": 1,
               "position": "LEFT"
@@ -73,7 +73,7 @@
         },
         "expect": {
           "statusCode": 200,
-          "bodyPath": {
+          "body": {
             "data": {
               "id": 9,
               "items": [
@@ -143,7 +143,7 @@
           "bodyPath": {
             "data.username": "{username}"
           },
-          "bodyPath": {
+          "body": {
             "data": {
               "id": 9,
               "username": "{username}"
