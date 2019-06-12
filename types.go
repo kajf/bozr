@@ -355,7 +355,7 @@ type Response struct {
 	parsedBody interface{}
 }
 
-// BodyPath returns parsed response (array or map) depending on provided 'Content-Type'
+// Body returns parsed response (array or map) depending on provided 'Content-Type'
 // supported content types are 'application/json', 'application/xml', 'text/xml'
 func (resp *Response) Body() (interface{}, error) {
 	if resp.parsedBody != nil {
