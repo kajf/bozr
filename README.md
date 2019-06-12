@@ -122,7 +122,9 @@ Passing Test:
 | bodySchemaFile | Path to json schema to validate response body (path relative to test suite file) | login-schema.json                               |
 | bodySchemaURI  | URI to json schema to validate response body (absolute or relative to the host)  | http://example.com/api/scheme/login-schema.json |
 | bodySchema     | Embedded json schema to validate response body                                           | { "type": "object", "required": [ "field_name" ]
-| body           | Body matchers: equals, search, size                                                      |
+| body           | Expected body structure and values. Not strict, e.g. not full equality is required. Response may contain more properties. But all specified must match.                                                      |
+| exactBody           | Expected exact body structure and values. Specified body should fully match response. Not specified properties returned in response will cause error.                                                       |
+| bodyPath           | Body matchers: equals, search, size                                                      |
 | absent         | Paths that are NOT expected to be in response                                            | ['user.cardNumber', 'user.password']            |
 | headers        | Expected http headers, specified as a key-value pairs.                                   |
 
@@ -140,11 +142,40 @@ Response:
 }
 ```
 
+Could be used to partially match response body:
+
+```json
+"expect": {
+  "body": {
+    "users": [
+       {"name":"John", "age": 38}
+     ]
+  }
+}
+```
+
+Exact match (no new properties in the response) can be checked using "exactBody".
+
+
+### 'Expect' body path matchers
+
+Response:
+
+```json
+{
+  "users": [
+    {"name":"John", "surname":"Wayne", "age": 38}
+    {"name":"John", "surname":"Doe", "age": 12}
+  ],
+  "errors": []
+}
+```
+
 Passing Test:
 
 ```json
 "expect": {
-    "body": {
+    "bodyPath": {
         "users.1.surname" : "Doe",
         "users.name":"John",
         "users": {
