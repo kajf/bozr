@@ -122,7 +122,7 @@ Passing Test:
 | bodySchemaFile | Path to json schema to validate response body (path relative to test suite file) | login-schema.json                               |
 | bodySchemaURI  | URI to json schema to validate response body (absolute or relative to the host)  | http://example.com/api/scheme/login-schema.json |
 | bodySchema     | Embedded json schema to validate response body                                           | { "type": "object", "required": [ "field_name" ]
-| body           | Expected body structure and values. Not strict, e.g. not full equality is required. Response may contain more properties. But all specified must match.                                                      |
+| body           | Expected body structure and values. Not strict, e.g. full equality is not required. Response may contain more properties. But all specified must match.                                                      |
 | exactBody           | Expected exact body structure and values. Specified body should fully match response. Not specified properties returned in response will cause error.                                                       |
 | bodyPath           | Body matchers: equals, search, size                                                      |
 | absent         | Paths that are NOT expected to be in response                                            | ['user.cardNumber', 'user.password']            |
