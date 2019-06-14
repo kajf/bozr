@@ -289,7 +289,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 		trace.addExp(exp.desc())
 	}
 
-	err = rememberBody(&testResp, call.Remember.Body, vars)
+	err = rememberBody(&testResp, call.Remember.BPath, vars)
 	debug.Print("Remember: ", vars)
 	if err != nil {
 		debug.Print("Error remember")

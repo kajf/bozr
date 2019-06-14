@@ -109,7 +109,7 @@ Passing Test:
 "expect": {
     "statusCode": 200,
     "contentType": "application/json",
-    "body": {
+    "bodyPath": {
         "errors.size()": 1
     }
 }
@@ -331,7 +331,7 @@ There are two types of sources for values to remember: response body and headers
 ```json
 {
   "remember": {
-    "body": {
+    "bodyPath": {
       "createdId": "path.to.id"
     },
     "headers": {

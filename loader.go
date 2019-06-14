@@ -420,7 +420,7 @@ const suiteDetailedSchema = `
               "type": "object",
               "minProperties": 1,
               "properties": {
-                "body": {
+                "bodyPath": {
                   "type": "object",
                   "minProperties": 1
                 },

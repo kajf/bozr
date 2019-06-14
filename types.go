@@ -65,7 +65,7 @@ type Call struct {
 
 // Remember defines items from HTTP response to persist for usage in future calls
 type Remember struct {
-	Body    map[string]string `json:"body,omitempty"`
+	BPath   map[string]string `json:"bodyPath,omitempty"`
 	Headers map[string]string `json:"headers,omitempty"`
 }
 
