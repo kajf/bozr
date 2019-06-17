@@ -5,11 +5,11 @@
         "currency": "USD"
       },
       "on": {
-        "url": "http://exchangeratesapi.io/api/latest",
+        "url": "https://api.exchangeratesapi.io/latest",
         "method": "GET",
         "params": {
           "base": "{currency}",
-          "symbols": "GBP,JPY,RUB,USD"
+          "symbols": "GBP,JPY,USD"
         },
         "headers": {
           "accept": "application/json"
@@ -44,7 +44,7 @@
     "name": "Example of the failed test",
     "calls": [{
       "on": {
-        "url": "http://exchangeratesapi.io/api/latest",
+        "url": "http://api.exchangeratesapi.io/latest",
         "method": "GET",
         "params": {
           "base": "USD"
