@@ -1,8 +1,10 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Bozr test suite schema definition",
   "type": "array",
   "items": {
     "type": "object",
+    "additionalProperties": false,
     "properties": {
       "name": {
         "type": "string",
@@ -21,6 +23,7 @@
         "type": "array",
         "items": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "args": {
               "type": "object",
@@ -29,6 +32,7 @@
             "on": {
               "type": "object",
               "minProperties": 1,
+              "additionalProperties": false,
               "properties": {
                 "method": {
                   "type": "string",
@@ -185,6 +189,9 @@
                   "minProperties": 1
                 },
                 "bodySchemaFile": {
+                  "type": "string"
+                },
+                "bodySchema": {
                   "type": "string"
                 },
                 "bodySchemaURI": {
