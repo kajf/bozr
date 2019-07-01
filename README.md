@@ -203,7 +203,7 @@ XML:
 
 Represents paths not expected to be in response body.
 Mostly used for security checks (e.g. returned user object should not contain password or credit card number fields)
-Path fromat is the same as in 'Expect' body section
+Path fromat is the same as in `expect.bodyPath` section
 
 ```json
 "expect": {
@@ -215,7 +215,7 @@ Path fromat is the same as in 'Expect' body section
 
 Specifies placeholder values for future reference (within test scope)
 
-Placeholder values could be used inside `on.url`, `on.params`, `on.headers`, `on.body`, `on.bodyFile`, `expect.headers`, `expect.body` sections.
+Placeholder values could be used inside `on.url`, `on.params`, `on.headers`, `on.body`, `on.bodyFile`, `expect.headers`, `expect.body`, `expect.bodyPath` sections.
 
 ```json
 "args": {
