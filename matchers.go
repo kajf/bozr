@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"strconv"
 	"strings"
+
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/pkg/errors"
 )
@@ -54,7 +55,7 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) err
 			if funcRes == expectedValue {
 				return nil
 			}
-			return fmt.Errorf("Expected value %#v does not match actual %#v on path %#v", expectedValue, funcRes, pathLine)
+			return fmt.Errorf("Expected value %#v does not match actual %#v on path %#v", fmtExpectedValue(expectedValue), funcRes, pathLine)
 		}
 
 		return err
@@ -68,7 +69,7 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) err
 			found := findDeep(resArr, expectedItem)
 
 			if !found {
-				str := fmt.Sprintf("Value %#v not found on path %#v", expectedItem, pathLine)
+				str := fmt.Sprintf("Value %#v not found on array path %#v", fmtExpectedValue(expectedItem), pathLine)
 				return errors.New(str)
 			}
 		}
@@ -81,8 +82,21 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) err
 		}
 	}
 
-	str := fmt.Sprintf("Value %#v not found on path %#v", expectedValue, pathLine)
+	str := fmt.Sprintf("Value %#v not found on path %#v", fmtExpectedValue(expectedValue), pathLine)
 	return errors.New(str)
+}
+
+func fmtExpectedValue(expectedValue interface{}) string {
+
+	switch typedExpectedValue := expectedValue.(type) {
+	case bool:
+		return fmt.Sprintf("%t", typedExpectedValue)
+	case float64, float32:
+		return fmt.Sprintf("%f", typedExpectedValue)
+	default:
+		return fmt.Sprintf("%#v", typedExpectedValue)
+	}
+
 }
 
 func matchesAll(expectedMap map[string]interface{}, searchResult interface{}) bool {

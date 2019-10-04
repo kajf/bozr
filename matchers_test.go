@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -598,6 +599,34 @@ func TestSearchByPathWithRootArray(t *testing.T) {
 	err = SearchByPath(arr, expected, "id")
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func TestBodyExpectationBoolFMT(t *testing.T) {
+
+	m, err := jsonAsMap(`{"flag": true}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = SearchByPath(m, false, "flag")
+
+	if strings.Compare(`Value "false" not found on path "flag"`, err.Error()) != 0 {
+		t.Error("Incorrect format of expected value:[", err, "]")
+	}
+}
+
+func TestSearchByPathNonScientificIntFMT(t *testing.T) {
+
+	m, err := jsonAsMap(`{"num": 1}`)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = SearchByPath(m, 1234567.0, "num")
+
+	if !strings.Contains(err.Error(), "1234567") {
+		t.Error("Unexpected number format in error message:[", err, "] should contain:1234567")
 	}
 }
 
