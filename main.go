@@ -27,7 +27,7 @@ func init() {
 
 		h += "Options:\n"
 		h += "  -d, --debug		Enable debug mode\n"
-		h += "  -H, --host		Server to test\n"
+		h += "  -H, --host		Base URI prefix for test calls\n"
 		h += "  -w, --worker		Execute in parallel with specified number of workers\n"
 		h += "      --throttle	Execute no more than specified number of requests per second (in suite)\n"
 		h += "  -h, --help		Print usage\n"
@@ -171,7 +171,7 @@ func runSuite(suite TestSuite) []TestResult {
 			continue
 		}
 
-		vars := NewVars()
+		vars := NewVars(hostFlag)
 		for i, c := range testCase.Calls {
 
 			throttle.RunOrPause()

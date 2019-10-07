@@ -456,14 +456,19 @@ type Vars struct {
 }
 
 // NewVars create new Vars object with default set of env variables
-func NewVars() *Vars {
+func NewVars(baseUrl string) *Vars {
 	v := &Vars{
 		items: make(map[string]interface{}),
 	}
 
+	v.addContext(baseUrl)
 	v.addEnv()
 
 	return v
+}
+
+func (v *Vars) addContext(baseUrl string) {
+	v.items["ctx:base_url"] = baseUrl
 }
 
 func (v *Vars) addEnv() {

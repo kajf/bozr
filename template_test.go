@@ -9,7 +9,7 @@ import (
 func TestPlainTextWithoutTemplate(t *testing.T) {
 	// given
 	tmpl := "text-value 123"
-	tmplCtx := NewTemplateContext(NewVars())
+	tmplCtx := NewTemplateContext(NewVars(""))
 
 	// when
 	output := tmplCtx.ApplyTo(tmpl)
@@ -30,7 +30,7 @@ func TestPlainTextWithVars(t *testing.T) {
 	// given
 	tmpl := "{username} was successfully assigned to the Order #{order-id}"
 
-	vars := NewVars()
+	vars := NewVars("")
 	vars.Add("order-id", 555)
 	vars.Add("username", "Smith")
 
@@ -55,7 +55,7 @@ func TestPlainTextWithNotExistingFunc(t *testing.T) {
 	// given
 	tmpl := "{username} was successfully assigned to the Order {{ .NotExists `9302945` }}"
 
-	vars := NewVars()
+	vars := NewVars("")
 	vars.Add("username", "Smith")
 
 	tmplCtx := NewTemplateContext(vars)
@@ -79,7 +79,7 @@ func TestFuncBase64(t *testing.T) {
 	// given
 	tmpl := "{{ .Base64 `DPFG` }}"
 
-	tmplCtx := NewTemplateContext(NewVars())
+	tmplCtx := NewTemplateContext(NewVars(""))
 
 	// when
 	output := tmplCtx.ApplyTo(tmpl)
@@ -100,7 +100,7 @@ func TestFuncSHA1(t *testing.T) {
 	// given
 	tmpl := "{{ .SHA1 `{username}` }}"
 
-	vars := NewVars()
+	vars := NewVars("")
 	vars.Add("username", "el_mask")
 
 	tmplCtx := NewTemplateContext(vars)
@@ -124,7 +124,7 @@ func TestFuncWSSEPasswordDigest(t *testing.T) {
 	// given
 	tmpl := "{{ .WSSEPasswordDigest `{nonce}` `{created}` `{password}` }}"
 
-	vars := NewVars()
+	vars := NewVars("")
 	vars.Add("nonce", "abc123")
 	vars.Add("created", "2012-06-09T18:41:03.640Z")
 	vars.Add("password", "password")
@@ -148,7 +148,7 @@ func TestFuncWSSEPasswordDigest(t *testing.T) {
 
 func TestFuncDaysFromNow(t *testing.T) {
 	// given
-	vars := NewVars()
+	vars := NewVars("")
 	tmplCtx := NewTemplateContext(vars)
 
 	// when
@@ -163,7 +163,7 @@ func TestFuncDaysFromNow(t *testing.T) {
 
 func TestFuncNow(t *testing.T) {
 	// given
-	vars := NewVars()
+	vars := NewVars("")
 	tmplCtx := NewTemplateContext(vars)
 
 	// when

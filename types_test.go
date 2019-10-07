@@ -171,8 +171,9 @@ func TestThrottleZeroLimit(t *testing.T) {
 
 func TestVarsApplyTo(t *testing.T) {
 	token := "test_token"
-	rememberMap := map[string]interface{}{"savedToken": token}
-	vars := &Vars{items: rememberMap}
+
+	vars := NewVars("")
+	vars.AddAll(map[string]interface{}{"savedToken": token})
 
 	got := vars.ApplyTo("bearer {savedToken}")
 
@@ -187,8 +188,9 @@ func TestVarsApplyTo(t *testing.T) {
 func TestVarsApplyToMultiple(t *testing.T) {
 	token := "test_token"
 	second := "second"
-	rememberMap := map[string]interface{}{"savedToken": token, "aSecond": second}
-	vars := &Vars{items: rememberMap}
+
+	vars := NewVars("")
+	vars.AddAll(map[string]interface{}{"savedToken": token, "aSecond": second})
 
 	got := vars.ApplyTo("prefix {savedToken} middle {aSecond} postfix")
 
@@ -202,7 +204,7 @@ func TestVarsApplyToMultiple(t *testing.T) {
 }
 
 func TestVarsApplyToNestedReference(t *testing.T) {
-	vars := NewVars()
+	vars := NewVars("")
 	vars.AddAll(map[string]interface{}{"id": "4256", "username": "RU{id}", "key": "{username}"})
 
 	got := vars.ApplyTo("{key}")
@@ -216,7 +218,7 @@ func TestVarsApplyToNestedReference(t *testing.T) {
 }
 
 func TestVarsApplyToNestedTemplate(t *testing.T) {
-	vars := NewVars()
+	vars := NewVars("")
 	vars.AddAll(map[string]interface{}{"id": "{{ .Base64 `BOZR` }}", "username": "RU{id}", "key": "{{ .SHA1 `{username}` }}"})
 
 	got := vars.ApplyTo("{key}")
@@ -230,7 +232,7 @@ func TestVarsApplyToNestedTemplate(t *testing.T) {
 }
 
 func TestVarsNotInitializedWithRecoursiveReferences(t *testing.T) {
-	vars := NewVars()
+	vars := NewVars("")
 
 	err := vars.AddAll(map[string]interface{}{
 		"username": "RU{username}",
@@ -249,7 +251,7 @@ func TestVarsNotInitializedWithRecoursiveReferences(t *testing.T) {
 }
 
 func TestVarsIgnoreAddedRecoursiveReference(t *testing.T) {
-	vars := NewVars()
+	vars := NewVars("")
 
 	err := vars.Add("username", "BY{username}")
 
@@ -269,7 +271,8 @@ func TestExpectPopulateWithNoChange(t *testing.T) {
 	path := "items.id"
 
 	expect := &Expect{BPath: map[string]interface{}{path: "xyz"}}
-	vars := &Vars{items: map[string]interface{}{"savedId": "abc"}}
+	vars := NewVars("")
+	vars.AddAll(map[string]interface{}{"savedId": "abc"})
 
 	expect.populateWith(vars)
 
@@ -284,7 +287,8 @@ func TestExpectPopulateWithHeaders(t *testing.T) {
 	val := "myId"
 
 	expect := &Expect{Headers: map[string]string{header: "{savedId}"}}
-	vars := &Vars{items: map[string]interface{}{"savedId": val}}
+	vars := NewVars("")
+	vars.AddAll(map[string]interface{}{"savedId": val})
 
 	expect.populateWith(vars)
 
@@ -299,7 +303,8 @@ func TestExpectPopulateWithBody(t *testing.T) {
 	expect := &Expect{BPath: map[string]interface{}{path: "{savedId}"}}
 
 	val := "myId"
-	vars := &Vars{items: map[string]interface{}{"savedId": val}}
+	vars := NewVars("")
+	vars.AddAll(map[string]interface{}{"savedId": val})
 
 	expect.populateWith(vars)
 
@@ -314,7 +319,8 @@ func TestExpectPopulateWithBodyArray(t *testing.T) {
 	expect := &Expect{BPath: map[string]interface{}{path: []string{"{savedId}", "abc", "{nextId}"}}}
 
 	val := "myId"
-	vars := &Vars{items: map[string]interface{}{"savedId": val, "nextId": 3}}
+	vars := NewVars("")
+	vars.AddAll(map[string]interface{}{"savedId": val, "nextId": 3})
 
 	expect.populateWith(vars)
 
@@ -326,7 +332,8 @@ func TestExpectPopulateWithBodyArray(t *testing.T) {
 
 func TestExpectPopulateWithBodyInt(t *testing.T) {
 	expect := &Expect{BPath: map[string]interface{}{"items.id": 12}}
-	vars := &Vars{items: map[string]interface{}{"savedId": "someId"}}
+	vars := NewVars("")
+	vars.AddAll(map[string]interface{}{"savedId": "someId"})
 
 	expect.populateWith(vars)
 
@@ -368,7 +375,7 @@ func TestOnBodyContentKeepsSingleQuotes(t *testing.T) {
 }
 
 func TestPopulateProperty_Map(t *testing.T) {
-	vars := NewVars()
+	vars := NewVars("")
 	_ = vars.Add("username", "dpfg")
 
 	tmpl := NewTemplateContext(vars)
@@ -384,7 +391,7 @@ func TestPopulateProperty_Map(t *testing.T) {
 }
 
 func TestPopulateProperty_ArrayOfStrings(t *testing.T) {
-	vars := NewVars()
+	vars := NewVars("")
 	_ = vars.Add("username", "dpfg")
 
 	tmpl := NewTemplateContext(vars)
@@ -402,7 +409,7 @@ func TestPopulateProperty_ArrayOfStrings(t *testing.T) {
 }
 
 func TestPopulateProperty_ArrayOfInt(t *testing.T) {
-	vars := NewVars()
+	vars := NewVars("")
 	_ = vars.Add("username", "dpfg")
 
 	tmpl := NewTemplateContext(vars)
@@ -414,4 +421,31 @@ func TestPopulateProperty_ArrayOfInt(t *testing.T) {
 		t.Errorf("Unexpected populated value: %d", result[0])
 	}
 
+}
+
+func TestVarsApplyToWithContextBaseUrl(t *testing.T) {
+	baseUrl := "http://127.0.0.1/abc"
+	vars := NewVars(baseUrl)
+
+	got := vars.ApplyTo(`{ctx:base_url}/my-resource`)
+
+	if got != baseUrl+"/my-resource" {
+		t.Error(
+			"expected", baseUrl+"/my-resource",
+			"got", got,
+		)
+	}
+}
+
+func TestVarsApplyToWithEmptyContextBaseUrl(t *testing.T) {
+	vars := NewVars("")
+
+	got := vars.ApplyTo(`{ctx:base_url}/my-resource`)
+
+	if got != "/my-resource" {
+		t.Error(
+			"expected", "/my-resource",
+			"got", got,
+		)
+	}
 }

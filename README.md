@@ -11,7 +11,7 @@ Minimalistic tool to perform API tests based on JSON description
 bozr [OPTIONS] (DIR|FILE)
 
 Options:
-  -H, --host      Server to test
+  -H, --host      Base URL prefix for test calls
   -w, --workers   Execute in parallel with specified number of workers
       --throttle  Execute no more than specified number of requests per second (in suite)
   -h, --help      Print usage
@@ -68,7 +68,8 @@ If you want to temporary disable suite, change extension to `.xsuite.json`. Bozr
 Represents http request parameters
 
 ```json
-"on": {
+{
+  "on": {
     "method": "POST",
     "url": "/api/company/users",
     "headers": {
@@ -79,6 +80,7 @@ Represents http request parameters
         "role": "admin"
     },
     "bodyFile" : "admins.json"
+  }
 }
 ```
 
@@ -106,12 +108,14 @@ Response:
 Passing Test:
 
 ```json
-"expect": {
+{
+  "expect": {
     "statusCode": 200,
     "contentType": "application/json",
     "bodyPath": {
         "errors.size()": 1
     }
+  }
 }
 ```
 
@@ -135,7 +139,7 @@ Response:
 ```json
 {
   "users": [
-    {"name":"John", "surname":"Wayne", "age": 38}
+    {"name":"John", "surname":"Wayne", "age": 38},
     {"name":"John", "surname":"Doe", "age": 12}
   ],
   "errors": []
@@ -145,11 +149,13 @@ Response:
 Could be used to partially match response body:
 
 ```json
-"expect": {
-  "body": {
-    "users": [
-       {"name":"John", "age": 38}
-     ]
+{
+  "expect": {
+    "body": {
+      "users": [
+        {"name":"John", "age": 38}
+      ]
+    }
   }
 }
 ```
@@ -164,17 +170,18 @@ Response:
 ```json
 {
   "users": [
-    {"name":"John", "surname":"Wayne", "age": 38}
+    {"name":"John", "surname":"Wayne", "age": 38},
     {"name":"John", "surname":"Doe", "age": 12}
   ],
   "errors": []
 }
 ```
 
-Passing Test:
+Passing Test `expect` fragment:
 
 ```json
-"expect": {
+{
+  "expect": {
     "bodyPath": {
         "users.1.surname" : "Doe",
         "users.name":"John",
@@ -184,6 +191,7 @@ Passing Test:
         },
         "errors.size()": 0
     }
+  }
 }
 ```
 
@@ -206,8 +214,10 @@ Mostly used for security checks (e.g. returned user object should not contain pa
 Path fromat is the same as in `expect.bodyPath` section
 
 ```json
-"expect": {
+{
+  "expect": {
     "absent": ["user.cardNumber", "user.password"]
+  }
 }
 ```
 
@@ -218,9 +228,11 @@ Specifies placeholder values for future reference (within test scope)
 Placeholder values could be used inside `on.url`, `on.params`, `on.headers`, `on.body`, `on.bodyFile`, `expect.headers`, `expect.body`, `expect.bodyPath` sections.
 
 ```json
-"args": {
-  "currencyCode" : "USD",
-  "magicNumber" : "12f"
+{
+  "args": {
+    "currencyCode" : "USD",
+    "magicNumber" : "12f"
+  }
 }
 ```
 
@@ -346,11 +358,11 @@ This section allowes more complex test scenarios like:
 - 'request login token, remember, then use remembered {token} to request some data and verify'
 - 'create resource, remember resource id from response, then use remembered {id} to delete resource'
 
-### Using environment variables in tests
+### Using environment and context variables in tests
 
-Similar to `args` and `remember` sections, OS environment variables could be used as plaseholder values for future reference (within test case scope).
+Similar to `args` and `remember` sections, OS environment variables could be used as placeholder values for future reference (within test case scope).
 
-Given `MY_FILTER` environment variable exists in terminal session, the following syntax enables its usage
+Given `MY_FILTER` environment variable exists in terminal session, the following syntax with `env` prefix enables its usage
 
 ```json
 {
@@ -363,6 +375,26 @@ Given `MY_FILTER` environment variable exists in terminal session, the following
   }
 }
 ```
+
+Context variables are available with `ctx` prefix
+
+List of context variables
+
+| Name        | Value                                                                       |
+| ----------- | --------------------------------------------------------------------------- |
+| base_url    | Base URL prefix for test calls. Command line argument provided with -H key  |
+
+
+```json
+{
+  "expect" : {
+    "bodyPath": {
+      "_links.delete" : "{ctx:base_url}/my-resource/123"
+    } 
+  }
+}
+```
+
 
 ## Editor integration
 

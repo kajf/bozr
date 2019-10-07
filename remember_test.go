@@ -10,7 +10,9 @@ func TestPopulateRequestBody(t *testing.T) {
 	//given
 	on := On{URL: "http://example.com"}
 	value := "abc"
-	vars := &Vars{items: map[string]interface{}{"var": value}}
+	vars := NewVars("")
+	vars.AddAll(map[string]interface{}{"var": value})
+
 	tmplCtx := NewTemplateContext(vars)
 	body := tmplCtx.ApplyTo("pre {var} post")
 
@@ -52,17 +54,18 @@ func TestConvertTypesToString(t *testing.T) {
 func TestRememberHeader(t *testing.T) {
 	responseHeaders := map[string][]string{"X-Test": {"PASS"}}
 	remember := map[string]string{"valueKey": "X-Test"}
-	remembered := map[string]interface{}{}
-	vars := &Vars{items: remembered}
+
+	vars := NewVars("")
+	initialLen := len(vars.items)
 
 	rememberHeaders(responseHeaders, remember, vars)
 
-	if len(remembered) != 1 {
+	if len(vars.items)-initialLen != 1 {
 		t.Errorf("Unexpected map length: %d", len(remember))
 		return
 	}
 
-	if remembered["valueKey"] != "PASS" {
-		t.Errorf("Unexpected remembered value: %s", remembered["valueKey"])
+	if vars.items["valueKey"] != "PASS" {
+		t.Errorf("Unexpected remembered value: %s", vars.items["valueKey"])
 	}
 }
