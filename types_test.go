@@ -449,3 +449,42 @@ func TestVarsApplyToWithEmptyContextBaseUrl(t *testing.T) {
 		)
 	}
 }
+
+func TestVarsUnused_EnvVar_NotReported(t *testing.T) {
+
+	vars := NewVars("")
+
+	vars.ApplyTo("{}")
+
+	unused := vars.Unused()
+	if len(unused) != 0 {
+		t.Error("Unexpected", unused)
+	}
+}
+
+func TestVarsUnused_CtxVar_NotReported(t *testing.T) {
+
+	vars := NewVars("http://127.0.0.1/abc")
+
+	vars.ApplyTo("{}")
+
+	unused := vars.Unused()
+	if len(unused) != 0 {
+		t.Error("Unexpected", unused)
+	}
+}
+
+func TestVarsUnused(t *testing.T) {
+
+	vars := NewVars("")
+	unusedVarName := "unusedVar"
+	_ = vars.Add("myVar", "abc")
+	_ = vars.Add(unusedVarName, "xyz")
+
+	vars.ApplyTo("{myVar}")
+
+	unused := vars.Unused()
+	if unused[0] != unusedVarName || len(unused) != 1 {
+		t.Error("Unexpected", unused, "should be [", unusedVarName, "]")
+	}
+}
