@@ -297,7 +297,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 	}
 
 	err = rememberBody(&testResp, call.Remember.BPath, vars)
-	debug.Print(vars.ToString())
+	debug.Print(vars)
 	if err != nil {
 		debug.Print("Error remember")
 		trace.ErrorCause = err // TODO trace.addError(err) to report

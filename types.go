@@ -605,7 +605,7 @@ func (v *Vars) Unused() []string {
 	return unused
 }
 
-func (v *Vars) ToString() string {
+func (v *Vars) String() string {
 	str := "Vars {"
 	for varName, val := range v.items {
 		if !v.isUserDefined(varName) {
