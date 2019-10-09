@@ -192,6 +192,13 @@ func runSuite(suite TestSuite) []TestResult {
 			}
 		}
 
+		unused := vars.Unused()
+		if len(unused) != 0 {
+			traces := result.Traces
+			lastTrace := traces[len(traces)-1]
+			lastTrace.addError(fmt.Errorf("Unused variables found: %s", unused))
+		}
+
 		result.ExecFrame.End = time.Now()
 
 		results = append(results, result)
@@ -290,10 +297,10 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 	}
 
 	err = rememberBody(&testResp, call.Remember.BPath, vars)
-	debug.Print("Remember: ", vars)
+	debug.Print(vars.ToString())
 	if err != nil {
 		debug.Print("Error remember")
-		trace.ErrorCause = err
+		trace.ErrorCause = err // TODO trace.addError(err) to report
 		return trace
 	}
 
@@ -429,7 +436,7 @@ func rememberBody(resp *Response, remember map[string]string, vars *Vars) (err e
 			vars.Add(varName, rememberVar)
 		} else {
 			debug.Print(err)
-			return fmt.Errorf("Remembered value not found, path: %v", pathLine)
+			return fmt.Errorf("remembered value not found at path: %v", pathLine)
 		}
 	}
 

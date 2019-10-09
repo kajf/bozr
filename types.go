@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math"
 	"mime"
@@ -449,18 +448,27 @@ func (resp *Response) ToString() string {
 	return details
 }
 
+const (
+	envVarPrefix       = "env"
+	ctxVarPrefix       = "ctx"
+	varPrefixSeparator = ":"
+)
+
 // Vars defines map of test case level variables (e.g. args, remember, env)
 type Vars struct {
 	// variables ready to be used
 	items map[string]interface{}
+	used  map[string]bool
 }
 
 // NewVars create new Vars object with default set of env variables
 func NewVars(baseUrl string) *Vars {
 	v := &Vars{
 		items: make(map[string]interface{}),
+		used:  make(map[string]bool),
 	}
 
+	// TODO check override of env and ctx by regular vars
 	v.addContext(baseUrl)
 	v.addEnv()
 
@@ -468,14 +476,14 @@ func NewVars(baseUrl string) *Vars {
 }
 
 func (v *Vars) addContext(baseUrl string) {
-	v.items["ctx:base_url"] = baseUrl
+	v.items[ctxVarPrefix+varPrefixSeparator+"base_url"] = baseUrl
 }
 
 func (v *Vars) addEnv() {
 
 	for _, e := range os.Environ() {
 		pair := strings.Split(e, "=")
-		v.items["env:"+pair[0]] = pair[1]
+		v.items[envVarPrefix+varPrefixSeparator+pair[0]] = pair[1]
 	}
 
 }
@@ -553,16 +561,62 @@ func (v *Vars) AddAll(src map[string]interface{}) error {
 func (v *Vars) ApplyTo(str string) string {
 	for varName, val := range v.items {
 		placeholder := "{" + varName + "}"
-		str = strings.Replace(str, placeholder, toString(val), -1)
+		newStr := strings.Replace(str, placeholder, toString(val), -1)
+
+		isVarUsed := newStr != str
+
+		if v.isUserDefined(varName) && isVarUsed {
+			v.used[varName] = true
+		} // check used excluding ctx and env
+
+		str = newStr
 	}
 
 	return str
 }
 
-func (v *Vars) print(w io.Writer) {
-	for key, val := range v.items {
-		io.WriteString(w, fmt.Sprintf("%s: %s; ", key, val))
+func (v *Vars) isUserDefined(varName string) bool {
+	if strings.HasPrefix(varName, ctxVarPrefix+varPrefixSeparator) {
+		return false
 	}
+
+	if strings.HasPrefix(varName, envVarPrefix+varPrefixSeparator) {
+		return false
+	}
+
+	return true
+}
+
+func (v *Vars) Unused() []string {
+
+	unused := make([]string, 0, len(v.items)-len(v.used))
+	for varName := range v.items {
+		if v.used[varName] {
+			continue
+		}
+
+		if !v.isUserDefined(varName) {
+			continue
+		}
+
+		unused = append(unused, varName)
+	}
+
+	return unused
+}
+
+func (v *Vars) ToString() string {
+	str := "Vars {"
+	for varName, val := range v.items {
+		if !v.isUserDefined(varName) {
+			continue
+		}
+		str += fmt.Sprintf("%s=%s; ", varName, val)
+	}
+
+	str += "}"
+
+	return str
 }
 
 // toString returns value suitable to insert as an argument
