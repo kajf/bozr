@@ -436,7 +436,7 @@ func rememberBody(resp *Response, remember map[string]string, vars *Vars) (err e
 			vars.Add(varName, rememberVar)
 		} else {
 			debug.Print(err)
-			return fmt.Errorf("remembered value not found at path: %v", pathLine)
+			return fmt.Errorf("Remembered value not found, path: %v", pathLine)
 		}
 	}
 
