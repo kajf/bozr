@@ -272,7 +272,7 @@ func TestExpectPopulateWithNoChange(t *testing.T) {
 
 	expect := &Expect{BPath: map[string]interface{}{path: "xyz"}}
 	vars := NewVars("")
-	vars.AddAll(map[string]interface{}{"savedId": "abc"})
+	vars.Add("savedId", "abc")
 
 	expect.populateWith(vars)
 
@@ -288,7 +288,7 @@ func TestExpectPopulateWithHeaders(t *testing.T) {
 
 	expect := &Expect{Headers: map[string]string{header: "{savedId}"}}
 	vars := NewVars("")
-	vars.AddAll(map[string]interface{}{"savedId": val})
+	vars.Add("savedId", val)
 
 	expect.populateWith(vars)
 
@@ -304,7 +304,7 @@ func TestExpectPopulateWithBody(t *testing.T) {
 
 	val := "myId"
 	vars := NewVars("")
-	vars.AddAll(map[string]interface{}{"savedId": val})
+	vars.Add("savedId", val)
 
 	expect.populateWith(vars)
 
@@ -333,7 +333,7 @@ func TestExpectPopulateWithBodyArray(t *testing.T) {
 func TestExpectPopulateWithBodyInt(t *testing.T) {
 	expect := &Expect{BPath: map[string]interface{}{"items.id": 12}}
 	vars := NewVars("")
-	vars.AddAll(map[string]interface{}{"savedId": "someId"})
+	vars.Add("savedId", "someId")
 
 	expect.populateWith(vars)
 
@@ -471,6 +471,51 @@ func TestVarsUnused_CtxVar_NotReported(t *testing.T) {
 	unused := vars.Unused()
 	if len(unused) != 0 {
 		t.Error("Unexpected", unused)
+	}
+}
+
+func TestVarsAdd_CtxVarOverride_Err(t *testing.T) {
+
+	initialCtxValue := "http://127.0.0.1/abc"
+	vars := NewVars(initialCtxValue)
+
+	ctxNameUsed := ctxVarPrefix + varPrefixSeparator + "base_url"
+	err := vars.Add(ctxNameUsed, "abc")
+
+	if err == nil || vars.items[ctxNameUsed] != initialCtxValue {
+		t.Errorf("Expected (var override) error not thrown [%v] or value was overridden %#v. Expected %#v", err, vars.items[ctxNameUsed], initialCtxValue)
+	}
+}
+
+func TestVarsAdd_VarOverride_Err(t *testing.T) {
+	vars := NewVars("")
+	duplicateName := "first"
+	initialVal := "a"
+	errInit := vars.Add(duplicateName, initialVal)
+	if errInit != nil {
+		t.Error("initialization error", errInit)
+	}
+
+	err := vars.Add(duplicateName, "b")
+
+	if err == nil || vars.items[duplicateName] != initialVal {
+		t.Errorf("Expected (var override) error not thrown [%v] or value was overridden %#v. Expected %#v", err, vars.items[duplicateName], initialVal)
+	}
+}
+
+func TestVarsAddAll_VarOverride_Err(t *testing.T) {
+	vars := NewVars("")
+	duplicateName := "second"
+	initialVal := "b"
+	errInit := vars.AddAll(map[string]interface{}{"first": 1, duplicateName: initialVal})
+	if errInit != nil {
+		t.Error("initialization error", errInit)
+	}
+
+	err := vars.AddAll(map[string]interface{}{duplicateName: 2, "third": 3})
+
+	if err == nil || vars.items[duplicateName] != initialVal {
+		t.Errorf("Expected (var override) error not thrown [%v] or value was overridden %#v. Expected %#v", err, vars.items[duplicateName], initialVal)
 	}
 }
 
