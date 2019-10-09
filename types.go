@@ -468,7 +468,6 @@ func NewVars(baseUrl string) *Vars {
 		used:  make(map[string]bool),
 	}
 
-	// TODO check override of env and ctx by regular vars
 	v.addContext(baseUrl)
 	v.addEnv()
 
@@ -497,6 +496,10 @@ func (v *Vars) Add(name string, val interface{}) error {
 
 func (v *Vars) addInScope(name string, val interface{}, scope map[string]interface{}) error {
 	debugf("Adding new argument: %s - %+v\n", name, val)
+
+	if _, ok := v.items[name]; ok {
+		return fmt.Errorf("variable is %s already defined. Overriding is not allowed", name)
+	}
 
 	if str, ok := val.(string); ok {
 		tmplCtx := NewTemplateContext(v)
@@ -575,18 +578,7 @@ func (v *Vars) ApplyTo(str string) string {
 	return str
 }
 
-func (v *Vars) isUserDefined(varName string) bool {
-	if strings.HasPrefix(varName, ctxVarPrefix+varPrefixSeparator) {
-		return false
-	}
-
-	if strings.HasPrefix(varName, envVarPrefix+varPrefixSeparator) {
-		return false
-	}
-
-	return true
-}
-
+// Unused returns the slice of var names not replaced so far in any templates
 func (v *Vars) Unused() []string {
 
 	unused := make([]string, 0, len(v.items)-len(v.used))
@@ -617,6 +609,18 @@ func (v *Vars) String() string {
 	str += "}"
 
 	return str
+}
+
+func (v *Vars) isUserDefined(varName string) bool {
+	if strings.HasPrefix(varName, ctxVarPrefix+varPrefixSeparator) {
+		return false
+	}
+
+	if strings.HasPrefix(varName, envVarPrefix+varPrefixSeparator) {
+		return false
+	}
+
+	return true
 }
 
 // toString returns value suitable to insert as an argument
