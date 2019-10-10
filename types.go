@@ -328,7 +328,7 @@ func (trace *CallTrace) addExp(desc string) {
 	trace.ExpDesc[desc] = false
 }
 
-func (trace *CallTrace) addError(err error) {
+func (trace *CallTrace) addFail(err error) {
 	if trace.ExpDesc == nil {
 		trace.ExpDesc = make(map[string]bool)
 	}
@@ -342,9 +342,19 @@ func (trace *CallTrace) hasError() bool {
 }
 
 // Terminated returns true if request failed due to the issues with making request
-// or parsing response, not due to unmet expectations
+// or parsing response, not due to failed expectations
 func (trace *CallTrace) Terminated() bool {
-	return trace.ErrorCause != nil && len(trace.ExpDesc) == 0
+	return trace.hasError() && !trace.hasFailedExp()
+}
+
+func (trace *CallTrace) hasFailedExp() bool {
+	for _, failed := range trace.ExpDesc {
+		if failed {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Response wraps test call HTTP response
