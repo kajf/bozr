@@ -498,7 +498,7 @@ func (v *Vars) addInScope(name string, val interface{}, scope map[string]interfa
 	debugf("Adding new argument: %s - %+v\n", name, val)
 
 	if _, ok := v.items[name]; ok {
-		return fmt.Errorf("variable is %s already defined. Overriding is not allowed", name)
+		return fmt.Errorf("%s is already defined. Overriding is not allowed", name)
 	}
 
 	if str, ok := val.(string); ok {
@@ -564,15 +564,15 @@ func (v *Vars) AddAll(src map[string]interface{}) error {
 func (v *Vars) ApplyTo(str string) string {
 	for varName, val := range v.items {
 		placeholder := "{" + varName + "}"
-		newStr := strings.Replace(str, placeholder, toString(val), -1)
+		assembled := strings.Replace(str, placeholder, toString(val), -1)
 
-		isVarUsed := newStr != str
+		used := assembled != str
 
-		if v.isUserDefined(varName) && isVarUsed {
+		if v.isUserDefined(varName) && used {
 			v.used[varName] = true
 		} // check used excluding ctx and env
 
-		str = newStr
+		str = assembled
 	}
 
 	return str
