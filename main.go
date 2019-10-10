@@ -196,7 +196,9 @@ func runSuite(suite TestSuite) []TestResult {
 		if len(unused) != 0 {
 			traces := result.Traces
 			lastTrace := traces[len(traces)-1]
-			lastTrace.addError(fmt.Errorf("Declared/remembered arguments are not used: %s", unused))
+			if lastTrace.ErrorCause == nil {
+				lastTrace.ErrorCause = fmt.Errorf("Declared/remembered arguments are not used: %s", unused)
+			}
 		}
 
 		result.ExecFrame.End = time.Now()
@@ -300,7 +302,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 	debug.Print(vars)
 	if err != nil {
 		debug.Print("Error remember")
-		trace.addError(err)
+		trace.ErrorCause = err
 		return trace
 	}
 

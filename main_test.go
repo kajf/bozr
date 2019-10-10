@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -17,6 +18,30 @@ func TestRememberBodyLazy(t *testing.T) {
 
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func TestRunSuite_InvalidUrlAndUnused_OnlyInvalidUrl(t *testing.T) {
+	suite := TestSuite{
+		Cases: []TestCase{
+			{
+				Calls: []Call{
+					{
+						Args: map[string]interface{}{"a": 1},
+						On: On{
+							URL: "my-invalid-host",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	results := runSuite(suite)
+
+	err := results[0].Traces[0].ErrorCause
+	if err == nil || !strings.Contains(err.Error(), "Invalid url") {
+		t.Error("Expected error not thrown", err)
 	}
 }
 
