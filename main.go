@@ -196,7 +196,7 @@ func runSuite(suite TestSuite) []TestResult {
 		if len(unused) != 0 {
 			traces := result.Traces
 			lastTrace := traces[len(traces)-1]
-			lastTrace.addError(fmt.Errorf("Unused variables found: %s", unused))
+			lastTrace.addError(fmt.Errorf("Declared/remembered arguments are not used: %s", unused))
 		}
 
 		result.ExecFrame.End = time.Now()
