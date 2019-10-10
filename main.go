@@ -300,7 +300,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 	debug.Print(vars)
 	if err != nil {
 		debug.Print("Error remember")
-		trace.ErrorCause = err // TODO trace.addError(err) to report
+		trace.addError(err)
 		return trace
 	}
 
