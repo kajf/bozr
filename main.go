@@ -291,7 +291,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 		checkErr := exp.check(&testResp)
 
 		if checkErr != nil {
-			trace.addError(checkErr)
+			trace.addFail(checkErr)
 			return trace
 		}
 
