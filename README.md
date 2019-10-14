@@ -273,6 +273,7 @@ Resulting data will contain "USD" and "12f" values instead of placeholders.
   }
 }
 ```
+__Duplicated or unused argements are reported as test failure__
 
 ### Functions and data generation
 
