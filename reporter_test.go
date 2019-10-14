@@ -57,3 +57,13 @@ func (mw *MockWriter) Write(p []byte) (n int, err error) {
 func (mw *MockWriter) passed() bool {
 	return strings.Contains(mw.actualWriting, mw.expectedWriting)
 }
+
+func TestJUnitReporterEmptyResults(t *testing.T) {
+	// given
+
+	// when
+	NewJUnitReporter("").Report([]TestResult{})
+
+	// then
+	// no nil pointer panic
+}
