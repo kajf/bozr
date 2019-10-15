@@ -487,7 +487,7 @@ func TestVarsAdd_CtxVarOverride_Err(t *testing.T) {
 	}
 }
 
-func TestVarsAdd_VarOverride_Err(t *testing.T) {
+func TestVarsAdd_UserVarOverride_NoErr(t *testing.T) {
 	vars := NewVars("")
 	duplicateName := "first"
 	initialVal := "a"
@@ -498,12 +498,12 @@ func TestVarsAdd_VarOverride_Err(t *testing.T) {
 
 	err := vars.Add(duplicateName, "b")
 
-	if err == nil || vars.items[duplicateName] != initialVal {
-		t.Errorf("Expected (var override) error not thrown [%v] or value was overridden %#v. Expected %#v", err, vars.items[duplicateName], initialVal)
+	if err != nil {
+		t.Errorf("User var override is not supposed to throw an error [%v]", err)
 	}
 }
 
-func TestVarsAddAll_VarOverride_Err(t *testing.T) {
+func TestVarsAddAll_UserVarOverride_NoErr(t *testing.T) {
 	vars := NewVars("")
 	duplicateName := "second"
 	initialVal := "b"
@@ -514,8 +514,8 @@ func TestVarsAddAll_VarOverride_Err(t *testing.T) {
 
 	err := vars.AddAll(map[string]interface{}{duplicateName: 2, "third": 3})
 
-	if err == nil || vars.items[duplicateName] != initialVal {
-		t.Errorf("Expected (var override) error not thrown [%v] or value was overridden %#v. Expected %#v", err, vars.items[duplicateName], initialVal)
+	if err != nil {
+		t.Errorf("User var override (AddAll) is not supposed to throw an error [%v]", err)
 	}
 }
 

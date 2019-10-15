@@ -507,8 +507,10 @@ func (v *Vars) Add(name string, val interface{}) error {
 func (v *Vars) addInScope(name string, val interface{}, scope map[string]interface{}) error {
 	debugf("Adding new argument: %s - %+v\n", name, val)
 
-	if _, ok := v.items[name]; ok {
-		return fmt.Errorf("%s is already defined. Overriding is not allowed", name)
+	if !v.isUserDefined(name) {
+		if _, ok := v.items[name]; ok {
+			return fmt.Errorf("%s is already defined. Overriding is not allowed", name)
+		}
 	}
 
 	if str, ok := val.(string); ok {
