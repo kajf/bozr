@@ -175,3 +175,43 @@ func TestFuncNow(t *testing.T) {
 		t.Error(output, "is not equal to", expected)
 	}
 }
+
+func TestFuncNowInTZ(t *testing.T) {
+	// given
+	tmplCtx := NewTemplateContext(NewVars(""))
+
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected := time.Now().In(loc)
+
+	// when
+	output := tmplCtx.ApplyTo(`now is {{ "America/New_York" | .NowInTZ }}`)
+
+	// then
+	if output != fmt.Sprintf("now is %s", expected) {
+		t.Error(output, "is not equal to", expected)
+	}
+}
+
+func TestFuncNowInTZAndFormat(t *testing.T) {
+	// given
+	tmplCtx := NewTemplateContext(NewVars(""))
+
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected := time.Now().In(loc).Format("2006-01-02T15:04:05Z07:00")
+
+	// when
+	output := tmplCtx.ApplyTo(`now is {{ "America/New_York" | .NowInTZ | .FormatDateTime "2006-01-02T15:04:05Z07:00" }}`)
+
+	// then
+	if output != fmt.Sprintf("now is %s", expected) {
+		t.Error(output, "is not equal to", expected)
+	}
+}

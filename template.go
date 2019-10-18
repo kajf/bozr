@@ -69,6 +69,16 @@ func (ctx *Funcs) Now() time.Time {
 	return time.Now()
 }
 
+// Now returns current time in specified IANA timezone
+func (ctx *Funcs) NowInTZ(name string) time.Time {
+	loc, err := time.LoadLocation(name)
+	if err != nil {
+		return time.Now()
+	}
+
+	return time.Now().In(loc)
+}
+
 // TemplateContext backs and executes template
 type TemplateContext struct {
 	funcs  *Funcs
