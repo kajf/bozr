@@ -65,13 +65,14 @@ func (ctx *Funcs) CurrentTimestampSec() int64 {
 }
 
 // Now returns current time
-func (ctx *Funcs) Now() time.Time {
-	return time.Now()
-}
+// IANA timezone could be optionally specified
+func (ctx *Funcs) Now(tz ...string) time.Time {
 
-// Now returns current time in specified IANA timezone
-func (ctx *Funcs) NowInTZ(name string) time.Time {
-	loc, err := time.LoadLocation(name)
+	if len(tz) == 0 {
+		return time.Now()
+	}
+
+	loc, err := time.LoadLocation(tz[0])
 	if err != nil {
 		return time.Now()
 	}

@@ -307,11 +307,11 @@ _.Now_ returns current date/time
 
 In example above 'currentDate' argument will have value of current date in yyyy-mm-dd format
 
-_.NowInTZ_ returns current date/time in specified IANA timezone
+It is also possible to specify IANA timezone
 
 ```json
 {
-  "currentDateInNY": "{{ `America/New_York` | .NowInTZ }}"
+  "currentDateInNY": "{{ `America/New_York` | .Now }}"
 }
 ```
 

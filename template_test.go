@@ -188,7 +188,7 @@ func TestFuncNowInTZAndFormat(t *testing.T) {
 	expected := time.Now().In(loc).Format("2006-01-02T15:04:05Z07:00")
 
 	// when
-	output := tmplCtx.ApplyTo(`now is {{ "America/New_York" | .NowInTZ | .FormatDateTime "2006-01-02T15:04:05Z07:00" }}`)
+	output := tmplCtx.ApplyTo(`now is {{ "America/New_York" | .Now | .FormatDateTime "2006-01-02T15:04:05Z07:00" }}`)
 
 	// then
 	if output != fmt.Sprintf("now is %s", expected) {
