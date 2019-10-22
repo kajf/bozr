@@ -65,6 +65,7 @@
         }
       },
       {
+        "description" : "get by remember",
         "on": {
           "method": "GET",
           "url": "https://api.github.com/users/kajf",

@@ -321,6 +321,9 @@ const suiteDetailedSchema = `
         "items": {
           "type": "object",
           "properties": {
+		    "description": {
+			  "type": "string"
+		    },
             "args": {
               "type": "object",
               "minProperties": 1
