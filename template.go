@@ -65,8 +65,19 @@ func (ctx *Funcs) CurrentTimestampSec() int64 {
 }
 
 // Now returns current time
-func (ctx *Funcs) Now() time.Time {
-	return time.Now()
+// IANA timezone could be optionally specified
+func (ctx *Funcs) Now(tz ...string) time.Time {
+
+	if len(tz) == 0 {
+		return time.Now()
+	}
+
+	loc, err := time.LoadLocation(tz[0])
+	if err != nil {
+		return time.Now()
+	}
+
+	return time.Now().In(loc)
 }
 
 // TemplateContext backs and executes template

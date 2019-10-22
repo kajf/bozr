@@ -307,6 +307,14 @@ _.Now_ returns current date/time
 
 In example above 'currentDate' argument will have value of current date in yyyy-mm-dd format
 
+It is also possible to specify IANA timezone
+
+```json
+{
+  "currentDateInNY": "{{ `America/New_York` | .Now }}"
+}
+```
+
 _.DaysFromNow_ returns date/time that is N days from now
 
 ```json
