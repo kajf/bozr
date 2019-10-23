@@ -54,7 +54,7 @@ type TestCase struct {
 	Calls  []Call  `json:"calls,omitempty"`
 }
 
-// Call defines metadata for one request-response virifiation within TestCase
+// Call defines metadata for one request-response verification within TestCase
 type Call struct {
 	Args     map[string]interface{} `json:"args,omitempty"`
 	On       On                     `json:"on,omitempty"`

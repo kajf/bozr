@@ -253,10 +253,15 @@ func isSuite(path string) bool {
 }
 
 func validateSuite(path string) error {
-	schemaLoader := gojsonschema.NewStringLoader(suiteDetailedSchema)
 
 	path, _ = filepath.Abs(path)
 	documentLoader := gojsonschema.NewReferenceLoader("file:///" + filepath.ToSlash(path))
+
+	return validateSuiteDetailed(documentLoader)
+}
+
+func validateSuiteDetailed(documentLoader gojsonschema.JSONLoader) error {
+	schemaLoader := gojsonschema.NewStringLoader(suiteDetailedSchema)
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 	if err != nil {
@@ -326,7 +331,10 @@ const suiteDetailedSchema = `
 		    },
             "args": {
               "type": "object",
-              "minProperties": 1
+              "minProperties": 1,
+              "additionalProperties": {
+                "type": ["string", "number", "boolean", "null"]
+			  }
             },
             "on": {
               "type": "object",
@@ -351,11 +359,17 @@ const suiteDetailedSchema = `
                 },
                 "headers": {
                   "type": "object",
-                  "minProperties": 1
+                  "minProperties": 1,
+				  "additionalProperties": {
+					"type": "string"
+				  }
                 },
                 "params": {
                   "type": "object",
-                  "minProperties": 1
+                  "minProperties": 1,
+				  "additionalProperties": {
+					"type": "string"
+				  }
                 },
                 "body": {
                   "oneOf": [
@@ -389,23 +403,26 @@ const suiteDetailedSchema = `
                 },
                 "headers": {
                   "type": "object",
-                  "minProperties": 1
+                  "minProperties": 1,
+				  "additionalProperties": {
+					"type": "string"
+				  }
                 },
-								"body": {
-									"type": "object",
-													"minProperties": 1
-								},
-								"exactBody": {
-									"type": "object",
-													"minProperties": 1
-								},
-								"bodyPath": {
-									"type": "object",
-													"minProperties": 1
-												},
-								"bodySchema": {
-									"type": "object"
-								},
+				"body": {
+					"type": "object",
+					"minProperties": 1
+				},
+				"exactBody": {
+					"type": "object",
+					"minProperties": 1
+				},
+				"bodyPath": {
+					"type": "object",
+					"minProperties": 1
+				},
+				"bodySchema": {
+					"type": "object"
+				},
                 "bodySchemaFile": {
                   "type": "string"
                 },
@@ -414,7 +431,10 @@ const suiteDetailedSchema = `
                 },
                 "absent": {
                   "type": "array",
-                  "minItems": 1
+                  "minItems": 1,
+				  "items": {
+				    "type": "string"
+				  }
                 }
               },
               "additionalProperties": false
@@ -429,17 +449,17 @@ const suiteDetailedSchema = `
                 },
                 "headers": {
                   "type": "object",
-                  "minProperties": 1
+                  "minProperties": 1,
+				  "additionalProperties": {
+					"type": "string"
+				  }
                 }
               },
               "additionalProperties": false
             }
           },
-          "required": [
-            "on",
-            "expect"
-					],
-					"additionalProperties": false
+          "required": ["on", "expect"],
+		  "additionalProperties": false
         }
       }
     },
