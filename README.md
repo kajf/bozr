@@ -37,10 +37,11 @@ Download the [latest binary release](https://github.com/kajf/bozr/releases) and 
 Test suite (suite_name.suite.json)
 
     ├ Test A [test case]
-    |   ├ Name
-    |   ├ Ignore [ ignore test due to a specified reason ]
+    |   ├ name
+    |   ├ ignore [ignore test due to a specified reason]
+    |   ├ args [value(s) for placeholders to use in request params, headers or body]
     │   ├ Call one
-    |   |   ├ args [value(s) for placeholders to use in request params, headers or body]
+    |   |   ├ args 
     │   │   ├ on [single http request]
     │   │   ├ expect [http response asserts: code, headers, body, schema, etc.]
     │   │   └ remember [optionally remember variable(s) for the next call to use in request params, headers or body]
@@ -50,7 +51,7 @@ Test suite (suite_name.suite.json)
     │       ├ expect
     │       └ remember
     └ Test B
-        ├ Name
+        ├ name
         └ Call one
             ├ args
             ├ on
