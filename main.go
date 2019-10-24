@@ -172,9 +172,15 @@ func runSuite(suite TestSuite) []TestResult {
 		}
 
 		vars := NewVars(hostFlag)
+		callArgsErr := vars.AddAll(testCase.Args)
 		for i, c := range testCase.Calls {
 
 			throttle.RunOrPause()
+
+			if callArgsErr != nil {
+				result.Traces = append(result.Traces, &CallTrace{ErrorCause: callArgsErr, Num: i})
+				break
+			}
 
 			err := vars.AddAll(c.Args)
 			if err != nil {

@@ -317,6 +317,13 @@ const suiteDetailedSchema = `
       "description": {
         "type": "string"
       },
+	  "args": {
+		"type": "object",
+		"minProperties": 1,
+		"additionalProperties": {
+		  "type": ["string", "number", "boolean", "null"]
+	    }
+	  },
       "ignore": {
         "type": "string",
         "minLength": 10
@@ -463,6 +470,7 @@ const suiteDetailedSchema = `
         }
       }
     },
+    "additionalProperties": false,
     "required": [
       "calls"
     ]

@@ -1,9 +1,9 @@
 [{
     "name": "Example of the successful test",
+    "args": {
+      "currency": "USD"
+    },
     "calls": [{
-      "args": {
-        "currency": "USD"
-      },
       "on": {
         "url": "https://api.exchangeratesapi.io/latest",
         "method": "GET",

@@ -49,9 +49,10 @@ func (suite TestSuite) FullName() string {
 
 // TestCase represents single test scenario
 type TestCase struct {
-	Name   string  `json:"name,omitempty"`
-	Ignore *string `json:"ignore,omitempty"`
-	Calls  []Call  `json:"calls,omitempty"`
+	Name   string                 `json:"name,omitempty"`
+	Ignore *string                `json:"ignore,omitempty"`
+	Args   map[string]interface{} `json:"args,omitempty"`
+	Calls  []Call                 `json:"calls,omitempty"`
 }
 
 // Call defines metadata for one request-response verification within TestCase

@@ -14,6 +14,48 @@ func Test_validateSuiteShape(t *testing.T) {
 		wantErr string
 	}{
 		{
+			name: "test case level args allowed",
+			args: gojsonschema.NewStringLoader(`[{
+				"args": {
+					"str":"abc",
+					"num": 1,
+					"f": 0.12,
+					"b": true,
+					"n": null
+				},
+				"calls": [{
+                  	"on": {"method": "GET","url":"smth"},
+                  	"expect": {"statusCode":200}
+				}]
+			}]`),
+			wantErr: "",
+		},
+		{
+			name: "test case level object args not allowed",
+			args: gojsonschema.NewStringLoader(`[{
+				"args": {
+					"str":"abc",
+					"obj": {}
+				},
+				"calls": [{
+                  	"on": {"method": "GET","url":"smth"},
+                  	"expect": {"statusCode":200}
+				}]
+			}]`),
+			wantErr: "Invalid type",
+		},
+		{
+			name: "test case level invalid props not allowed",
+			args: gojsonschema.NewStringLoader(`[{
+				"myProp": "",
+				"calls": [{
+                  	"on": {"method": "GET","url":"smth"},
+                  	"expect": {"statusCode":200}
+				}]
+			}]`),
+			wantErr: "Additional property myProp is not allowed",
+		},
+		{
 			name: "object in args not allowed",
 			args: gojsonschema.NewStringLoader(`[{
 				"calls": [{
@@ -255,10 +297,10 @@ func Test_validateSuiteShape(t *testing.T) {
 			args: gojsonschema.NewStringLoader(`[{
 				"calls": [{
                   	"on": {"method": "GET","url":"smth"},
-                  	"expect": {"statusCode":200},
-					"absent": [
-						"root.items.name"
-					]
+                  	"expect": {
+						"statusCode":200,
+						"absent": ["root.items.name"]
+					}
 				}]
 			}]`),
 			wantErr: "",
@@ -307,7 +349,7 @@ func Test_validateSuiteShape(t *testing.T) {
 				return
 			}
 
-			if err != nil && strings.Contains(err.Error(), tt.wantErr) {
+			if err != nil && tt.wantErr != "" && strings.Contains(err.Error(), tt.wantErr) {
 				return
 			}
 
