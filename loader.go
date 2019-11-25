@@ -277,6 +277,59 @@ func validateSuiteDetailed(documentLoader gojsonschema.JSONLoader) error {
 		return errors.New(strings.Join(msg, "\n"))
 	}
 
+	suiteContent, err := documentLoader.LoadJSON()
+	if err != nil {
+		return err
+	}
+
+	err = validateDuplicateTestNamesInSuite(suiteContent)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validateDuplicateTestNamesInSuite(suiteContent interface{}) error {
+
+	duplicateNames := make(map[string]bool)
+
+	var arr []interface{}
+
+	arr, ok := suiteContent.([]interface{})
+	if !ok {
+		return errors.New("test suite is not an array")
+	}
+
+	usedNames := make(map[string]bool, len(arr))
+
+	for i := 0; i < len(arr); i++ {
+
+		tc, ok := arr[i].(map[string]interface{})
+		if !ok {
+			return errors.New("test case is not a map")
+		}
+
+		name, ok := tc["name"].(string)
+		if !ok {
+			return fmt.Errorf("test suite 'name' is not a string: %v", tc["name"])
+		}
+
+		if usedNames[name] {
+			duplicateNames[name] = true
+		} else {
+			usedNames[name] = true
+		}
+	}
+
+	if len(duplicateNames) > 0 {
+		keys := make([]string, 0, len(duplicateNames))
+		for k := range duplicateNames {
+			keys = append(keys, k)
+		}
+		return fmt.Errorf("duplicate test case names: %v", keys)
+	}
+
 	return nil
 }
 
@@ -472,6 +525,7 @@ const suiteDetailedSchema = `
     },
     "additionalProperties": false,
     "required": [
+	  "name", 
       "calls"
     ]
   }
