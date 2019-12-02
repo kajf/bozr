@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/xeipuuv/gojsonschema"
 	"strings"
 	"testing"
+
+	"github.com/xeipuuv/gojsonschema"
 )
 
 func Test_validateSuiteShape(t *testing.T) {
@@ -16,6 +17,7 @@ func Test_validateSuiteShape(t *testing.T) {
 		{
 			name: "test case level args allowed",
 			args: gojsonschema.NewStringLoader(`[{
+				"name": "one",
 				"args": {
 					"str":"abc",
 					"num": 1,
@@ -72,6 +74,7 @@ func Test_validateSuiteShape(t *testing.T) {
 		{
 			name: "basic type in args allowed",
 			args: gojsonschema.NewStringLoader(`[{
+				"name": "one",
 				"calls": [{
 					"args": {
 						"str":"abc",
@@ -123,6 +126,7 @@ func Test_validateSuiteShape(t *testing.T) {
 		{
 			name: "string in on.headers allowed",
 			args: gojsonschema.NewStringLoader(`[{
+				"name": "one",
 				"calls": [{
                   	"on": {
 						"method": "GET",
@@ -177,6 +181,7 @@ func Test_validateSuiteShape(t *testing.T) {
 		{
 			name: "string in expect.headers allowed",
 			args: gojsonschema.NewStringLoader(`[{
+				"name": "one",
 				"calls": [{
                   	"on": {
 						"method": "GET",
@@ -237,6 +242,7 @@ func Test_validateSuiteShape(t *testing.T) {
 		{
 			name: "string in remember.headers allowed",
 			args: gojsonschema.NewStringLoader(`[{
+				"name": "one",
 				"calls": [{
                   	"on": {
 						"method": "GET",
@@ -295,6 +301,7 @@ func Test_validateSuiteShape(t *testing.T) {
 		{
 			name: "string in absent allowed",
 			args: gojsonschema.NewStringLoader(`[{
+				"name": "one",
 				"calls": [{
                   	"on": {"method": "GET","url":"smth"},
                   	"expect": {
@@ -325,6 +332,7 @@ func Test_validateSuiteShape(t *testing.T) {
 		{
 			name: "string in on.params is allowed",
 			args: gojsonschema.NewStringLoader(`[{
+				"name": "one",
 				"calls": [{
                   	"on": {
 						"method": "GET",
@@ -337,6 +345,22 @@ func Test_validateSuiteShape(t *testing.T) {
 				}]
 			}]`),
 			wantErr: "",
+		},
+		{
+			name: "test case names can't  duplicate",
+			args: gojsonschema.NewStringLoader(`[
+				{"name": "testOne", "calls": [{"on": {"method": "GET",   "url":"smth"}, "expect": {"statusCode":200}}]},
+				{"name": "testOne", "calls": [{"on": {"method": "POST",  "url":"smth"}, "expect": {"statusCode":201}}]},
+				{"name": "testOne", "calls": [{"on": {"method": "DELETE","url":"smth"}, "expect": {"statusCode":200}}]}
+			]`),
+			wantErr: "duplicate test case names: [testOne]",
+		},
+		{
+			name: "test case name is required",
+			args: gojsonschema.NewStringLoader(`[
+				{"calls": [{"on": {"method": "GET","url":"smth"}, "expect": {"statusCode":200}}]}
+			]`),
+			wantErr: "name is required",
 		},
 	}
 
