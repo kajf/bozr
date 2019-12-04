@@ -424,14 +424,14 @@ func TestPopulateProperty_ArrayOfInt(t *testing.T) {
 }
 
 func TestVarsApplyToWithContextBaseUrl(t *testing.T) {
-	baseUrl := "http://127.0.0.1/abc"
-	vars := NewVars(baseUrl)
+	baseURL := "http://127.0.0.1/abc"
+	vars := NewVars(baseURL)
 
 	got := vars.ApplyTo(`{ctx:base_url}/my-resource`)
 
-	if got != baseUrl+"/my-resource" {
+	if got != baseURL+"/my-resource" {
 		t.Error(
-			"expected", baseUrl+"/my-resource",
+			"expected", baseURL+"/my-resource",
 			"got", got,
 		)
 	}
@@ -459,6 +459,39 @@ func TestVarsUnused_EnvVar_NotReported(t *testing.T) {
 	unused := vars.Unused()
 	if len(unused) != 0 {
 		t.Error("Unexpected", unused)
+	}
+}
+
+func TestVarsParseEnv_Empty_HasValue(t *testing.T) {
+	vars := NewVars("")
+
+	vars.parseEnv("token=")
+
+	res := vars.ApplyTo("{env:token}")
+	if res != "" {
+		t.Error("Unexpected", res)
+	}
+}
+
+func TestVarsParseEnv_Pair_Value(t *testing.T) {
+	vars := NewVars("")
+
+	vars.parseEnv("my_token=xyz")
+
+	res := vars.ApplyTo("{env:my_token}")
+	if res != "xyz" {
+		t.Error("Unexpected", res)
+	}
+}
+
+func TestVarsParseEnv_DoubleEq_ValueNotSplit(t *testing.T) {
+	vars := NewVars("")
+
+	vars.parseEnv("key=abc=ab==")
+
+	res := vars.ApplyTo("{env:key}")
+	if res != "abc=ab==" {
+		t.Errorf("Split value %v", res)
 	}
 }
 

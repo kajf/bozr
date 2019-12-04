@@ -473,29 +473,32 @@ type Vars struct {
 }
 
 // NewVars create new Vars object with default set of env variables
-func NewVars(baseUrl string) *Vars {
+func NewVars(baseURL string) *Vars {
 	v := &Vars{
 		items: make(map[string]interface{}),
 		used:  make(map[string]bool),
 	}
 
-	v.addContext(baseUrl)
+	v.addContext(baseURL)
 	v.addEnv()
 
 	return v
 }
 
-func (v *Vars) addContext(baseUrl string) {
-	v.items[ctxVarPrefix+varPrefixSeparator+"base_url"] = baseUrl
+func (v *Vars) addContext(baseURL string) {
+	v.items[ctxVarPrefix+varPrefixSeparator+"base_url"] = baseURL
 }
 
 func (v *Vars) addEnv() {
 
 	for _, e := range os.Environ() {
-		pair := strings.Split(e, "=")
-		v.items[envVarPrefix+varPrefixSeparator+pair[0]] = pair[1]
+		v.parseEnv(e)
 	}
+}
 
+func (v *Vars) parseEnv(env string) {
+	pair := strings.SplitN(env, "=", 2)
+	v.items[envVarPrefix+varPrefixSeparator+pair[0]] = pair[1]
 }
 
 // Add is adding variable with name and value to map.
