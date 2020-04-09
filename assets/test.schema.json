@@ -60,13 +60,7 @@
                   "minProperties": 1,
                   "properties": {
                     "Accept": {
-                      "type": "string",
-                      "enum": [
-                        "application/json",
-                        "application/xml",
-                        "text/xml",
-                        "text/csv"
-                      ]
+                      "type": "string"
                     },
                     "Content-Type": {
                       "type": "string"
