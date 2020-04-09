@@ -69,13 +69,7 @@
                       ]
                     },
                     "Content-Type": {
-                      "type": "string",
-                      "enum": [
-                        "application/json",
-                        "application/xml",
-                        "text/xml",
-                        "text/csv"
-                      ]
+                      "type": "string"
                     },
                     "Authorization": {
                       "type": "string"
