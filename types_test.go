@@ -566,3 +566,20 @@ func TestVarsUnused(t *testing.T) {
 		t.Error("Unexpected", unused, "should be [", unusedVarName, "]")
 	}
 }
+
+func TestToAbsURLConcat(t *testing.T) {
+	m := [][]string{
+		{"http://example.com/schema/", "data-type-bank-account.json", "http://example.com/schema/data-type-bank-account.json"},
+		{"http://example.com/schema/", "/data-type-bank-account.json", "http://example.com/schema/data-type-bank-account.json"},
+		{"http://example.com/schema", "/data-type-bank-account.json", "http://example.com/schema/data-type-bank-account.json"},
+		{"https://example.com/schema", "data-type-bank-account.json", "https://example.com/schema/data-type-bank-account.json"},
+		{"", "https://example.com/schema/data-type-bank-account.json", "https://example.com/schema/data-type-bank-account.json"},
+	}
+
+	for _, p := range m {
+		url := toAbsURL(p[0], p[1])
+		if url != p[2] {
+			t.Errorf("Unexpected schema URL\nExpected: %s \nGiven:%s", p[1], url)
+		}
+	}
+}
