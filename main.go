@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"moul.io/http2curl"
 )
 
 const (
@@ -463,20 +464,22 @@ func rememberHeaders(header http.Header, remember map[string]string, vars *Vars)
 }
 
 func dumpRequest(req *http.Request, body string) string {
-	buf := bytes.NewBufferString("")
+// 	buf := bytes.NewBufferString("")
 
-	buf.WriteString(fmt.Sprintf("%s %s %s\n", req.Method, req.URL.String(), req.Proto))
+// 	buf.WriteString(fmt.Sprintf("%s %s %s\n", req.Method, req.URL.String(), req.Proto))
 
-	for k, v := range req.Header {
-		buf.WriteString(fmt.Sprintf("%s: %s\n", k, strings.Join(v, " ")))
-	}
+// 	for k, v := range req.Header {
+// 		buf.WriteString(fmt.Sprintf("%s: %s\n", k, strings.Join(v, " ")))
+// 	}
 
-	if len(body) > 0 {
-		buf.WriteString("\n")
-		buf.WriteString(body)
-	}
+// 	if len(body) > 0 {
+// 		buf.WriteString("\n")
+// 		buf.WriteString(body)
+// 	}
 
-	return buf.String()
+// 	return buf.String()
+	command, _ := http2curl.GetCurlCommand(req)
+	return command.String()
 }
 
 func terminate(msgLines ...string) {
