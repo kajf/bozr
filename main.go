@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
 	"moul.io/http2curl"
 )
 
@@ -33,6 +34,7 @@ func init() {
 		h += "      --throttle	Execute no more than specified number of requests per second (in suite)\n"
 		h += "  -h, --help		Print usage\n"
 		h += "  -i, --info		Enable info mode. Print request and response details\n"
+		h += "      --curl		Enable info mode. Print request and response details. Request is printed as curl\n"
 		h += "      --junit		Enable junit xml reporter\n"
 		h += "      --junit-output	Destination for junit report files\n"
 		h += "  -v, --version		Print version information and quit\n\n"
@@ -52,6 +54,7 @@ var (
 	workersFlag     int
 	throttleFlag    int
 	infoFlag        bool
+	curlFlag        bool
 	debugFlag       bool
 	helpFlag        bool
 	versionFlag     bool
@@ -82,6 +85,7 @@ func main() {
 
 	flag.BoolVar(&infoFlag, "i", false, "Enable info mode. Print request and response details.")
 	flag.BoolVar(&infoFlag, "info", false, "Enable info mode. Print request and response details.")
+	flag.BoolVar(&curlFlag, "curl", false, "Enable info mode. Print request and response details. Request is printed as curl")
 
 	flag.StringVar(&hostFlag, "H", "", "Test server address. Example: http://example.com/api.")
 	flag.IntVar(&workersFlag, "w", 1, "Execute test sutes in parallel with provided numer of workers. Default is 1.")
@@ -217,7 +221,7 @@ func runSuite(suite TestSuite) []TestResult {
 }
 
 func createReporter() Reporter {
-	reporters := []Reporter{NewConsoleReporter(infoFlag)}
+	reporters := []Reporter{NewConsoleReporter(infoFlag || curlFlag)}
 	if junitFlag {
 		path, _ := filepath.Abs(junitOutputFlag)
 		reporters = append(reporters, NewJUnitReporter(path))
@@ -255,7 +259,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 		return trace
 	}
 
-	trace.RequestDump = dumpRequest(req, bodyToSend)
+	trace.RequestDump = dumpRequest(req, bodyToSend, curlFlag)
 	trace.RequestMethod = req.Method
 	trace.RequestURL = req.URL.String()
 
@@ -463,23 +467,26 @@ func rememberHeaders(header http.Header, remember map[string]string, vars *Vars)
 	}
 }
 
-func dumpRequest(req *http.Request, body string) string {
-// 	buf := bytes.NewBufferString("")
+func dumpRequest(req *http.Request, body string, dumpAsCurl bool) string {
+	if dumpAsCurl {
+		command, _ := http2curl.GetCurlCommand(req)
+		return command.String()
 
-// 	buf.WriteString(fmt.Sprintf("%s %s %s\n", req.Method, req.URL.String(), req.Proto))
+	}
+	buf := bytes.NewBufferString("")
 
-// 	for k, v := range req.Header {
-// 		buf.WriteString(fmt.Sprintf("%s: %s\n", k, strings.Join(v, " ")))
-// 	}
+	buf.WriteString(fmt.Sprintf("%s %s %s\n", req.Method, req.URL.String(), req.Proto))
 
-// 	if len(body) > 0 {
-// 		buf.WriteString("\n")
-// 		buf.WriteString(body)
-// 	}
+	for k, v := range req.Header {
+		buf.WriteString(fmt.Sprintf("%s: %s\n", k, strings.Join(v, " ")))
+	}
 
-// 	return buf.String()
-	command, _ := http2curl.GetCurlCommand(req)
-	return command.String()
+	if len(body) > 0 {
+		buf.WriteString("\n")
+		buf.WriteString(body)
+	}
+
+	return buf.String()
 }
 
 func terminate(msgLines ...string) {

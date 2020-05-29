@@ -7,6 +7,9 @@ require (
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/pkg/errors v0.8.1
+	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/sys v0.0.0-20190116161447-11f53e031339 // indirect
+	moul.io/http2curl v1.0.0
 )
+
+go 1.13
