@@ -34,7 +34,7 @@ func init() {
 		h += "      --throttle	Execute no more than specified number of requests per second (in suite)\n"
 		h += "  -h, --help		Print usage\n"
 		h += "  -i, --info		Enable info mode. Print request and response details\n"
-		h += "      --curl		Enable info mode. Print request and response details. Request is printed as curl\n"
+		h += "      --info-curl	Enable info mode. Print request and response details. Request is printed as curl\n"
 		h += "      --junit		Enable junit xml reporter\n"
 		h += "      --junit-output	Destination for junit report files\n"
 		h += "  -v, --version		Print version information and quit\n\n"
@@ -54,7 +54,7 @@ var (
 	workersFlag     int
 	throttleFlag    int
 	infoFlag        bool
-	curlFlag        bool
+	infoCurlFlag    bool
 	debugFlag       bool
 	helpFlag        bool
 	versionFlag     bool
@@ -85,7 +85,7 @@ func main() {
 
 	flag.BoolVar(&infoFlag, "i", false, "Enable info mode. Print request and response details.")
 	flag.BoolVar(&infoFlag, "info", false, "Enable info mode. Print request and response details.")
-	flag.BoolVar(&curlFlag, "curl", false, "Enable info mode. Print request and response details. Request is printed as curl")
+	flag.BoolVar(&infoCurlFlag, "info-curl", false, "Enable info mode. Print request and response details. Request is printed as curl")
 
 	flag.StringVar(&hostFlag, "H", "", "Test server address. Example: http://example.com/api.")
 	flag.IntVar(&workersFlag, "w", 1, "Execute test sutes in parallel with provided numer of workers. Default is 1.")
@@ -221,7 +221,7 @@ func runSuite(suite TestSuite) []TestResult {
 }
 
 func createReporter() Reporter {
-	reporters := []Reporter{NewConsoleReporter(infoFlag || curlFlag)}
+	reporters := []Reporter{NewConsoleReporter(infoFlag || infoCurlFlag)}
 	if junitFlag {
 		path, _ := filepath.Abs(junitOutputFlag)
 		reporters = append(reporters, NewJUnitReporter(path))
@@ -259,7 +259,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 		return trace
 	}
 
-	trace.RequestDump = dumpRequest(req, bodyToSend, curlFlag)
+	trace.RequestDump = dumpRequest(req, bodyToSend, infoCurlFlag)
 	trace.RequestMethod = req.Method
 	trace.RequestURL = req.URL.String()
 
