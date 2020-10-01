@@ -127,7 +127,7 @@ func TestThrottleFixedSize(t *testing.T) {
 	tr.RunOrPause() // should pause on this one
 
 	if len(tr.queue) != requestLimit {
-		t.Error("unexpected length " + string(len(tr.queue)))
+		t.Errorf("unexpected length %d", len(tr.queue))
 	}
 }
 
@@ -564,5 +564,22 @@ func TestVarsUnused(t *testing.T) {
 	unused := vars.Unused()
 	if unused[0] != unusedVarName || len(unused) != 1 {
 		t.Error("Unexpected", unused, "should be [", unusedVarName, "]")
+	}
+}
+
+func TestToAbsURLConcat(t *testing.T) {
+	m := [][]string{
+		{"http://example.com/schema/", "data-type-bank-account.json", "http://example.com/schema/data-type-bank-account.json"},
+		{"http://example.com/schema/", "/data-type-bank-account.json", "http://example.com/schema/data-type-bank-account.json"},
+		{"http://example.com/schema", "/data-type-bank-account.json", "http://example.com/schema/data-type-bank-account.json"},
+		{"https://example.com/schema", "data-type-bank-account.json", "https://example.com/schema/data-type-bank-account.json"},
+		{"", "https://example.com/schema/data-type-bank-account.json", "https://example.com/schema/data-type-bank-account.json"},
+	}
+
+	for _, p := range m {
+		url := toAbsURL(p[0], p[1])
+		if url != p[2] {
+			t.Errorf("Unexpected schema URL\nExpected: %s \nGiven:%s", p[1], url)
+		}
 	}
 }

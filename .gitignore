@@ -2,6 +2,9 @@
 .vscode
 .idea
 
+# builds/CI/etc
+dist/
+release/
 report
 bozr
 bozr.exe
