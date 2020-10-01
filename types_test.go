@@ -127,7 +127,7 @@ func TestThrottleFixedSize(t *testing.T) {
 	tr.RunOrPause() // should pause on this one
 
 	if len(tr.queue) != requestLimit {
-		t.Error("unexpected length " + string(len(tr.queue)))
+		t.Errorf("unexpected length %d", len(tr.queue))
 	}
 }
 
