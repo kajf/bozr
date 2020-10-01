@@ -159,17 +159,10 @@ func (e Expect) loadSchemaFromFile(suitePath string) ([]byte, error) {
 }
 
 func (e Expect) loadSchemaFromURI() ([]byte, error) {
+	uri := toAbsURL(hostFlag, e.BodySchemaURI)
 
-	if e.BodySchemaURI == "" {
+	if uri == "" {
 		return nil, nil
-	}
-
-	uri := e.BodySchemaURI
-
-	isHTTP := strings.HasPrefix(e.BodySchemaURI, "http://")
-	isHTTPS := strings.HasPrefix(e.BodySchemaURI, "https://")
-	if !(isHTTP || isHTTPS) {
-		uri = hostFlag + e.BodySchemaURI
 	}
 
 	var cached, ok = jsonSchemaCache.Load(uri)
@@ -257,6 +250,22 @@ func toAbsPath(suitePath string, assetPath string) (string, error) {
 	}
 
 	return filepath.ToSlash(uri), nil
+}
+
+// toAbsURL returns absolute URL to a schema
+func toAbsURL(baseHost, uri string) string {
+	if uri == "" {
+		return ""
+	}
+
+	isHTTP := strings.HasPrefix(uri, "http://")
+	isHTTPS := strings.HasPrefix(uri, "https://")
+
+	if isHTTP || isHTTPS {
+		return uri
+	}
+
+	return strings.TrimSuffix(baseHost, "/") + "/" + strings.TrimPrefix(uri, "/")
 }
 
 // TestResult represents single test case for reporting
