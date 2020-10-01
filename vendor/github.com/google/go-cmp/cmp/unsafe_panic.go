@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE.md file.
 
-// +build purego
+// +build purego appengine js
 
 package cmp
 
 import "reflect"
 
-const supportExporters = false
+const supportAllowUnexported = false
 
-func retrieveUnexportedField(reflect.Value, reflect.StructField) reflect.Value {
-	panic("no support for forcibly accessing unexported fields")
+func unsafeRetrieveField(reflect.Value, reflect.StructField) reflect.Value {
+	panic("unsafeRetrieveField is not implemented")
 }

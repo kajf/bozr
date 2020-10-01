@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/clbanning/mxj v1.8.4
 	github.com/fatih/color v1.9.0
-	github.com/google/go-cmp v0.4.1
+	github.com/google/go-cmp v0.2.0
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/xeipuuv/gojsonschema v1.2.0
