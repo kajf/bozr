@@ -12,5 +12,3 @@ require (
 	golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9 // indirect
 	moul.io/http2curl v1.0.0
 )
-
-go 1.13
