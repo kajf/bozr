@@ -66,10 +66,6 @@ var (
 	statusSkipped = status{Icon: "", Label: "SKIPPED", Color: color.FgYellow}
 )
 
-func (r *ConsoleReporter) verbose() bool {
-	return r.LogHTTP
-}
-
 func (r *ConsoleReporter) StartLine() {
 	r.Writer.Write([]byte("\n"))
 	r.Writer.Write([]byte(strings.Repeat(" ", r.IndentSize)))

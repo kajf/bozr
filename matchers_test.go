@@ -883,11 +883,6 @@ func jsonAsMap(s string) (map[string]interface{}, error) {
 	return m, err
 }
 
-func _jsonAsMap(s string) map[string]interface{} {
-	v, _ := jsonAsMap(s)
-	return v
-}
-
 func _jsonAsObject(s string) interface{} {
 	m := new(interface{})
 	err := json.Unmarshal([]byte(s), m)

@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"math"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 type bodyDiffReporter struct {
@@ -17,11 +18,9 @@ type bodyDiffReporter struct {
 
 	strict bool
 
-	ndiffs int // Total number of differences
 	nbytes int // Number of bytes in diffs
 	nlines int // Number of lines in diffs
 	diffs  []string
-	errors []error
 }
 
 func (r *bodyDiffReporter) Report(expected, actual reflect.Value, eq bool, p cmp.Path) {
@@ -323,7 +322,7 @@ func insertPointer(m map[uintptr]bool, p uintptr) map[uintptr]bool {
 func isZero(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.Bool:
-		return v.Bool() == false
+		return !v.Bool()
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return v.Int() == 0
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:

@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
 	"moul.io/http2curl"
 )
 
@@ -43,7 +44,7 @@ func init() {
 		h += "  bozr -w 2 ./examples\n"
 		h += "  bozr -H http://example.com ./examples \n"
 
-		fmt.Fprintf(os.Stderr, h)
+		fmt.Fprint(os.Stderr, h)
 	}
 }
 
@@ -207,7 +208,7 @@ func runSuite(suite TestSuite) []TestResult {
 			traces := result.Traces
 			lastTrace := traces[len(traces)-1]
 			if lastTrace.ErrorCause == nil {
-				lastTrace.ErrorCause = fmt.Errorf("Declared/remembered arguments are not used: %s", unused)
+				lastTrace.ErrorCause = fmt.Errorf("declared/remembered arguments are not used: %s", unused)
 			}
 		}
 
@@ -220,7 +221,7 @@ func runSuite(suite TestSuite) []TestResult {
 }
 
 func createReporter() Reporter {
-	reporters := []Reporter{NewConsoleReporter(infoFlag||infoCurlFlag)}
+	reporters := []Reporter{NewConsoleReporter(infoFlag || infoCurlFlag)}
 	if junitFlag {
 		path, _ := filepath.Abs(junitOutputFlag)
 		reporters = append(reporters, NewJUnitReporter(path))
@@ -448,7 +449,7 @@ func rememberBody(resp *Response, remember map[string]string, vars *Vars) (err e
 			vars.Add(varName, rememberVar)
 		} else {
 			debug.Print(err)
-			return fmt.Errorf("Remembered value not found, path: %v", pathLine)
+			return fmt.Errorf("remembered value not found, path: %v", pathLine)
 		}
 	}
 
