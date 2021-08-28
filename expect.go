@@ -27,7 +27,7 @@ type StatusCodeExpectation struct {
 
 func (e StatusCodeExpectation) check(resp *Response) error {
 	if resp.http.StatusCode != e.statusCode {
-		return fmt.Errorf("Unexpected Status Code. Expected: %d, Actual: %d", e.statusCode, resp.http.StatusCode)
+		return fmt.Errorf("unexpected status code. Expected: %d, Actual: %d", e.statusCode, resp.http.StatusCode)
 	}
 	return nil
 }
@@ -50,7 +50,7 @@ func (e BodySchemaExpectation) check(resp *Response) error {
 		return e.checkJSON(resp)
 	}
 
-	return fmt.Errorf("Unsupported content type: %s", contentType)
+	return fmt.Errorf("unsupported content type: %s", contentType)
 }
 
 func (e BodySchemaExpectation) desc() string {
@@ -99,12 +99,12 @@ func (e BodyExpectation) check(resp *Response) error {
 		return errors.New(str)
 	}
 
-	matcher := NewBodyMatcher{Strict: e.Strict, ExpectedBody: e.ExpectedBody}
+	matcher := NewBodyMatcher(e)
 	return matcher.check(actualBody)
 }
 
 func (e BodyExpectation) desc() string {
-	return fmt.Sprint("Expected body's structure / values")
+	return "Expected body's structure / values"
 }
 
 // BodyPathExpectation validates values under a certain path in a body.
@@ -165,10 +165,10 @@ func (e HeaderExpectation) check(resp *Response) error {
 
 	value = strings.TrimSpace(value)
 	if value == "" {
-		return fmt.Errorf("Missing header. Expected \"%s: %s\"", e.Name, e.Value)
+		return fmt.Errorf("missing header. Expected \"%s: %s\"", e.Name, e.Value)
 	}
 	if e.Value != "" && e.Value != value {
-		return fmt.Errorf("Unexpected header. Expected \"%s: %s\". Actual \"%s: %s\"", e.Name, e.Value, e.Name, value)
+		return fmt.Errorf("unexpected header. Expected \"%s: %s\". Actual \"%s: %s\"", e.Name, e.Value, e.Name, value)
 	}
 	return nil
 }

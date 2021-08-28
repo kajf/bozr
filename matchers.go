@@ -47,7 +47,7 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) err
 	if HasPathFunc(pathLine) {
 
 		if len(resArr) != 1 {
-			return fmt.Errorf("Required exactly one result to calculate, found %#v on path %#v", len(resArr), pathLine)
+			return fmt.Errorf("required exactly one result to calculate, found %#v on path %#v", len(resArr), pathLine)
 		}
 
 		funcRes, err := CallPathFunc(pathLine, resArr[0])
@@ -55,7 +55,7 @@ func SearchByPath(m interface{}, expectedValue interface{}, pathLine string) err
 			if funcRes == expectedValue {
 				return nil
 			}
-			return fmt.Errorf("Expected value %#v does not match actual %#v on path %#v", fmtExpectedValue(expectedValue), funcRes, pathLine)
+			return fmt.Errorf("expected value %#v does not match actual %#v on path %#v", fmtExpectedValue(expectedValue), funcRes, pathLine)
 		}
 
 		return err
@@ -224,7 +224,7 @@ func (e NewBodyMatcher) check(body interface{}) error {
 
 	if diff != "" {
 		msg := strings.Join(strings.Split(diff, "\n"), "\n\t")
-		return fmt.Errorf("The body does not match expectations: \n\t%s", msg)
+		return fmt.Errorf("the body does not match expectations: \n\t%s", msg)
 	}
 
 	return nil

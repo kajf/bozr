@@ -97,7 +97,7 @@ func (on On) BodyContent(suitePath string) (string, error) {
 
 		d, err := ioutil.ReadFile(uri)
 		if err != nil {
-			return "", fmt.Errorf("Can't read body file: %s", err.Error())
+			return "", fmt.Errorf("can't read body file: %s", err.Error())
 		}
 
 		dat = d

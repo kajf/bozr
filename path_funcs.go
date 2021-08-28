@@ -39,7 +39,7 @@ func CallPathFunc(pathLine string, arg interface{}) (interface{}, error) {
 		return f(arg)
 	}
 
-	return nil, fmt.Errorf("No function declarations found on path %#v", pathLine)
+	return nil, fmt.Errorf("no function declarations found on path %#v", pathLine)
 }
 
 type pathFunc func(arg interface{}) (interface{}, error)

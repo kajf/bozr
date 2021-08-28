@@ -238,20 +238,6 @@ func (e SuitesValidationError) Error() string {
 	return strings.Join(msg, "\n")
 }
 
-func isSuite(path string) bool {
-	schemaLoader := gojsonschema.NewStringLoader(suiteShapeSchema)
-
-	path, _ = filepath.Abs(path)
-	documentLoader := gojsonschema.NewReferenceLoader("file:///" + path)
-
-	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
-	if err != nil {
-		return false
-	}
-
-	return result.Valid()
-}
-
 func validateSuite(path string) error {
 
 	path, _ = filepath.Abs(path)
@@ -332,29 +318,6 @@ func validateDuplicateTestNamesInSuite(suiteContent interface{}) error {
 
 	return nil
 }
-
-// used to detect suite
-const suiteShapeSchema = `
-{
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "array",
-  "items": {
-    "type": "object",
-    "properties": {
-      "name": {
-        "type": "string"
-      },
-      "calls": {
-        "type": "array"
-      }
-    },
-    "required": [
-      "name",
-      "calls"
-    ]
-  }
-}
-`
 
 // used to validate suite
 const suiteDetailedSchema = `
