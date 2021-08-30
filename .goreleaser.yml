@@ -9,6 +9,8 @@ builds:
       - linux
       - windows
       - darwin
+    goarm:
+      - 7
 archives:
   - replacements:
       darwin: darwin
