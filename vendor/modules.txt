@@ -1,32 +1,38 @@
 # github.com/clbanning/mxj v1.8.4
 ## explicit
 github.com/clbanning/mxj
-# github.com/fatih/color v1.9.0
-## explicit
+# github.com/fatih/color v1.12.0
+## explicit; go 1.13
 github.com/fatih/color
-# github.com/google/go-cmp v0.2.0
-## explicit
+# github.com/google/go-cmp v0.5.6
+## explicit; go 1.8
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
+github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/mattn/go-colorable v0.1.6
-## explicit
+# github.com/mattn/go-colorable v0.1.8
+## explicit; go 1.13
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.12
+## explicit; go 1.12
 github.com/mattn/go-isatty
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
+# github.com/smartystreets/goconvey v1.6.4
+## explicit
 # github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f
+## explicit
 github.com/xeipuuv/gojsonpointer
 # github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415
+## explicit
 github.com/xeipuuv/gojsonreference
 # github.com/xeipuuv/gojsonschema v1.2.0
 ## explicit
 github.com/xeipuuv/gojsonschema
-# golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9
-## explicit
+# golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf
+## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 # moul.io/http2curl v1.0.0
