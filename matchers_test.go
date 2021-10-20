@@ -389,6 +389,32 @@ func TestMatchesAllNonMap(t *testing.T) {
 	}
 }
 
+func TestMatchesWithIncompatibleMapTypes(t *testing.T) {
+	expect := map[string]interface{}{
+		"id": map[string]int{
+			"inner_test": 123,
+		},
+		"name": "bar",
+	}
+
+	matches := matchesAll(expect, expect)
+	if matches {
+		t.Errorf("Match with complex inner layouts should return false")
+	}
+}
+
+func TestMatchesWithIncompatibleSliceTypes(t *testing.T) {
+	expect := map[string]interface{}{
+		"id":   []int{123, 124},
+		"name": "bar",
+	}
+
+	matches := matchesAll(expect, expect)
+	if matches {
+		t.Errorf("Match with complex slice layouts should return false")
+	}
+}
+
 func TestSearchByInvalidPathWithPathFunction(t *testing.T) {
 	m, err := jsonAsMap(`{
 		"root":[{},{}]

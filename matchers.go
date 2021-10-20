@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -105,6 +106,18 @@ func matchesAll(expectedMap map[string]interface{}, searchResult interface{}) bo
 	case map[string]interface{}:
 
 		for field := range expectedMap {
+			expectedType := reflect.ValueOf(expectedMap[field]).Kind()
+			actualType := reflect.ValueOf(typedSearchRes[field]).Kind()
+			// no nested structures here:
+			if expectedType == reflect.Map || actualType == reflect.Map {
+				return false
+			}
+			// no slices as well
+			if expectedType == reflect.Slice || actualType == reflect.Slice {
+				return false
+			}
+
+			// compare primitives at last
 			if expectedMap[field] != typedSearchRes[field] {
 				return false
 			}
