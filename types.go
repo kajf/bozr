@@ -108,7 +108,7 @@ func (on On) BodyContent(suitePath string) (string, error) {
 
 // Expect is a metadata for HTTP response verification
 type Expect struct {
-	StatusCode int `json:"statusCode"`
+	StatusCode *int `json:"statusCode"`
 	// shortcut for content-type header
 	ContentType    string                 `json:"contentType"`
 	Headers        map[string]string      `json:"headers"`

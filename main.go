@@ -372,8 +372,8 @@ func concatURL(base string, p string) (string, error) {
 
 func expectations(expect Expect, suitePath string) ([]ResponseExpectation, error) {
 	var exps []ResponseExpectation
-	if expect.StatusCode != 0 {
-		exps = append(exps, StatusCodeExpectation{statusCode: expect.StatusCode})
+	if expect.StatusCode != nil {
+		exps = append(exps, StatusCodeExpectation{statusCode: *expect.StatusCode})
 	}
 
 	if expect.BodySchemaURI != "" {
