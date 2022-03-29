@@ -29,6 +29,7 @@ func init() {
 
 		h += "Options:\n"
 		h += "  -d, --debug                     Enable debug mode\n"
+		h += "      --dry-run                   Enable dry run mode when no HTTP calls are performed\n"
 		h += "  -H, --host                      Base URI prefix for test calls\n"
 		h += "      --header                    Extra header to add to each request\n"
 		h += "  -w, --worker                    Execute in parallel with specified number of workers\n"
@@ -36,7 +37,7 @@ func init() {
 		h += "      --throttle                  Execute no more than specified number of requests per second (in suite)\n"
 		h += "  -h, --help                      Print usage\n"
 		h += "  -i, --info                      Enable info mode. Print request and response details\n"
-		h += "      --info-curl                 Enable info mode. Print request and response details. Request is printed as curl command\n"
+		h += "      --info-curl	                Enable info mode. Print request and response details. Request is printed as curl command\n"
 		h += "      --junit                     Enable junit xml reporter\n"
 		h += "      --junit-output              Destination for junit report files\n"
 		h += "  -v, --version                   Print version information and quit\n\n"
@@ -67,6 +68,7 @@ var (
 	headersFlag               stringArray
 	workersFlag               int
 	throttleFlag              int
+	dryRunFlag                bool
 	infoFlag                  bool
 	infoCurlFlag              bool
 	debugFlag                 bool
@@ -97,6 +99,8 @@ func initLogger() {
 func main() {
 	flag.BoolVar(&debugFlag, "d", false, "Enable debug mode.")
 	flag.BoolVar(&debugFlag, "debug", false, "Enable debug mode")
+
+	flag.BoolVar(&dryRunFlag, "dry-run", false, "Enable dry run mode when no calls are performed.")
 
 	flag.BoolVar(&infoFlag, "i", false, "Enable info mode. Print request and response details.")
 	flag.BoolVar(&infoFlag, "info", false, "Enable info mode. Print request and response details.")
@@ -142,6 +146,11 @@ func main() {
 	if workersFlag < 1 || workersFlag > 9 {
 		fmt.Println("Invalid number of workers:  [", workersFlag, "]. Setting to default [1]")
 		workersFlag = 1
+	}
+
+	if dryRunFlag && throttleFlag > 0 {
+		fmt.Println("Throttling can not be applied for a dry run mode. The value will be ignored")
+		throttleFlag = 0
 	}
 
 	suitesDir = flag.Arg(0)
@@ -246,7 +255,7 @@ func runSuite(requestConfig *RequestConfig, rewriteConfig *RewriteConfig, suite 
 		}
 
 		unused := vars.Unused()
-		if len(unused) != 0 {
+		if !dryRunFlag && len(unused) != 0 {
 			traces := result.Traces
 			lastTrace := traces[len(traces)-1]
 			if lastTrace.ErrorCause == nil {
@@ -292,6 +301,10 @@ func call(requestConfig *RequestConfig, rewriteConfig *RewriteConfig, suitePath 
 	bodyToSend := tmplCtx.ApplyTo(bodyTmpl)
 	if tmplCtx.HasErrors() {
 		trace.ErrorCause = tmplCtx.Error()
+		return trace
+	}
+
+	if dryRunFlag {
 		return trace
 	}
 
