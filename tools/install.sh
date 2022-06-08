@@ -11,7 +11,6 @@ Usage:
 
 Options:
     -h, --help      Display this message
-    -f, --force     Force overwriting an existing binary
     --tag TAG       Tag (version) of the binName to install (default <latest release>)
     --to LOCATION   Where to install the binary (default /usr/local/bin)
 EOF
@@ -45,12 +44,8 @@ git="kajf/bozr"
 version="0.9.2"
 tag="v$version"
 
-force=false
 while test $# -gt 0; do
     case $1 in
-        --force | -f)
-            force=true
-            ;;
         --help | -h)
             help
             exit 0
