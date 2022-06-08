@@ -12,7 +12,7 @@ Usage:
 Options:
     -h, --help      Display this message
     -f, --force     Force overwriting an existing binary
-    --tag TAG       Tag (version) of the crate to install (default <latest release>)
+    --tag TAG       Tag (version) of the binName to install (default <latest release>)
     --to LOCATION   Where to install the binary (default /usr/local/bin)
 EOF
 }
@@ -40,7 +40,7 @@ need() {
     fi
 }
 
-crate="bozr"
+binName="bozr"
 git="kajf/bozr"
 version="0.9.2"
 tag="v$version"
@@ -90,18 +90,18 @@ fi
 
 say_err "GitHub repository: $url"
 
-if [ -z "$crate" ]; then
-    crate=$(echo "$git" | cut -d'/' -f2)
+if [ -z "$binName" ]; then
+    binName=$(echo "$git" | cut -d'/' -f2)
 fi
 
-say_err "Crate: $crate"
+say_err "Binary: $binName"
 
 if [ -z "$dest" ]; then
     dest="/usr/local/bin"
 fi
 
-if [ -e "$dest/$crate" ] && [ $force = false ]; then
-    err "$crate already exists in $dest, use --force to overwrite the existing binary"
+if [ -e "$dest/$binName" ] && [ $force = false ]; then
+    err "$binName already exists in $dest, use --force to overwrite the existing binary"
 fi
 
 url="$url/releases"
@@ -119,12 +119,12 @@ esac
 
 arch="$(uname -m)"
 
-url="$url/download/$tag/${crate}_${version}_${platform}_${arch}.tar.gz"
+url="$url/download/$tag/${binName}_${version}_${platform}_${arch}.tar.gz"
 
 say_err "Downloading: $url"
 
 if [ "$(curl --head --write-out "%{http_code}\n" --silent --output /dev/null "$url")" -eq "404" ]; then
-  err "$url does not exist, you will need to build $crate from source"
+  err "$url does not exist, you will need to build $binName from source"
 fi
 
 td=$(mktemp -d || mktemp -d -t tmp)
@@ -137,12 +137,12 @@ for f in "$td"/*; do
 
     test -x "$f" || continue
 
-    if [ -e "$dest/$crate" ] && [ $force = false ]; then
-        err "$crate already exists in $dest"
+    if [ -e "$dest/$binName" ] && [ $force = false ]; then
+        err "$binName already exists in $dest"
     else
         mkdir -p "$dest"
         cp "$f" "$dest"
-        chmod 0755 "$dest/$crate"
+        chmod 0755 "$dest/$binName"
     fi
 done
 
