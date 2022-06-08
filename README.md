@@ -29,8 +29,13 @@ Examples:
 Usage [demo](https://asciinema.org/a/85699)
 
 ## Installation
+If you are using Linux, macOS or WSL you can use the following command
 
-Download the [latest binary release](https://github.com/kajf/bozr/releases) and unpack it.
+```sh
+$ sh -c "$(curl -fsSL https://raw.github.com/kajf/bozr/master/tools/install.sh)"
+```
+
+Otherwise, you need to download the [latest binary release](https://github.com/kajf/bozr/releases) and unpack it manually.
 
 ## Test Suite Format
 
