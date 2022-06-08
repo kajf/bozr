@@ -32,7 +32,7 @@ Usage [demo](https://asciinema.org/a/85699)
 If you are using Linux, macOS or WSL you can use the following command
 
 ```sh
-sh -c "$(curl -fsSL https://raw.github.com/kajf/bozr/master/tools/install.sh)"
+curl -fsSL https://raw.github.com/kajf/bozr/master/tools/install.sh | sudo bash
 ```
 
 Otherwise, you need to download the [latest binary release](https://github.com/kajf/bozr/releases) and unpack it manually.
