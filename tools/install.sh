@@ -41,7 +41,7 @@ need() {
 
 binName="bozr"
 git="kajf/bozr"
-version="0.9.2"
+version="0.9.5"
 tag="v$version"
 
 while test $# -gt 0; do
