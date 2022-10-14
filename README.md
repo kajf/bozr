@@ -13,6 +13,7 @@ bozr [OPTIONS] (DIR|FILE)
 Options:
   -H, --host      Base URL prefix for test calls
   -w, --workers   Execute in parallel with specified number of workers
+      --header    Extra header to add to each request
       --throttle  Execute no more than specified number of requests per second (in suite)
   -h, --help      Print usage
   -i, --info      Enable info mode. Print request and response details.
@@ -24,6 +25,7 @@ Examples:
   bozr ./examples/suite-file.suite.json
   bozr -w 2 ./examples
   bozr -H http://example.com ./examples
+  bozr --header "X-Test-LaunchID: RDQ1341" ./examples
 ```
 
 Usage [demo](https://asciinema.org/a/85699)

@@ -5,10 +5,10 @@ import (
 )
 
 // RunSuiteFunc describes particular test suite execution. Passed here to deleniate parallelism from suite execution logic
-type RunSuiteFunc func(suite TestSuite) []TestResult
+type RunSuiteFunc func(requestConfig RequestConfig, suite TestSuite) []TestResult
 
 // RunParallel starts parallel routines to execute test suites received from loader channel
-func RunParallel(loader <-chan TestSuite, reporter Reporter, runSuite RunSuiteFunc, numRoutines int) {
+func RunParallel(loader <-chan TestSuite, reporter Reporter, runSuite RunSuiteFunc, numRoutines int, requestConfig RequestConfig) {
 
 	resultConsumer := make(chan []TestResult)
 
@@ -16,7 +16,7 @@ func RunParallel(loader <-chan TestSuite, reporter Reporter, runSuite RunSuiteFu
 	wg.Add(numRoutines)
 
 	for i := 0; i < numRoutines; i++ {
-		go runSuites(loader, resultConsumer, &wg, runSuite)
+		go runSuites(requestConfig, loader, resultConsumer, &wg, runSuite)
 	}
 
 	// Start a goroutine to close out once all the output goroutines are
@@ -39,10 +39,10 @@ func RunParallel(loader <-chan TestSuite, reporter Reporter, runSuite RunSuiteFu
 	reporter.Flush()
 }
 
-func runSuites(loader <-chan TestSuite, resultConsumer chan<- []TestResult, wg *sync.WaitGroup, runSuite RunSuiteFunc) {
+func runSuites(requestConfig RequestConfig, loader <-chan TestSuite, resultConsumer chan<- []TestResult, wg *sync.WaitGroup, runSuite RunSuiteFunc) {
 
 	for suite := range loader {
-		resultConsumer <- runSuite(suite)
+		resultConsumer <- runSuite(requestConfig, suite)
 	}
 
 	wg.Done()
