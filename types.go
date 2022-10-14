@@ -7,6 +7,7 @@ import (
 	"math"
 	"mime"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -488,14 +489,23 @@ func NewVars(baseURL string) *Vars {
 		used:  make(map[string]bool),
 	}
 
-	v.addContext(baseURL)
+	v.addContext("base_url", baseURL)
+
+	url, err := url.ParseRequestURI(baseURL)
+	if err == nil {
+		v.addContext("base_url_schema", url.Scheme)
+		v.addContext("base_url_host", url.Host)
+		v.addContext("base_url_hostname", url.Hostname())
+		v.addContext("base_url_port", url.Port())
+	}
+
 	v.addEnv()
 
 	return v
 }
 
-func (v *Vars) addContext(baseURL string) {
-	v.items[ctxVarPrefix+varPrefixSeparator+"base_url"] = baseURL
+func (v *Vars) addContext(name, value string) {
+	v.items[ctxVarPrefix+varPrefixSeparator+name] = value
 }
 
 func (v *Vars) addEnv() {

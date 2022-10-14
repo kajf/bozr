@@ -1,0 +1,38 @@
+[
+  {
+    "name": "context-variables",
+    "calls": [
+      {
+        "on": {
+          "method": "POST",
+          "url": "/post",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "context": {
+              "base_url": "{ctx:base_url}",
+              "hostname": "{ctx:base_url_hostname}",
+              "host": "{ctx:base_url_host}",
+              "port": "{ctx:base_url_port}",
+              "schema": "{ctx:base_url_schema}"
+            }
+          }
+        },
+        "expect": {
+          "body": {
+            "json": {
+              "context": {
+                "base_url": "https://postman-echo.com:443",
+                "hostname": "postman-echo.com",
+                "host": "postman-echo.com:443",
+                "port": "443",
+                "schema": "https"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+]
