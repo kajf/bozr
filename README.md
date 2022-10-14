@@ -94,7 +94,7 @@ Represents http request parameters
 ```
 
 | Field    | Description                                                          |
-| -------- | -------------------------------------------------------------------- |
+|----------|----------------------------------------------------------------------|
 | method   | HTTP method                                                          |
 | url      | HTTP request URL                                                     |
 | headers  | HTTP request headers                                                 |
@@ -128,10 +128,10 @@ Passing Test:
 }
 ```
 
-| Assertion      | Description                                                                              | Example                                         |
-| -------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| statusCode     | Expected http response header 'Status Code'                                              | 200                                             |
-| contentType    | Expected http response 'Content-Type'                                                    | application/json                                |
+| Assertion      | Description                                                                      | Example                                         |
+|----------------|----------------------------------------------------------------------------------|-------------------------------------------------|
+| statusCode     | Expected http response header 'Status Code'                                      | 200                                             |
+| contentType    | Expected http response 'Content-Type'                                            | application/json                                |
 | bodySchemaFile | Path to json schema to validate response body (path relative to test suite file) | login-schema.json                               |
 | bodySchemaURI  | URI to json schema to validate response body (absolute or relative to the host)  | http://example.com/api/scheme/login-schema.json |
 | bodySchema     | Embedded json schema to validate response body                                           | { "type": "object", "required": [ "field_name" ]
@@ -205,7 +205,7 @@ Passing Test `expect` fragment:
 ```
 
 | Type   | Assertion                                                                             | Example                                               |
-| ------ | ------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+|--------|---------------------------------------------------------------------------------------|-------------------------------------------------------|
 | equals | Root 'users' array zero element has value of 'id' equal to '123'                      | "users.0.id" : "123"                                  |
 | search | Root 'users' array contains element(s) with 'name' equal to 'Jack' or 'Dan' and 'Ron' | "users.name" : "Jack" or "users.name" : ["Dan","Ron"] |
 | size   | Root 'company' element has 'users' array with '22' elements within 'buildings' array  | "company.buildings.users.size()" : 22                 |
@@ -398,10 +398,13 @@ Context variables are available with `ctx` prefix
 
 List of context variables
 
-| Name        | Value                                                                       |
-| ----------- | --------------------------------------------------------------------------- |
-| base_url    | Base URL prefix for test calls. Command line argument provided with -H key  |
-
+| Name              | Value                                                                      |
+|-------------------|----------------------------------------------------------------------------|
+| base_url          | Base URL prefix for test calls. Command line argument provided with -H key |
+| base_url_schema   | Schema value of the base url (http://example.com:8080 -> http)             |
+| base_url_host     | Host value of the base_url (http://example.com:8080 -> example.com:8080)   |
+| base_url_hostname | Hostname value of the base_url (http://example.com:8080 -> example.com)    |
+| base_url_port     | Port value of the base_url (http://example.com:8080 -> 8080)               |
 
 ```json
 {
@@ -419,7 +422,7 @@ List of context variables
 To make work with test files convenient, we suggest to configure you text editors to use [this](./assets/test.schema.json) json schema. In this case editor will suggest what fields are available and highlight misspells.
 
 | Editor             | JSON Autocomplete                                                                          |
-| ------------------ | ------------------------------------------------------------------------------------------ |
+|--------------------|--------------------------------------------------------------------------------------------|
 | JetBrains Tools    | [native support](https://www.jetbrains.com/help/webstorm/2016.1/json-schema.html?page=1)   |
 | Visual Studio Code | [native support](https://code.visualstudio.com/docs/languages/json#_json-schemas-settings) |
 | Vim                | [plugin](https://github.com/Quramy/vison)                                                  |
