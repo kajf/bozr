@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	version = "0.9.2"
+	version = "0.9.4"
 )
 
 func init() {
@@ -30,7 +30,8 @@ func init() {
 		h += "Options:\n"
 		h += "  -d, --debug		Enable debug mode\n"
 		h += "  -H, --host		Base URI prefix for test calls\n"
-		h += "  -w, --worker		Execute in parallel with specified number of workers\n"
+		h += "      --header	Extra header to add to each request\n"
+		h += "  -w, --worker	Execute in parallel with specified number of workers\n"
 		h += "      --throttle	Execute no more than specified number of requests per second (in suite)\n"
 		h += "  -h, --help		Print usage\n"
 		h += "  -i, --info		Enable info mode. Print request and response details\n"
@@ -48,9 +49,21 @@ func init() {
 	}
 }
 
+type stringArray []string
+
+func (i *stringArray) String() string {
+	return "my string representation"
+}
+
+func (i *stringArray) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
+
 var (
 	suitesDir       string
 	hostFlag        string
+	headersFlag     stringArray
 	workersFlag     int
 	throttleFlag    int
 	infoFlag        bool
@@ -88,6 +101,7 @@ func main() {
 	flag.BoolVar(&infoCurlFlag, "info-curl", false, "Enable info mode. Print request and response details. Request is printed as curl command")
 
 	flag.StringVar(&hostFlag, "H", "", "Test server address. Example: http://example.com/api.")
+	flag.Var(&headersFlag, "header", "Extra header to add to each request")
 	flag.IntVar(&workersFlag, "w", 1, "Execute test sutes in parallel with provided numer of workers. Default is 1.")
 	flag.IntVar(&throttleFlag, "throttle", 0, "Execute no more than specified number of requests per second (in suite)")
 
@@ -148,14 +162,19 @@ func main() {
 		terminate("One or more test suites are invalid.", err.Error())
 		return
 	}
+	requestConfig, err := newRequestConfig(headersFlag)
+	if err != nil {
+		terminate(err.Error())
+		return
+	}
 
 	loader := NewSuiteLoader(suitesDir, suiteExt, ignoredSuiteExt)
 	reporter := createReporter()
 
-	RunParallel(loader, reporter, runSuite, workersFlag)
+	RunParallel(loader, reporter, runSuite, workersFlag, *requestConfig)
 }
 
-func runSuite(suite TestSuite) []TestResult {
+func runSuite(requestConfig RequestConfig, suite TestSuite) []TestResult {
 	results := []TestResult{}
 
 	throttle := NewThrottle(throttleFlag, time.Second)
@@ -193,7 +212,7 @@ func runSuite(suite TestSuite) []TestResult {
 				break
 			}
 
-			trace := call(suite.Dir, c, vars)
+			trace := call(requestConfig, suite.Dir, c, vars)
 			trace.Num = i
 
 			result.Traces = append(result.Traces, trace)
@@ -232,7 +251,7 @@ func createReporter() Reporter {
 	return reporter
 }
 
-func call(suitePath string, call Call, vars *Vars) *CallTrace {
+func call(requestConfig RequestConfig, suitePath string, call Call, vars *Vars) *CallTrace {
 
 	trace := &CallTrace{}
 	execStart := time.Now()
@@ -253,7 +272,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 		return trace
 	}
 
-	req, err := populateRequest(on, bodyToSend, tmplCtx)
+	req, err := populateRequest(requestConfig, on, bodyToSend, tmplCtx)
 	if err != nil {
 		trace.ErrorCause = err
 		return trace
@@ -322,7 +341,7 @@ func call(suitePath string, call Call, vars *Vars) *CallTrace {
 	return trace
 }
 
-func populateRequest(on On, body string, tmplCtx *TemplateContext) (*http.Request, error) {
+func populateRequest(config RequestConfig, on On, body string, tmplCtx *TemplateContext) (*http.Request, error) {
 
 	urlStr, err := urlPrefix(tmplCtx.ApplyTo(on.URL))
 	if err != nil {
@@ -349,6 +368,10 @@ func populateRequest(on On, body string, tmplCtx *TemplateContext) (*http.Reques
 
 	if tmplCtx.HasErrors() {
 		return nil, tmplCtx.Error()
+	}
+
+	for k, v := range config.Headers {
+		req.Header.Add(k, v)
 	}
 
 	return req, nil
