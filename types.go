@@ -720,3 +720,25 @@ func (t *Throttle) RunOrPause() {
 
 	t.queue = append(t.queue, time.Now())
 }
+
+type RequestConfig struct {
+	Headers map[string]string
+}
+
+func newRequestConfig(headersFlag []string) (*RequestConfig, error) {
+	headers := make(map[string]string)
+	for _, h := range headersFlag {
+		parts := strings.Split(h, ":")
+		if len(parts) < 2 {
+			return nil, fmt.Errorf("unable to parse header \"%s\" (two parts separated by : are expected)", h)
+		}
+
+		if len(parts[1]) == 0 {
+			return nil, fmt.Errorf("unable to parse header \"%s\" (header name cannot be empty)", h)
+		}
+
+		headers[parts[0]] = parts[1]
+	}
+
+	return &RequestConfig{Headers: headers}, nil
+}
