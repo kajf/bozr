@@ -28,17 +28,18 @@ func init() {
 		h += "  bozr [OPTIONS] (DIR|FILE)\n\n"
 
 		h += "Options:\n"
-		h += "  -d, --debug		Enable debug mode\n"
-		h += "  -H, --host		Base URI prefix for test calls\n"
-		h += "      --header	Extra header to add to each request\n"
-		h += "  -w, --worker	Execute in parallel with specified number of workers\n"
-		h += "      --throttle	Execute no more than specified number of requests per second (in suite)\n"
-		h += "  -h, --help		Print usage\n"
-		h += "  -i, --info		Enable info mode. Print request and response details\n"
-		h += "      --info-curl Enable info mode. Print request and response details. Request is printed as curl command\n"
-		h += "      --junit		Enable junit xml reporter\n"
-		h += "      --junit-output	Destination for junit report files\n"
-		h += "  -v, --version		Print version information and quit\n\n"
+		h += "  -d, --debug                     Enable debug mode\n"
+		h += "  -H, --host                      Base URI prefix for test calls\n"
+		h += "      --header                    Extra header to add to each request\n"
+		h += "  -w, --worker                    Execute in parallel with specified number of workers\n"
+		h += "      --rewrite-response-location Rewrite response header (Location) before it get checked against expectations\n"
+		h += "      --throttle                  Execute no more than specified number of requests per second (in suite)\n"
+		h += "  -h, --help                      Print usage\n"
+		h += "  -i, --info                      Enable info mode. Print request and response details\n"
+		h += "      --info-curl                 Enable info mode. Print request and response details. Request is printed as curl command\n"
+		h += "      --junit                     Enable junit xml reporter\n"
+		h += "      --junit-output              Destination for junit report files\n"
+		h += "  -v, --version                   Print version information and quit\n\n"
 
 		h += "Examples:\n"
 		h += "  bozr ./examples\n"
@@ -61,18 +62,19 @@ func (i *stringArray) Set(value string) error {
 }
 
 var (
-	suitesDir       string
-	hostFlag        string
-	headersFlag     stringArray
-	workersFlag     int
-	throttleFlag    int
-	infoFlag        bool
-	infoCurlFlag    bool
-	debugFlag       bool
-	helpFlag        bool
-	versionFlag     bool
-	junitFlag       bool
-	junitOutputFlag string
+	suitesDir                 string
+	hostFlag                  string
+	headersFlag               stringArray
+	workersFlag               int
+	throttleFlag              int
+	infoFlag                  bool
+	infoCurlFlag              bool
+	debugFlag                 bool
+	helpFlag                  bool
+	versionFlag               bool
+	junitFlag                 bool
+	junitOutputFlag           string
+	rewriteResponseHeaderFlag string
 
 	debug *log.Logger
 )
@@ -103,6 +105,7 @@ func main() {
 	flag.StringVar(&hostFlag, "H", "", "Test server address. Example: http://example.com/api.")
 	flag.Var(&headersFlag, "header", "Extra header to add to each request")
 	flag.IntVar(&workersFlag, "w", 1, "Execute test sutes in parallel with provided numer of workers. Default is 1.")
+	flag.StringVar(&rewriteResponseHeaderFlag, "rewrite-response-location", "", "Rewrite response header (Location) before it get checked against expectations")
 	flag.IntVar(&throttleFlag, "throttle", 0, "Execute no more than specified number of requests per second (in suite)")
 
 	flag.BoolVar(&helpFlag, "h", false, "Print usage")
@@ -168,13 +171,33 @@ func main() {
 		return
 	}
 
+	rewriteConfig := newRewriteConfig([]ResponseRewriter{
+		&LocationRewrite{BaseURL: hostFlag, Template: rewriteResponseHeaderFlag},
+	})
+
 	loader := NewSuiteLoader(suitesDir, suiteExt, ignoredSuiteExt)
 	reporter := createReporter()
 
-	RunParallel(loader, reporter, runSuite, workersFlag, *requestConfig)
+	RunParallel(&RunConfig{
+		loader:        loader,
+		requestConfig: requestConfig,
+		rewriteConfig: rewriteConfig,
+		reporter:      reporter,
+		runSuite:      runSuite,
+		numRoutines:   workersFlag,
+	})
 }
 
-func runSuite(requestConfig RequestConfig, suite TestSuite) []TestResult {
+type RunConfig struct {
+	loader        <-chan TestSuite
+	requestConfig *RequestConfig
+	rewriteConfig *RewriteConfig
+	reporter      Reporter
+	runSuite      RunSuiteFunc
+	numRoutines   int
+}
+
+func runSuite(requestConfig *RequestConfig, rewriteConfig *RewriteConfig, suite TestSuite) []TestResult {
 	results := []TestResult{}
 
 	throttle := NewThrottle(throttleFlag, time.Second)
@@ -212,7 +235,7 @@ func runSuite(requestConfig RequestConfig, suite TestSuite) []TestResult {
 				break
 			}
 
-			trace := call(requestConfig, suite.Dir, c, vars)
+			trace := call(requestConfig, rewriteConfig, suite.Dir, c, vars)
 			trace.Num = i
 
 			result.Traces = append(result.Traces, trace)
@@ -251,7 +274,7 @@ func createReporter() Reporter {
 	return reporter
 }
 
-func call(requestConfig RequestConfig, suitePath string, call Call, vars *Vars) *CallTrace {
+func call(requestConfig *RequestConfig, rewriteConfig *RewriteConfig, suitePath string, call Call, vars *Vars) *CallTrace {
 
 	trace := &CallTrace{}
 	execStart := time.Now()
@@ -291,6 +314,8 @@ func call(requestConfig RequestConfig, suitePath string, call Call, vars *Vars) 
 		trace.ErrorCause = err
 		return trace
 	}
+
+	rewriteConfig.rewrite(resp)
 
 	defer resp.Body.Close()
 
@@ -341,7 +366,7 @@ func call(requestConfig RequestConfig, suitePath string, call Call, vars *Vars) 
 	return trace
 }
 
-func populateRequest(config RequestConfig, on On, body string, tmplCtx *TemplateContext) (*http.Request, error) {
+func populateRequest(config *RequestConfig, on On, body string, tmplCtx *TemplateContext) (*http.Request, error) {
 
 	urlStr, err := urlPrefix(tmplCtx.ApplyTo(on.URL))
 	if err != nil {
