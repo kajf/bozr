@@ -13,6 +13,7 @@ bozr [OPTIONS] (DIR|FILE)
 Options:
   -H, --host      Base URL prefix for test calls
   -w, --workers   Execute in parallel with specified number of workers
+      --rewrite-response-location Rewrite response header (Location) before it get checked against expectations
       --header    Extra header to add to each request
       --throttle  Execute no more than specified number of requests per second (in suite)
   -h, --help      Print usage
@@ -128,18 +129,18 @@ Passing Test:
 }
 ```
 
-| Assertion      | Description                                                                      | Example                                         |
-|----------------|----------------------------------------------------------------------------------|-------------------------------------------------|
-| statusCode     | Expected http response header 'Status Code'                                      | 200                                             |
-| contentType    | Expected http response 'Content-Type'                                            | application/json                                |
-| bodySchemaFile | Path to json schema to validate response body (path relative to test suite file) | login-schema.json                               |
-| bodySchemaURI  | URI to json schema to validate response body (absolute or relative to the host)  | http://example.com/api/scheme/login-schema.json |
-| bodySchema     | Embedded json schema to validate response body                                           | { "type": "object", "required": [ "field_name" ]
-| body           | Expected body structure and values. Not strict, e.g. full equality is not required. Response may contain more properties. But all specified must match.                                                      |
-| exactBody           | Expected exact body structure and values. Specified body should fully match response. Not specified properties returned in response will cause error.                                                       |
-| bodyPath           | Body matchers: equals, search, size                                                      |
-| absent         | Paths that are NOT expected to be in response                                            | ['user.cardNumber', 'user.password']            |
-| headers        | Expected http headers, specified as a key-value pairs.                                   |
+| Assertion      | Description                                                                                                                                             | Example                                          |
+|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
+| statusCode     | Expected http response header 'Status Code'                                                                                                             | 200                                              |
+| contentType    | Expected http response 'Content-Type'                                                                                                                   | application/json                                 |
+| bodySchemaFile | Path to json schema to validate response body (path relative to test suite file)                                                                        | login-schema.json                                |
+| bodySchemaURI  | URI to json schema to validate response body (absolute or relative to the host)                                                                         | http://example.com/api/scheme/login-schema.json  |
+| bodySchema     | Embedded json schema to validate response body                                                                                                          | { "type": "object", "required": [ "field_name" ] |
+| body           | Expected body structure and values. Not strict, e.g. full equality is not required. Response may contain more properties. But all specified must match. |                                                  |
+| exactBody      | Expected exact body structure and values. Specified body should fully match response. Not specified properties returned in response will cause error.   |                                                  |
+| bodyPath       | Body matchers: equals, search, size                                                                                                                     |                                                  |
+| absent         | Paths that are NOT expected to be in response                                                                                                           | ['user.cardNumber', 'user.password']             |
+| headers        | Expected http headers, specified as a key-value pairs.                                                                                                  |                                                  |
 
 #### 'Expect' body matchers
 
@@ -371,10 +372,34 @@ There are two types of sources for values to remember: response body and headers
 }
 ```
 
-This section allowes more complex test scenarios like:
+This section allows more complex test scenarios like:
 
 - 'request login token, remember, then use remembered {token} to request some data and verify'
 - 'create resource, remember resource id from response, then use remembered {id} to delete resource'
+
+### Rewrite response location
+
+`--rewrite-response-location` flag allows to modify Location header of all response before they are passed to the expectations for verification. 
+Value is a go template with the following variable available
+
+| Name                     | Value                                                                                                                                                                                  |
+|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| response_header_location | - *url.URL variable containing parsed Location header. See available methods [here](https://pkg.go.dev/net/url#URL)<br/> - string if header contains relative URL or arbitrary content |
+| base_url                 | Base URL prefix for test calls. Command line argument provided with -H key                                                                                                             |
+| base_url_schema          | Schema value of the base url (http://example.com:8080 -> http)                                                                                                                         |
+| base_url_host            | Host value of the base_url (http://example.com:8080 -> example.com:8080)                                                                                                               |
+| base_url_hostname        | Hostname value of the base_url (http://example.com:8080 -> example.com)                                                                                                                |
+| base_url_port            | Port value of the base_url (http://example.com:8080 -> 8080)                                                                                                                           |
+
+For example to fix HATEOAS links generated by the app with HTTPS-redirect enabled while running on localhost 
+```sh
+bozr \
+      -H http://127.0.0.1:8080/api \
+      --header "X-Forwarded-Proto:https"
+      --rewrite-response-location="{{index . \"ctx:base_url\"}}{{.response_header_location.Path}}" \
+      examples/rewrite-response.suite.json
+``` 
+
 
 ### Using environment and context variables in tests
 

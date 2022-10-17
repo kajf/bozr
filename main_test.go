@@ -37,7 +37,7 @@ func TestRunSuite_InvalidUrlAndUnused_OnlyInvalidUrl(t *testing.T) {
 		},
 	}
 
-	results := runSuite(RequestConfig{}, suite)
+	results := runSuite(&RequestConfig{}, &RewriteConfig{}, suite)
 
 	err := results[0].Traces[0].ErrorCause
 	if err == nil || !strings.Contains(err.Error(), "Invalid url") {

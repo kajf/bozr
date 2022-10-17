@@ -17,7 +17,7 @@ func TestPopulateRequestBody(t *testing.T) {
 	body := tmplCtx.ApplyTo("pre {var} post")
 
 	// when
-	req, _ := populateRequest(RequestConfig{}, on, body, tmplCtx)
+	req, _ := populateRequest(&RequestConfig{}, on, body, tmplCtx)
 
 	//then
 	buf := new(bytes.Buffer)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/clbanning/mxj"
@@ -50,10 +52,10 @@ func (suite TestSuite) FullName() string {
 
 // TestCase represents single test scenario
 type TestCase struct {
-	Name   string                 `json:"name,omitempty"`
-	Ignore *string                `json:"ignore,omitempty"`
-	Args   map[string]interface{} `json:"args,omitempty"`
-	Calls  []Call                 `json:"calls,omitempty"`
+	Name   string         `json:"name,omitempty"`
+	Ignore *string        `json:"ignore,omitempty"`
+	Args   map[string]any `json:"args,omitempty"`
+	Calls  []Call         `json:"calls,omitempty"`
 }
 
 // Call defines metadata for one request-response verification within TestCase
@@ -478,14 +480,14 @@ const (
 // Vars defines map of test case level variables (e.g. args, remember, env)
 type Vars struct {
 	// variables ready to be used
-	items map[string]interface{}
+	items map[string]any
 	used  map[string]bool
 }
 
 // NewVars create new Vars object with default set of env variables
 func NewVars(baseURL string) *Vars {
 	v := &Vars{
-		items: make(map[string]interface{}),
+		items: make(map[string]any),
 		used:  make(map[string]bool),
 	}
 
@@ -522,12 +524,12 @@ func (v *Vars) parseEnv(env string) {
 
 // Add is adding variable with name and value to map.
 // References to other variables will be resolved upon add.
-// If variable is a template, it will executed.
-func (v *Vars) Add(name string, val interface{}) error {
-	return v.addInScope(name, val, make(map[string]interface{}))
+// If variable is a template, it will be executed.
+func (v *Vars) Add(name string, val any) error {
+	return v.addInScope(name, val, make(map[string]any))
 }
 
-func (v *Vars) addInScope(name string, val interface{}, scope map[string]interface{}) error {
+func (v *Vars) addInScope(name string, val any, scope map[string]any) error {
 	debugf("Adding new argument: %s - %+v\n", name, val)
 
 	if !v.isUserDefined(name) {
@@ -570,12 +572,12 @@ func (v *Vars) addInScope(name string, val interface{}, scope map[string]interfa
 }
 
 // AddAll adds all passed arguments in a single scope. Means items can refer to each other.
-func (v *Vars) AddAll(src map[string]interface{}) error {
+func (v *Vars) AddAll(src map[string]any) error {
 	if src == nil {
 		return nil
 	}
 
-	scope := make(map[string]interface{})
+	scope := make(map[string]any)
 	for ik, iv := range src {
 		scope[ik] = iv
 	}
@@ -658,9 +660,13 @@ func (v *Vars) isUserDefined(varName string) bool {
 	return true
 }
 
+func (v *Vars) toMap() map[string]any {
+	return v.items
+}
+
 // toString returns value suitable to insert as an argument
 // if value if a float where decimal part is zero - convert to int
-func toString(rw interface{}) string {
+func toString(rw any) string {
 	var sv = rw
 	if fv, ok := rw.(float64); ok {
 		_, frac := math.Modf(fv)
@@ -672,7 +678,7 @@ func toString(rw interface{}) string {
 	return fmt.Sprintf("%v", sv)
 }
 
-func toJSON(v interface{}) string {
+func toJSON(v any) string {
 	bytes, _ := json.Marshal(v)
 	return string(bytes)
 }
@@ -751,4 +757,63 @@ func newRequestConfig(headersFlag []string) (*RequestConfig, error) {
 	}
 
 	return &RequestConfig{Headers: headers}, nil
+}
+
+type RewriteConfig struct {
+	ReWriters []ResponseRewriter
+}
+
+func (rc *RewriteConfig) rewrite(resp *http.Response) error {
+	for _, rw := range rc.ReWriters {
+		err := rw.Rewrite(resp)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func newRewriteConfig(rewriters []ResponseRewriter) *RewriteConfig {
+	return &RewriteConfig{
+		ReWriters: rewriters,
+	}
+}
+
+type ResponseRewriter interface {
+	Rewrite(resp *http.Response) error
+}
+
+type LocationRewrite struct {
+	BaseURL  string
+	Template string
+}
+
+func (lr *LocationRewrite) Rewrite(resp *http.Response) error {
+	value := resp.Header.Get("Location")
+	if value == "" || lr.Template == "" {
+		return nil
+	}
+
+	vars := NewVars(lr.BaseURL)
+	locationURL, err := url.ParseRequestURI(value)
+	if err == nil {
+		// otherwise use whatever is in template without variable
+		vars.Add("response_header_location", locationURL)
+	}
+
+	// "{{index . \"ctx:base_url\"}}{{.response_header_location.Path}}"
+	t, err := template.New("").Parse(lr.Template)
+	if err != nil {
+		return errors.Wrapf(err, "unable to parse rewrite-response-location template")
+	}
+
+	output := bytes.NewBufferString("")
+
+	err = t.Execute(output, vars.toMap())
+	if err != nil {
+		return errors.Wrapf(err, "unable to evaluate rewrite-response-location template")
+	}
+
+	resp.Header.Set("Location", output.String())
+	return nil
 }
