@@ -1,6 +1,6 @@
 module github.com/kajf/bozr
 
-go 1.17
+go 1.19
 
 require (
 	github.com/clbanning/mxj v1.8.4

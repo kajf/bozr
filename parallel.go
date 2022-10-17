@@ -5,18 +5,25 @@ import (
 )
 
 // RunSuiteFunc describes particular test suite execution. Passed here to deleniate parallelism from suite execution logic
-type RunSuiteFunc func(requestConfig RequestConfig, suite TestSuite) []TestResult
+type RunSuiteFunc func(requestConfig *RequestConfig, rewriteConfig *RewriteConfig, suite TestSuite) []TestResult
 
 // RunParallel starts parallel routines to execute test suites received from loader channel
-func RunParallel(loader <-chan TestSuite, reporter Reporter, runSuite RunSuiteFunc, numRoutines int, requestConfig RequestConfig) {
+func RunParallel(runConfig *RunConfig) {
 
 	resultConsumer := make(chan []TestResult)
 
 	var wg sync.WaitGroup
-	wg.Add(numRoutines)
+	wg.Add(runConfig.numRoutines)
 
-	for i := 0; i < numRoutines; i++ {
-		go runSuites(requestConfig, loader, resultConsumer, &wg, runSuite)
+	for i := 0; i < runConfig.numRoutines; i++ {
+		go runSuites(&SuiteConfig{
+			requestConfig:  runConfig.requestConfig,
+			rewriteConfig:  runConfig.rewriteConfig,
+			loader:         runConfig.loader,
+			resultConsumer: resultConsumer,
+			waitGroup:      &wg,
+			runner:         runConfig.runSuite,
+		})
 	}
 
 	// Start a goroutine to close out once all the output goroutines are
@@ -29,21 +36,30 @@ func RunParallel(loader <-chan TestSuite, reporter Reporter, runSuite RunSuiteFu
 	for {
 		results, more := <-resultConsumer
 
-		reporter.Report(results)
+		runConfig.reporter.Report(results)
 
 		if !more {
 			break
 		}
 	}
 
-	reporter.Flush()
+	runConfig.reporter.Flush()
 }
 
-func runSuites(requestConfig RequestConfig, loader <-chan TestSuite, resultConsumer chan<- []TestResult, wg *sync.WaitGroup, runSuite RunSuiteFunc) {
+type SuiteConfig struct {
+	requestConfig  *RequestConfig
+	rewriteConfig  *RewriteConfig
+	loader         <-chan TestSuite
+	resultConsumer chan []TestResult
+	waitGroup      *sync.WaitGroup
+	runner         RunSuiteFunc
+}
 
-	for suite := range loader {
-		resultConsumer <- runSuite(requestConfig, suite)
+func runSuites(cfg *SuiteConfig) {
+
+	for suite := range cfg.loader {
+		cfg.resultConsumer <- runSuite(cfg.requestConfig, cfg.rewriteConfig, suite)
 	}
 
-	wg.Done()
+	cfg.waitGroup.Done()
 }
