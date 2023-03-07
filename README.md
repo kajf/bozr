@@ -19,6 +19,7 @@ Options:
   -h, --help      Print usage
   -i, --info      Enable info mode. Print request and response details.
   -d, --debug     Enable debug mode
+      --dry-run   Enable dry run mode when no HTTP calls are performed
       --junit     Enable junit xml reporter
   -v, --version   Print version information and quit
 
@@ -441,6 +442,10 @@ List of context variables
 }
 ```
 
+
+## Dry run mode
+
+Dry run mode runs test suite but does not execute calls. This could be used in CI/CD pipelines to quickly validate test suite changes. For example, a missed bracket or duplicated test name will be spot in dry run.
 
 ## Editor integration
 
