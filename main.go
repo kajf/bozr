@@ -304,10 +304,6 @@ func call(requestConfig *RequestConfig, rewriteConfig *RewriteConfig, suitePath 
 		return trace
 	}
 
-	if dryRunFlag {
-		return trace
-	}
-
 	req, err := populateRequest(requestConfig, on, bodyToSend, tmplCtx)
 	if err != nil {
 		trace.ErrorCause = err
@@ -317,6 +313,10 @@ func call(requestConfig *RequestConfig, rewriteConfig *RewriteConfig, suitePath 
 	trace.RequestDump = dumpRequest(req, bodyToSend, infoCurlFlag)
 	trace.RequestMethod = req.Method
 	trace.RequestURL = req.URL.String()
+
+	if dryRunFlag {
+		return trace
+	}
 
 	client := &http.Client{}
 
