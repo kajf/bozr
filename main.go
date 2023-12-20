@@ -75,6 +75,7 @@ var (
 	junitFlag                 bool
 	junitOutputFlag           string
 	rewriteResponseHeaderFlag string
+	intellijFlag              bool
 
 	debug *log.Logger
 )
@@ -116,6 +117,8 @@ func main() {
 
 	flag.BoolVar(&junitFlag, "junit", false, "Enable junit xml reporter")
 	flag.StringVar(&junitOutputFlag, "junit-output", "./report", "Destination for junit report files. Default ")
+
+	flag.BoolVar(&intellijFlag, "intellij", false, "Enable intellij reporter")
 
 	flag.Parse()
 
@@ -263,7 +266,7 @@ func runSuite(requestConfig *RequestConfig, rewriteConfig *RewriteConfig, suite 
 }
 
 func createReporter() Reporter {
-	reporters := []Reporter{NewConsoleReporter(infoFlag || infoCurlFlag)}
+	reporters := []Reporter{NewIntellijReporter(infoFlag || infoCurlFlag)}
 	if junitFlag {
 		path, _ := filepath.Abs(junitOutputFlag)
 		reporters = append(reporters, NewJUnitReporter(path))

@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"text/tabwriter"
@@ -419,6 +420,180 @@ func (r JUnitXMLReporter) Flush() {
 
 func NewJUnitReporter(outdir string) Reporter {
 	return &JUnitXMLReporter{OutPath: outdir}
+}
+
+// IntellijReporter is a reporter that outputs everything to the StdOut in teamcity format
+
+type IntellijReporter struct {
+	ExitCode int
+	LogHTTP  bool
+	Writer   io.Writer
+
+	// to prevent collisions while working with StdOut
+	ioMutex *sync.Mutex
+}
+
+var teamCityEscapeReplacer = strings.NewReplacer(
+	"'", "|'",
+	"\\n", "|n",
+	"\\uNNNN", "|0xNNNN",
+	"|", "||",
+	"[", "|[",
+	"]", "|]",
+)
+
+func (r IntellijReporter) Write(content interface{}) IntellijReporter {
+	r.Writer.Write([]byte(fmt.Sprintf("%v", content)))
+	return r
+}
+
+func (r IntellijReporter) WriteStatus(status status, output int) IntellijReporter {
+	r.SetColor(status.Color, color.Bold)
+	var val string
+
+	if output == outputIcon {
+		val = status.Icon
+	}
+
+	if output == outputLabel {
+		val = status.Label
+	}
+
+	r.Write(val)
+	r.ResetColor()
+	return r
+}
+
+func (r IntellijReporter) WriteServiceMessage(content string) IntellijReporter {
+	r.Write(fmt.Sprintf("##teamcity[%s]\n", content))
+	return r
+}
+
+func (r IntellijReporter) WriteServiceTestsStarted() IntellijReporter {
+	r.WriteServiceMessage("enteredTheMatrix")
+	return r
+}
+
+func (r IntellijReporter) WriteServiceTestSuiteStarted(name string) IntellijReporter {
+	r.WriteServiceMessage(fmt.Sprintf("testSuiteStarted name='%s'", name))
+	return r
+}
+
+func (r IntellijReporter) WriteServiceTestSuiteFinished(name string) IntellijReporter {
+	r.WriteServiceMessage(fmt.Sprintf("testSuiteFinished name='%s'", name))
+	return r
+}
+
+func (r IntellijReporter) WriteServiceTestStarted(name string) IntellijReporter {
+	r.WriteServiceMessage(fmt.Sprintf("testStarted name='%s'", teamCityEscapeReplacer.Replace(name)))
+	return r
+}
+
+func (r IntellijReporter) WriteServiceTestFinished(name string, duration int64) IntellijReporter {
+	r.WriteServiceMessage(fmt.Sprintf("testFinished name='%s' duration='%d'", teamCityEscapeReplacer.Replace(name), duration))
+	return r
+}
+
+func (r IntellijReporter) WriteServiceTestFailed(name string, message string) IntellijReporter {
+	r.WriteServiceMessage(fmt.Sprintf("testFailed name='%s' message='%s'", teamCityEscapeReplacer.Replace(name), teamCityEscapeReplacer.Replace(message)))
+	return r
+}
+func (r IntellijReporter) WriteServiceTestIgnored(name string, message string) IntellijReporter {
+	r.WriteServiceMessage(fmt.Sprintf("testIgnored name='%s' message='%s'", teamCityEscapeReplacer.Replace(name), teamCityEscapeReplacer.Replace(message)))
+	return r
+}
+
+func (r IntellijReporter) SetColor(attributes ...color.Attribute) {
+	format := make([]string, len(attributes))
+	for i, v := range attributes {
+		format[i] = strconv.Itoa(int(v))
+	}
+
+	var strAttributes = strings.Join(format, ";")
+	r.Write(fmt.Sprintf("%s[%sm", "\u001b", strAttributes))
+}
+
+func (r IntellijReporter) ResetColor() {
+	r.Write(fmt.Sprintf("%s[%dm", "\u001b", color.Reset))
+}
+
+func (r IntellijReporter) Init() {
+	r.ioMutex.Lock()
+	r.WriteServiceTestsStarted()
+	r.ioMutex.Unlock()
+}
+
+func (r IntellijReporter) Report(results []TestResult) {
+	r.ioMutex.Lock()
+
+	if len(results) == 0 {
+		r.ioMutex.Unlock()
+		return
+	}
+
+	suite := results[0].Suite
+	r.WriteServiceTestSuiteStarted(suite.FullName())
+
+	for _, result := range results {
+		r.WriteServiceTestStarted(result.Case.Name)
+
+		if result.Skipped {
+			r.WriteServiceTestIgnored(result.Case.Name, result.SkippedMsg)
+			r.WriteServiceTestFinished(result.Case.Name, result.ExecFrame.Duration().Milliseconds())
+			continue
+		}
+
+		for _, trace := range result.Traces {
+			r.Write(trace.RequestMethod).Write(" ").Write(trace.RequestURL).Write(" [").Write(trace.ExecFrame.Duration().Round(time.Millisecond)).Write("]\n")
+
+			for exp, failed := range trace.ExpDesc {
+				r.Write("\t")
+				if failed {
+					r.WriteStatus(statusFailed, outputIcon)
+				} else {
+					r.WriteStatus(statusPassed, outputIcon)
+				}
+				r.Write(" ").Write(exp).Write("\n")
+			}
+
+			if r.LogHTTP {
+				r.SetColor(color.FgHiBlack)
+
+				r.Write("\n")
+
+				dump := trace.RequestDump
+				if len(dump) > 0 {
+					r.Write(dump)
+				}
+
+				dump = trace.ResponseDump
+				if len(dump) > 0 {
+					r.Write(trace.ResponseDump)
+				}
+
+				r.Write("\n")
+				r.ResetColor()
+			}
+		}
+
+		if result.hasError() {
+			r.WriteServiceTestFailed(result.Case.Name, result.Error())
+		}
+
+		r.WriteServiceTestFinished(result.Case.Name, result.ExecFrame.Duration().Milliseconds())
+	}
+
+	r.WriteServiceTestSuiteFinished(suite.FullName())
+
+	r.ioMutex.Unlock()
+}
+
+func (r IntellijReporter) Flush() {
+	// nothing to do here
+}
+
+func NewIntellijReporter(logHTTP bool) Reporter {
+	return &IntellijReporter{ExitCode: 0, ioMutex: &sync.Mutex{}, Writer: os.Stdout, LogHTTP: logHTTP}
 }
 
 // MultiReporter broadcasts events to another reporters.
