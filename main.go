@@ -39,6 +39,7 @@ func init() {
 		h += "      --info-curl                 Enable info mode. Print request and response details. Request is printed as curl command\n"
 		h += "      --junit                     Enable junit xml reporter\n"
 		h += "      --junit-output              Destination for junit report files\n"
+		h += "      --intellij                  Enable Intellij reporter\n"
 		h += "  -v, --version                   Print version information and quit\n\n"
 
 		h += "Examples:\n"
@@ -118,7 +119,7 @@ func main() {
 	flag.BoolVar(&junitFlag, "junit", false, "Enable junit xml reporter")
 	flag.StringVar(&junitOutputFlag, "junit-output", "./report", "Destination for junit report files. Default ")
 
-	flag.BoolVar(&intellijFlag, "intellij", false, "Enable intellij reporter")
+	flag.BoolVar(&intellijFlag, "intellij", false, "Enable Intellij reporter")
 
 	flag.Parse()
 
@@ -266,7 +267,12 @@ func runSuite(requestConfig *RequestConfig, rewriteConfig *RewriteConfig, suite 
 }
 
 func createReporter() Reporter {
-	reporters := []Reporter{NewIntellijReporter(infoFlag || infoCurlFlag)}
+	var reporters []Reporter
+	if intellijFlag {
+		reporters = []Reporter{NewIntellijReporter(infoFlag || infoCurlFlag)}
+	} else {
+		reporters = []Reporter{NewConsoleReporter(infoFlag || infoCurlFlag)}
+	}
 	if junitFlag {
 		path, _ := filepath.Abs(junitOutputFlag)
 		reporters = append(reporters, NewJUnitReporter(path))
