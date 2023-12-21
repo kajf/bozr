@@ -473,14 +473,19 @@ func (r IntellijReporter) WriteServiceTestsStarted() IntellijReporter {
 	return r
 }
 
-func (r IntellijReporter) WriteServiceTestSuiteStarted(name string, ignored bool) IntellijReporter {
+func (r IntellijReporter) WriteServiceTestSuiteStarted(suite TestSuite, ignored bool) IntellijReporter {
 	var extension = ".suite.json"
 	if ignored {
 		extension = ".xsuite.json"
 	}
-	var locationHint = strings.ReplaceAll(name, ".", "|") + extension
 
-	r.WriteServiceMessage(fmt.Sprintf("testSuiteStarted name='%s' locationHint='bozr:testSuite://%s'", name, locationHint))
+	var suiteDir = suite.Dir
+	if strings.HasPrefix(suite.Dir, ".") {
+		suiteDir = ""
+	}
+	var locationHint = suiteDir + "\\" + suite.Name + extension
+
+	r.WriteServiceMessage(fmt.Sprintf("testSuiteStarted name='%s' locationHint='bozr:testSuite://%s'", suite.FullName(), locationHint))
 	return r
 }
 
@@ -489,12 +494,18 @@ func (r IntellijReporter) WriteServiceTestSuiteFinished(name string) IntellijRep
 	return r
 }
 
-func (r IntellijReporter) WriteServiceTestStarted(name string, suite string, ignored bool) IntellijReporter {
+func (r IntellijReporter) WriteServiceTestStarted(name string, suite TestSuite, ignored bool) IntellijReporter {
 	var extension = ".suite.json"
 	if ignored {
 		extension = ".xsuite.json"
 	}
-	var locationHint = strings.ReplaceAll(suite, ".", "|") + extension + "/" + TeamCityEscapeReplacer.Replace(strings.ReplaceAll(name, " ", ""))
+
+	var suiteDir = suite.Dir
+	if strings.HasPrefix(suite.Dir, ".") {
+		suiteDir = ""
+	}
+	var suiteLocationHint = suiteDir + "\\" + suite.Name + extension
+	var locationHint = suiteLocationHint + "|" + TeamCityEscapeReplacer.Replace(strings.ReplaceAll(name, " ", ""))
 	r.WriteServiceMessage(fmt.Sprintf("testStarted name='%s' locationHint='bozr:test://%s'", TeamCityEscapeReplacer.Replace(name), locationHint))
 	return r
 }
@@ -542,10 +553,10 @@ func (r IntellijReporter) Report(results []TestResult) {
 	}
 
 	suite := results[0].Suite
-	r.WriteServiceTestSuiteStarted(suite.FullName(), results[0].Skipped)
+	r.WriteServiceTestSuiteStarted(suite, results[0].Skipped)
 
 	for _, result := range results {
-		r.WriteServiceTestStarted(result.Case.Name, suite.FullName(), result.Skipped)
+		r.WriteServiceTestStarted(result.Case.Name, suite, result.Skipped)
 
 		if result.Skipped {
 			r.WriteServiceTestIgnored(result.Case.Name, result.SkippedMsg)
