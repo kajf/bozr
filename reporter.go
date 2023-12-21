@@ -425,9 +425,8 @@ func NewJUnitReporter(outdir string) Reporter {
 // IntellijReporter is a reporter that outputs everything to the StdOut in teamcity format
 
 type IntellijReporter struct {
-	ExitCode int
-	LogHTTP  bool
-	Writer   io.Writer
+	LogHTTP bool
+	Writer  io.Writer
 
 	// to prevent collisions while working with StdOut
 	ioMutex *sync.Mutex
@@ -604,7 +603,7 @@ func (r IntellijReporter) Flush() {
 }
 
 func NewIntellijReporter(logHTTP bool) Reporter {
-	return &IntellijReporter{ExitCode: 0, ioMutex: &sync.Mutex{}, Writer: os.Stdout, LogHTTP: logHTTP}
+	return &IntellijReporter{ioMutex: &sync.Mutex{}, Writer: os.Stdout, LogHTTP: logHTTP}
 }
 
 // MultiReporter broadcasts events to another reporters.
