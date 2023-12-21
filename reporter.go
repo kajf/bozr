@@ -433,7 +433,7 @@ type IntellijReporter struct {
 	ioMutex *sync.Mutex
 }
 
-var teamCityEscapeReplacer = strings.NewReplacer(
+var TeamCityEscapeReplacer = strings.NewReplacer(
 	"'", "|'",
 	"\\n", "|n",
 	"\\uNNNN", "|0xNNNN",
@@ -474,8 +474,14 @@ func (r IntellijReporter) WriteServiceTestsStarted() IntellijReporter {
 	return r
 }
 
-func (r IntellijReporter) WriteServiceTestSuiteStarted(name string) IntellijReporter {
-	r.WriteServiceMessage(fmt.Sprintf("testSuiteStarted name='%s'", name))
+func (r IntellijReporter) WriteServiceTestSuiteStarted(name string, ignored bool) IntellijReporter {
+	var extension = ".suite.json"
+	if ignored {
+		extension = ".xsuite.json"
+	}
+	var locationHint = strings.ReplaceAll(name, ".", "|") + extension
+
+	r.WriteServiceMessage(fmt.Sprintf("testSuiteStarted name='%s' locationHint='bozr:testSuite://%s'", name, locationHint))
 	return r
 }
 
@@ -484,22 +490,27 @@ func (r IntellijReporter) WriteServiceTestSuiteFinished(name string) IntellijRep
 	return r
 }
 
-func (r IntellijReporter) WriteServiceTestStarted(name string) IntellijReporter {
-	r.WriteServiceMessage(fmt.Sprintf("testStarted name='%s'", teamCityEscapeReplacer.Replace(name)))
+func (r IntellijReporter) WriteServiceTestStarted(name string, suite string, ignored bool) IntellijReporter {
+	var extension = ".suite.json"
+	if ignored {
+		extension = ".xsuite.json"
+	}
+	var locationHint = strings.ReplaceAll(suite, ".", "|") + extension + "/" + TeamCityEscapeReplacer.Replace(strings.ReplaceAll(name, " ", ""))
+	r.WriteServiceMessage(fmt.Sprintf("testStarted name='%s' locationHint='bozr:test://%s'", TeamCityEscapeReplacer.Replace(name), locationHint))
 	return r
 }
 
 func (r IntellijReporter) WriteServiceTestFinished(name string, duration int64) IntellijReporter {
-	r.WriteServiceMessage(fmt.Sprintf("testFinished name='%s' duration='%d'", teamCityEscapeReplacer.Replace(name), duration))
+	r.WriteServiceMessage(fmt.Sprintf("testFinished name='%s' duration='%d'", TeamCityEscapeReplacer.Replace(name), duration))
 	return r
 }
 
 func (r IntellijReporter) WriteServiceTestFailed(name string, message string) IntellijReporter {
-	r.WriteServiceMessage(fmt.Sprintf("testFailed name='%s' message='%s'", teamCityEscapeReplacer.Replace(name), teamCityEscapeReplacer.Replace(message)))
+	r.WriteServiceMessage(fmt.Sprintf("testFailed name='%s' message='%s'", TeamCityEscapeReplacer.Replace(name), TeamCityEscapeReplacer.Replace(message)))
 	return r
 }
 func (r IntellijReporter) WriteServiceTestIgnored(name string, message string) IntellijReporter {
-	r.WriteServiceMessage(fmt.Sprintf("testIgnored name='%s' message='%s'", teamCityEscapeReplacer.Replace(name), teamCityEscapeReplacer.Replace(message)))
+	r.WriteServiceMessage(fmt.Sprintf("testIgnored name='%s' message='%s'", TeamCityEscapeReplacer.Replace(name), TeamCityEscapeReplacer.Replace(message)))
 	return r
 }
 
@@ -532,10 +543,10 @@ func (r IntellijReporter) Report(results []TestResult) {
 	}
 
 	suite := results[0].Suite
-	r.WriteServiceTestSuiteStarted(suite.FullName())
+	r.WriteServiceTestSuiteStarted(suite.FullName(), results[0].Skipped)
 
 	for _, result := range results {
-		r.WriteServiceTestStarted(result.Case.Name)
+		r.WriteServiceTestStarted(result.Case.Name, suite.FullName(), result.Skipped)
 
 		if result.Skipped {
 			r.WriteServiceTestIgnored(result.Case.Name, result.SkippedMsg)
